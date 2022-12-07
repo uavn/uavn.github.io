@@ -1,5 +1,6 @@
 <script>
   onmessage = evt => {
+    console.log('ONMESSAGE');
     const port = evt.ports[0]
 
     fetch(...evt.data).then(res => {
