@@ -2,8 +2,7 @@
   <head></head>
   <body>
     <script>
-      window.addEventListener("message", (evt) => {
-        alert('ONMESSAGE');
+      onmessage = evt => {
         const port = evt.ports[0]
 
         fetch(...evt.data).then(res => {
@@ -33,7 +32,7 @@
           // start the pipe
           pump()
         })
-      });
+      }
     </script>
   </body>
 </html>
