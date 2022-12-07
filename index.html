@@ -1,5 +1,5 @@
 <script>
-  onmessage = evt => {
+  window.addEventListener("message", (evt) => {
     alert('ONMESSAGE');
     const port = evt.ports[0]
 
@@ -30,5 +30,5 @@
       // start the pipe
       pump()
     })
-  }
+  });
 </script>
