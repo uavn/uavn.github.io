@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #31363F;
+    color: #EEEEEE;
+    padding: 5vw 10vw;
+}
+
+body a {
+    color: #76ABAE;
+}
+
+body a:hover {
+    opacity: 0.8;
+}
+
+.pic {
+    border-radius: 250px;
+    width: 250px;
+    border: 4px solid #76ABAE;
+}
+
+.cert-list {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cert-list a {
+    display: block;
+    width: 18vw;
+}
+
+.cert-list a img {
+    width: 100%;
+    border: 2px solid #76ABAE;
+    border-radius: 10px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.skilllist {
+    text-align: left;
+    list-style: none;
+}
