@@ -1,48 +1,76 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #31363F;
-    color: #EEEEEE;
+    background-color: #1d1f21;
+    color: #c5c8c6;
+    font-family: 'VT323', monospace;
     padding: 5vw 10vw;
 }
 
-body a {
+a {
     color: #76ABAE;
+    text-decoration: none;
+    transition: opacity 0.3s;
 }
 
-body a:hover {
+a:hover {
     opacity: 0.8;
 }
 
 .pic {
-    border-radius: 250px;
-    width: 250px;
+    border-radius: 50%;
+    width: 200px;
     border: 4px solid #76ABAE;
 }
 
-.cert-list {
-    display: flex;
-    align-content: center;
-    justify-content: space-between;
-    align-items: center;
+.top-section {
+    margin-top: 2rem;
 }
 
-.cert-list a {
-    display: block;
-    width: 18vw;
+header h1, header h3 {
+    margin: 1rem 0;
 }
 
-.cert-list a img {
-    width: 100%;
-    border: 2px solid #76ABAE;
-    border-radius: 10px;
-}
-
-.text-center {
-    text-align: center;
+.skills-section, .links-section, .certificates-section {
+    margin-top: 3rem;
 }
 
 .skilllist {
     text-align: left;
     list-style: none;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+.skilllist li {
+    margin-bottom: 0.5rem;
+}
+
+.cert-list {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.cert-list a {
+    width: 20vw;
+    max-width: 150px;
+}
+
+.cert-list img {
+    width: 100%;
+    border: 2px solid #76ABAE;
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+.cert-list img:hover {
+    transform: scale(1.05);
+}
+
+footer p {
+    margin-top: 3rem;
+    font-size: 0.8rem;
+    color: #888;
 }
