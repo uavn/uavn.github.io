@@ -13,12 +13,13 @@ h1, h2 {
 }
 
 a {
-    color: #E8A317;
-    text-decoration: underline;
+    color: #76ABAE;
+    text-decoration: none;
     transition: opacity 0.3s;
 }
 
 a:hover {  
+    color: #E8A317;
     opacity: 0.8;
 }
 
