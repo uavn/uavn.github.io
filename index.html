@@ -36,10 +36,12 @@
         </div>
 
         <div class="start-menu">
-            <wtf-button data-title="<i class='bi bi-play-fill'></i> Start" data-click="start()"></wtf-button>
+            <div class="start-menu-inner">
+                <wtf-button data-title="<i class='bi bi-play-fill'></i> Start" data-click="start()"></wtf-button>
 
-            <div id="clock" class="clock">
-                12:00 PM
+                <div id="clock" class="clock">
+                    12:00 PM
+                </div>
             </div>
         </div>
 
@@ -53,13 +55,15 @@
 
         <template id="window-tpl">
             <div class="window">
-                <div class="window-header">
-                    <span class="window-header-title">{{appName}}</span>
-                    <wtf-button data-title="×" data-click="closeModal(event)"></wtf-button>
-                </div>
+                <div class="window-inner">
+                    <div class="window-header">
+                        <span class="window-header-title">{{appName}}</span>
+                        <wtf-button data-title="×" data-click="closeModal(event)"></wtf-button>
+                    </div>
 
-                <div class="window-body">
-                    {{content}}
+                    <div class="window-body">
+                        {{content}}
+                    </div>
                 </div>
             </div>
         </template>

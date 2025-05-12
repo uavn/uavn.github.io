@@ -61,8 +61,8 @@ const Apps = {
         windowBody.innerHTML = ''; // Clear "{{content}}"
         windowBody.appendChild(iframe);
 
-        windowBody.style.width = width;//@TODO
-        windowBody.style.height = height;//@TODO
+        windowBody.style.width = `${width}px`;
+        windowBody.style.height = `${height}px`;
 
         document.body.appendChild(windowEl);
 
@@ -72,7 +72,7 @@ const Apps = {
         Apps._openApp('./out-of-gas/index.html', 'Out Of Gas', 960, 600);
     },
     AboutMe() {
-        Apps._openApp('./about.html', 'About Me', 300, 300);
+        Apps._openApp('./about.html', 'About Me', 800, 600);
     },
 };
 

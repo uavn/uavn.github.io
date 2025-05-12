@@ -9,9 +9,6 @@ a {
     text-decoration: none;
 }
 
-a:hover {
-}
-
 .btn-ph {
     display: none;
 }
@@ -20,6 +17,7 @@ a.btn {
     text-decoration: none;
     color: #000;
     display: inline-block;
+    line-height: 1em;
     background-color: #C0C0C0;
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
@@ -30,6 +28,10 @@ a.btn {
 a.btn .btn-layer-1 {
     display: inline-block;
     padding: 2px 4px;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.4em;
     box-sizing: border-box;
     border-top: 1px solid #DFDFDF;
     border-left: 1px solid #DFDFDF;
@@ -47,30 +49,47 @@ a.btn .btn-layer-1 {
     border-bottom: 1px solid #fff;
 }
 
+
 .start-menu {
     background-color: #C0C0C0;
-    border-top: 1px solid #fff;
+    border-top: 1px solid #C8E8EA;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 2px;
     line-height: 26px;
     box-sizing: border-box;
+}
+
+.start-menu-inner {
+    border-top: 1px solid #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 2px;
 }
 
 .window {
     position: absolute;
-    width: 1024px;
-    height: 768px;
     top: 100px;
     left: 100px;
-    border: 1px solid #000;
-    background-color: #fff;
+    background-color: #C0C0C0;
+
+    border-left: 1px solid #BDEBF8;
+    border-top: 1px solid #BDEBF8;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+    overflow: hidden;
+}
+
+.window-inner {
     overflow-y: scroll;
+    border-left: 1px solid #fff;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #808183;
+    border-right: 1px solid #808183;
+    padding: 1px;
+    height: 100%;
 }
 
 .window iframe {
@@ -89,7 +108,12 @@ a.btn .btn-layer-1 {
     justify-content: space-between;
     align-content: center;
     flex-direction: row;
-    padding: 2px;
+    padding: 2px 3px;
+}
+
+.window .window-header .btn {
+    width: 25px;
+    height: 25px;
 }
 
 .window .window-header .window-header-title {
@@ -97,12 +121,16 @@ a.btn .btn-layer-1 {
     font-weight: bold;
 }
 
+.window .window-header .window-header-title a.btn .btn-layer-1 {
+}
+
 .desktop {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
-    align-content: center;
-    flex-direction: row;
+    align-content: space-between;
+    flex-direction: column;
+    flex-wrap: nowrap;
 }
 
 .icon {
@@ -114,10 +142,15 @@ a.btn .btn-layer-1 {
     width: 120px;
     text-decoration: none;
     color: #fff;
+    margin: 10px;
+    text-align: center;
 }
 
 .icon-img {
     width: 64px;
+    height: 64px;
     display: inline-block;
-    font-size: 64px;
+    font-size: 60px;
+    margin-bottom: 5px;
+    color: #333;
 }
