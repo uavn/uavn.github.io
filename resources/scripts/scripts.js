@@ -74,6 +74,11 @@ const Apps = {
     AboutMe() {
         Apps._openApp('./about.html', 'About Me', 800, 600);
     },
+    WhiteBG() {
+        if (confirm('Open White BG? Used for film scanning.')) {
+            location.href = './white.html';
+        }
+    },
 };
 
 function openApp(appName) {
