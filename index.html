@@ -5,70 +5,71 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta charset="UTF-8" />
         <meta name="keywords" content="Software Engineer, Unity Developer, Web Developer, Programmer" />
-        
+
         <!-- Google Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-        
+
+        <!-- Bootstrap icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
         <!-- Stylesheet -->
-        <link rel="stylesheet" href="./resources/styles.css" />
-        
+        <link rel="stylesheet" href="./resources/css/styles.css" />
+
+        <!-- Scripts -->
+        <script src="./resources/scripts/widgets.js"></script>
+        <script src="./resources/scripts/utils.js"></script>
+        <script src="./resources/scripts/scripts.js"></script>
+
         <!-- Favicon -->
         <link rel="apple-touch-icon" href="./resources/logo.png" />
         <link rel="icon" href="./resources/logo.png" />
     </head>
 
     <body>
-        <header class="text-center top-section">
-            <img alt="Artem Bondarenko" class="pic" src="https://avatars.githubusercontent.com/u/315338?v=4" />
-            <h1>Hello!</h1>
-            <h3>
-                My name is Artem Bondarenko, <br>
-                Lead Software Engineer: web dev by day, occasional game developer. <br>
-                Based in Calgary, AB, Canada, <br>
-                originally from Vinnytsia, Ukraine.
-            </h3>
-        </header>
+        <div style="border: red; color: orange; padding: 10px; background-color: bisque;">
+            site is under construction...
+        </div>
 
-        <main class="text-center desc-section">
-            <section class="skills-section">
-                <h2>Skills</h2>
-                <ul class="skilllist">
-                    <li>JavaScript: React/Redux, VueJS (+ archaic jQuery, MooTools)</li>
-                    <li>PHP: Symfony, Laravel, Yii, Zend, Phalcon, Cake, Silex, and more</li>
-                    <li>HTML 5, CSS 3, responsive markup</li>
-                    <li>Databases: MySQL, NoSQL, Elastic Search, Sphinx</li>
-                    <li>node.js, electron.js</li>
-                    <li>Unity: C#, Game Development</li>
-                    <li>Parsers and Robots</li>
-                </ul>
-            </section>
+        <div class="desktop">
+            <wtf-icon data-icon="<img class='icon-img' src='./resources/oug.png'/>" data-title="Out Of Gas" data-click="openApp('OutOfGas')"></wtf-icon>
+            <wtf-icon data-icon="<i class='icon-img bi bi-file-earmark-person'></i>" data-title="About Me" data-click="openApp('AboutMe')"></wtf-icon>
+        </div>
 
-            <section class="links-section">
-                <h2>Links and Contacts</h2>
-                <div class="links">
-                    <a href="mailto:artbonvic@gmail.com">✉️ artbonvic@gmail.com</a><br>
-                    <a href="https://github.com/uavn" target="_blank">👨🏻‍💻 GitHub</a><br>
-                    <a href="https://www.linkedin.com/in/artem-bondarenko-b4aa54a7" target="_blank">🏢 LinkedIn</a><br>
-                    <a href="https://www.upwork.com/freelancers/~016c2ad13fd9d53e29" target="_blank">🌴 Upwork</a><br>
-                    <a href="https://instagram.com/n8avenue" target="_blank">📷 Instagram</a><br>
-                    <a href="https://artbonvic.itch.io/" target="_blank">🎮 Itch.io</a><br>
-                    <a href="https://snapcraft.io/out-of-gas-the-game" target="_blank">🎮 Out Of Gas (Ubuntu Snap Store)</a>
+        <div class="start-menu">
+            <wtf-button data-title="<i class='bi bi-play-fill'></i> Start" data-click="start()"></wtf-button>
+
+            <div id="clock" class="clock">
+                12:00 PM
+            </div>
+        </div>
+
+        <template id="wtf-icon-tpl">
+            <a href="#" class="icon">
+                {{icon}}
+
+                <span>{{title}}</span>
+            </a>
+        </template>
+
+        <template id="window-tpl">
+            <div class="window">
+                <div class="window-header">
+                    <span class="window-header-title">{{appName}}</span>
+                    <wtf-button data-title="×" data-click="closeModal(event)"></wtf-button>
                 </div>
-            </section>
 
-            <section class="certificates-section">
-                <h2>Certificates</h2>
-                <div class="cert-list">
-                    <a href="./resources/dyp.jpg" target="_blank"><img src="./resources/dyp.jpg" alt="Certificate 1"/></a>
-                    <a href="./resources/dyp2.jpg" target="_blank"><img src="./resources/dyp2.jpg" alt="Certificate 2"/></a>
-                    <a href="./resources/bbphp.png" target="_blank"><img src="./resources/bbphp.png" alt="Brainbench PHP"/></a>
-                    <a href="./resources/zcephp.gif" target="_blank"><img src="./resources/zcephp.gif" alt="Zend PHP Certification"/></a>
+                <div class="window-body">
+                    {{content}}
                 </div>
-            </section>
-        </main>
+            </div>
+        </template>
 
-        <footer class="text-center">
-            <p>© 2025 Artem Bondarenko</p>
-        </footer>
+        <template id="wtf-button-tpl">
+            <a href="#" class="btn">
+                <span class="btn-layer-1">
+                    {{title}}
+                </span>
+            </a>
+        </template>
     </body>
 </html>
