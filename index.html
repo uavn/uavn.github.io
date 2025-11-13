@@ -26,14 +26,13 @@
     </head>
 
     <body>
-        <div style="border: red; color: orange; padding: 10px; background-color: bisque;">
+        <div class="system-banner">
             site is under construction...
         </div>
 
         <div class="desktop">
-            <wtf-icon data-icon="<img class='icon-img' src='./resources/oug.png'/>" data-title="Out Of Gas" data-click="openApp('OutOfGas')"></wtf-icon>
             <wtf-icon data-icon="<i class='icon-img bi bi-file-earmark-person'></i>" data-title="About Me" data-click="openApp('AboutMe')"></wtf-icon>
-            <wtf-icon data-icon="<i class='icon-img bi bi-camera2'></i>" data-title="White BG" data-click="openApp('WhiteBG')"></wtf-icon>
+            <wtf-icon data-icon="<img class='icon-img' src='./resources/oug.png'/>" data-title="Out Of Gas" data-click="openApp('OutOfGas')"></wtf-icon>
             <wtf-icon data-icon="<i class='icon-img bi bi-translate'></i>" data-title="Mova Nova" data-click="openApp('MovaNova')"></wtf-icon>
         </div>
 
@@ -44,6 +43,46 @@
                 <div id="clock" class="clock">
                     12:00 PM
                 </div>
+            </div>
+        </div>
+
+        <div id="start-panel" class="start-panel" aria-hidden="true">
+            <div class="start-panel-brand">
+                <span class="brand-title">UAVN</span>
+                <span class="brand-version">OS</span>
+            </div>
+            <div class="start-panel-items">
+                <button type="button" class="start-panel-item" data-action="openApp('OutOfGas')">
+                    <i class="bi bi-controller"></i>
+                    <span>Out Of Gas</span>
+                </button>
+                <button type="button" class="start-panel-item" data-action="openApp('AboutMe')">
+                    <i class="bi bi-file-earmark-person"></i>
+                    <span>About Me</span>
+                </button>
+                <button type="button" class="start-panel-item" data-action="openApp('MovaNova')">
+                    <i class="bi bi-translate"></i>
+                    <span>Mova Nova</span>
+                </button>
+                <button type="button" class="start-panel-item" data-action="openApp('WhiteBG')">
+                    <i class="bi bi-camera"></i>
+                    <span>White BG</span>
+                </button>
+                <hr />
+                <button type="button" class="start-panel-item start-panel-item--danger" data-action="turnOff()">
+                    <i class="bi bi-power"></i>
+                    <span>Turn Off...</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="shutdown-notice" class="shutdown-notice" aria-hidden="true">
+            <div class="shutdown-screen" role="dialog" aria-modal="true" aria-labelledby="shutdown-title">
+                <p id="shutdown-title">It's now safe to close this website.</p>
+
+                <button type="button" class="btn" data-shutdown-dismiss>
+                    <span class="btn-layer-1">Return</span>
+                </button>
             </div>
         </div>
 
