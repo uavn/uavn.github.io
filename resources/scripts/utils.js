@@ -26,7 +26,8 @@ Components = {
                         event.preventDefault();
 
                         try {
-                            new Function(value)();
+                            const handler = new Function('event', value);
+                            handler.call(clonedContent, event);
                         } catch (e) {
                             console.error(`Error executing ${key} action "${value}":`, e);
                         }

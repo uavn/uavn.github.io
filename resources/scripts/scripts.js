@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     Widgets.init();
 
+    Taskbar.init();
+
     WindowManager.init();
 
     StartMenu.init();
@@ -12,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const WindowManager = {
     zIndex: 100,
     cascadeIndex: 0,
+    windowCounter: 0,
     init() {
         document.querySelectorAll('.window').forEach(win => this.registerWindow(win));
 
@@ -22,11 +25,27 @@ const WindowManager = {
                 this.bringToFront(win);
             }
         });
+
+        window.addEventListener('resize', () => {
+            this.keepAllWindowsInBounds();
+        });
     },
     registerWindow(windowEl) {
         if (!windowEl) {
             return;
         }
+
+        if (!windowEl.dataset.windowId) {
+            this.windowCounter += 1;
+            windowEl.dataset.windowId = `window-${this.windowCounter}`;
+        }
+
+        const titleEl = windowEl.querySelector('.window-header-title');
+        const titleText = windowEl.dataset.appTitle || (titleEl ? titleEl.textContent.trim() : 'Window');
+        windowEl.dataset.appTitle = titleText;
+
+        windowEl.dataset.minimized = 'false';
+        windowEl.classList.remove('is-minimized');
 
         if (!windowEl.dataset.positioned) {
             const offset = (this.cascadeIndex++ % 5) * 24;
@@ -34,15 +53,27 @@ const WindowManager = {
             windowEl.dataset.positioned = 'true';
         }
 
+        this.ensureWindowDimensions(windowEl);
         this.makeDraggable(windowEl);
+        this.makeResizable(windowEl);
+        Taskbar.registerWindow(windowEl);
         this.bringToFront(windowEl);
+    },
+    unregisterWindow(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        Taskbar.removeWindow(windowEl);
     },
     bringToFront(windowEl) {
         this.zIndex += 1;
         windowEl.style.zIndex = this.zIndex;
 
         document.querySelectorAll('.window').forEach(win => {
-            win.classList.toggle('is-active', win === windowEl);
+            const shouldBeActive = win === windowEl && win.dataset.minimized !== 'true';
+            win.classList.toggle('is-active', shouldBeActive);
+            Taskbar.updateWindow(win);
         });
     },
     makeDraggable(windowEl) {
@@ -91,8 +122,16 @@ const WindowManager = {
                 return;
             }
 
+            if (event.target.closest('.window-controls')) {
+                return;
+            }
+
             event.preventDefault();
             this.bringToFront(windowEl);
+
+            if (windowEl.dataset.maximized === 'true') {
+                this.setMaximized(windowEl, false);
+            }
 
             const rect = windowEl.getBoundingClientRect();
             header.dataset.dragStartX = event.clientX;
@@ -109,16 +148,398 @@ const WindowManager = {
             document.addEventListener('pointercancel', onPointerUp);
         });
     },
-    positionWindow(windowEl, left, top) {
+    makeResizable(windowEl) {
+        if (windowEl.dataset.resizableBound) {
+            return;
+        }
+
+        windowEl.dataset.resizableBound = 'true';
+
+        const directions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+        const handles = directions.map(direction => {
+            const handle = document.createElement('div');
+            handle.className = `window-resize-handle window-resize-handle--${direction}`;
+            handle.dataset.direction = direction;
+            windowEl.appendChild(handle);
+            return handle;
+        });
+
+        let pointerId = null;
+        let activeDirection = null;
+        let startX = 0;
+        let startY = 0;
+        let startRect = null;
+
+        const stopResizing = () => {
+            pointerId = null;
+            activeDirection = null;
+            startRect = null;
+            windowEl.classList.remove('is-resizing');
+            document.removeEventListener('pointermove', onPointerMove);
+            document.removeEventListener('pointerup', onPointerUp);
+            document.removeEventListener('pointercancel', onPointerUp);
+        };
+
+        const onPointerMove = event => {
+            if (event.pointerId !== pointerId || !startRect || !activeDirection) {
+                return;
+            }
+
+            const deltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+
+            this.resizeWindowFromRect(windowEl, activeDirection, startRect, deltaX, deltaY);
+        };
+
+        const onPointerUp = event => {
+            if (event.pointerId !== pointerId) {
+                return;
+            }
+
+            stopResizing();
+        };
+
+        handles.forEach(handle => {
+            handle.addEventListener('pointerdown', event => {
+                if (event.button !== 0) {
+                    return;
+                }
+
+                event.preventDefault();
+                this.bringToFront(windowEl);
+
+                if (windowEl.dataset.maximized === 'true') {
+                    this.setMaximized(windowEl, false);
+                }
+
+                pointerId = event.pointerId;
+                activeDirection = handle.dataset.direction || '';
+                startX = event.clientX;
+                startY = event.clientY;
+
+                const rect = windowEl.getBoundingClientRect();
+                startRect = {
+                    width: rect.width,
+                    height: rect.height,
+                    left: rect.left,
+                    top: rect.top,
+                    right: rect.right,
+                    bottom: rect.bottom
+                };
+
+                windowEl.classList.add('is-resizing');
+
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+                document.addEventListener('pointercancel', onPointerUp);
+            });
+        });
+    },
+    toggleMinimizeWindow(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        if (windowEl.dataset.minimized === 'true') {
+            this.showWindow(windowEl);
+        } else {
+            this.minimizeWindow(windowEl);
+        }
+    },
+    minimizeWindow(windowEl) {
+        if (!windowEl || windowEl.dataset.minimized === 'true') {
+            return;
+        }
+
+        windowEl.dataset.minimized = 'true';
+        windowEl.classList.add('is-minimized');
+        windowEl.classList.remove('is-active');
+
+        Taskbar.updateWindow(windowEl);
+    },
+    showWindow(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        windowEl.dataset.minimized = 'false';
+        windowEl.classList.remove('is-minimized');
+
+        if (windowEl.dataset.maximized === 'true') {
+            this.applyMaximizedBounds(windowEl);
+        } else {
+            this.keepWindowInBounds(windowEl);
+        }
+
+        this.bringToFront(windowEl);
+        Taskbar.updateWindow(windowEl);
+    },
+    toggleMaximizeWindow(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        if (windowEl.dataset.minimized === 'true') {
+            this.showWindow(windowEl);
+        }
+
+        const shouldMaximize = windowEl.dataset.maximized === 'true' ? false : true;
+        this.setMaximized(windowEl, shouldMaximize);
+    },
+    setMaximized(windowEl, shouldMaximize) {
+        if (!windowEl) {
+            return;
+        }
+
+        if (shouldMaximize) {
+            if (windowEl.dataset.maximized === 'true') {
+                this.applyMaximizedBounds(windowEl);
+                return;
+            }
+
+            const rect = windowEl.getBoundingClientRect();
+            windowEl.dataset.restoreLeft = rect.left;
+            windowEl.dataset.restoreTop = rect.top;
+            windowEl.dataset.restoreWidth = rect.width;
+            windowEl.dataset.restoreHeight = rect.height;
+
+            windowEl.dataset.maximized = 'true';
+            windowEl.classList.add('is-maximized');
+            this.applyMaximizedBounds(windowEl);
+            this.bringToFront(windowEl);
+        } else {
+            if (windowEl.dataset.maximized !== 'true') {
+                return;
+            }
+
+            const restoreLeft = parseFloat(windowEl.dataset.restoreLeft || windowEl.style.left || '0');
+            const restoreTop = parseFloat(windowEl.dataset.restoreTop || windowEl.style.top || '0');
+            const restoreWidth = parseFloat(windowEl.dataset.restoreWidth || windowEl.offsetWidth || '0');
+            const restoreHeight = parseFloat(windowEl.dataset.restoreHeight || windowEl.offsetHeight || '0');
+
+            windowEl.dataset.maximized = 'false';
+            windowEl.classList.remove('is-maximized');
+
+            windowEl.style.width = `${restoreWidth}px`;
+            windowEl.style.height = `${restoreHeight}px`;
+            this.positionWindow(windowEl, restoreLeft, restoreTop);
+            this.bringToFront(windowEl);
+
+            delete windowEl.dataset.restoreLeft;
+            delete windowEl.dataset.restoreTop;
+            delete windowEl.dataset.restoreWidth;
+            delete windowEl.dataset.restoreHeight;
+        }
+
+        Taskbar.updateWindow(windowEl);
+    },
+    applyMaximizedBounds(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        const bounds = this.getViewportBounds();
+        windowEl.style.left = '0px';
+        windowEl.style.top = '0px';
+        windowEl.style.width = `${bounds.width}px`;
+        windowEl.style.height = `${bounds.height}px`;
+    },
+    keepWindowInBounds(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        const rect = windowEl.getBoundingClientRect();
+        this.positionWindow(windowEl, rect.left, rect.top);
+    },
+    keepAllWindowsInBounds() {
+        document.querySelectorAll('.window').forEach(win => {
+            if (win.dataset.maximized === 'true') {
+                this.applyMaximizedBounds(win);
+            } else if (win.dataset.minimized !== 'true') {
+                this.keepWindowInBounds(win);
+            }
+        });
+    },
+    resizeWindowFromRect(windowEl, direction, rect, deltaX, deltaY) {
+        const computed = window.getComputedStyle(windowEl);
+        const minWidth = parseFloat(computed.minWidth) || 200;
+        const minHeight = parseFloat(computed.minHeight) || 160;
+        const bounds = this.getViewportBounds();
+
+        let newLeft = rect.left;
+        let newTop = rect.top;
+        let newWidth = rect.width;
+        let newHeight = rect.height;
+
+        if (direction.includes('e')) {
+            let newRight = rect.right + deltaX;
+            newRight = Math.min(newRight, bounds.width);
+            newWidth = Math.max(minWidth, newRight - rect.left);
+        }
+
+        if (direction.includes('s')) {
+            let newBottom = rect.bottom + deltaY;
+            newBottom = Math.min(newBottom, bounds.height);
+            newHeight = Math.max(minHeight, newBottom - rect.top);
+        }
+
+        if (direction.includes('w')) {
+            let proposedLeft = rect.left + deltaX;
+            const maxLeft = rect.right - minWidth;
+            proposedLeft = Math.min(proposedLeft, maxLeft);
+            proposedLeft = Math.max(0, proposedLeft);
+            newLeft = proposedLeft;
+            newWidth = Math.max(minWidth, rect.right - newLeft);
+        }
+
+        if (direction.includes('n')) {
+            let proposedTop = rect.top + deltaY;
+            const maxTop = rect.bottom - minHeight;
+            proposedTop = Math.min(proposedTop, maxTop);
+            proposedTop = Math.max(0, proposedTop);
+            newTop = proposedTop;
+            newHeight = Math.max(minHeight, rect.bottom - newTop);
+        }
+
+        const maxLeft = Math.max(0, bounds.width - newWidth);
+        newLeft = Math.min(newLeft, maxLeft);
+
+        const maxTop = Math.max(0, bounds.height - newHeight);
+        newTop = Math.min(newTop, maxTop);
+
+        windowEl.style.left = `${newLeft}px`;
+        windowEl.style.top = `${newTop}px`;
+        windowEl.style.width = `${newWidth}px`;
+        windowEl.style.height = `${newHeight}px`;
+    },
+    ensureWindowDimensions(windowEl) {
+        if (windowEl.dataset.sizeInitialized) {
+            return;
+        }
+
+        const rect = windowEl.getBoundingClientRect();
+        windowEl.style.width = `${rect.width}px`;
+        windowEl.style.height = `${rect.height}px`;
+        windowEl.dataset.sizeInitialized = 'true';
+    },
+    getViewportBounds() {
         const taskbar = document.querySelector('.start-menu');
         const taskbarHeight = taskbar ? taskbar.offsetHeight : 0;
-        const maxLeft = Math.max(0, window.innerWidth - windowEl.offsetWidth);
-        const maxTop = Math.max(0, window.innerHeight - taskbarHeight - windowEl.offsetHeight);
+
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight - taskbarHeight
+        };
+    },
+    positionWindow(windowEl, left, top) {
+        const bounds = this.getViewportBounds();
+        const maxLeft = Math.max(0, bounds.width - windowEl.offsetWidth);
+        const maxTop = Math.max(0, bounds.height - windowEl.offsetHeight);
         const clampedLeft = Math.min(Math.max(0, left), maxLeft);
         const clampedTop = Math.min(Math.max(0, top), maxTop);
 
         windowEl.style.left = `${clampedLeft}px`;
         windowEl.style.top = `${clampedTop}px`;
+    }
+};
+
+const Taskbar = {
+    container: null,
+    init() {
+        this.container = document.getElementById('taskbar-apps');
+    },
+    registerWindow(windowEl) {
+        if (!this.container || !windowEl) {
+            return;
+        }
+
+        const windowId = windowEl.dataset.windowId;
+
+        if (!windowId) {
+            return;
+        }
+
+        if (this.container.querySelector(`[data-window-target="${windowId}"]`)) {
+            this.updateWindow(windowEl);
+            return;
+        }
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'taskbar-item';
+        button.dataset.windowTarget = windowId;
+        button.title = windowEl.dataset.appTitle || 'Window';
+        button.textContent = windowEl.dataset.appTitle || 'Window';
+
+        button.addEventListener('click', () => this.toggleWindow(windowId));
+
+        this.container.appendChild(button);
+        this.updateWindow(windowEl);
+    },
+    removeWindow(windowEl) {
+        if (!windowEl) {
+            return;
+        }
+
+        this.removeWindowById(windowEl.dataset.windowId);
+    },
+    removeWindowById(windowId) {
+        if (!this.container || !windowId) {
+            return;
+        }
+
+        const button = this.container.querySelector(`[data-window-target="${windowId}"]`);
+
+        if (button) {
+            button.remove();
+        }
+    },
+    updateWindow(windowEl) {
+        if (!this.container || !windowEl) {
+            return;
+        }
+
+        const windowId = windowEl.dataset.windowId;
+
+        if (!windowId) {
+            return;
+        }
+
+        const button = this.container.querySelector(`[data-window-target="${windowId}"]`);
+
+        if (!button) {
+            return;
+        }
+
+        button.title = windowEl.dataset.appTitle || button.title;
+        button.textContent = windowEl.dataset.appTitle || button.textContent;
+
+        const isActive = windowEl.classList.contains('is-active');
+        const isMinimized = windowEl.dataset.minimized === 'true';
+
+        button.classList.toggle('is-active', isActive);
+        button.classList.toggle('is-minimized', isMinimized);
+    },
+    toggleWindow(windowId) {
+        if (!windowId) {
+            return;
+        }
+
+        const windowEl = document.querySelector(`.window[data-window-id="${windowId}"]`);
+
+        if (!windowEl) {
+            this.removeWindowById(windowId);
+            return;
+        }
+
+        if (windowEl.dataset.minimized === 'true') {
+            WindowManager.showWindow(windowEl);
+        } else if (windowEl.classList.contains('is-active')) {
+            WindowManager.minimizeWindow(windowEl);
+        } else {
+            WindowManager.showWindow(windowEl);
+        }
     }
 };
 
@@ -241,7 +662,34 @@ const ShutdownNotice = {
 };
 
 function closeModal(event) {
-    event.target.closest('.window').remove();
+    const windowEl = event.target.closest('.window');
+
+    if (!windowEl) {
+        return;
+    }
+
+    WindowManager.unregisterWindow(windowEl);
+    windowEl.remove();
+}
+
+function minimizeWindow(event) {
+    const windowEl = event.target.closest('.window');
+
+    if (!windowEl) {
+        return;
+    }
+
+    WindowManager.minimizeWindow(windowEl);
+}
+
+function toggleMaximizeWindow(event) {
+    const windowEl = event.target.closest('.window');
+
+    if (!windowEl) {
+        return;
+    }
+
+    WindowManager.toggleMaximizeWindow(windowEl);
 }
 
 function start() {
@@ -290,6 +738,8 @@ const Apps = {
             appTitleEl.textContent = appTitle;
         }
 
+        windowEl.dataset.appTitle = appTitle;
+
         // Create the iframe
         const iframe = document.createElement('iframe');
         iframe.src = iframeUrl;
@@ -302,10 +752,13 @@ const Apps = {
         windowBody.innerHTML = ''; // Clear "{{content}}"
         windowBody.appendChild(iframe);
 
-        windowBody.style.width = `${width}px`;
-        windowBody.style.height = `${height}px`;
-
         document.body.appendChild(windowEl);
+
+        const computed = window.getComputedStyle(windowEl);
+        const minWidth = parseFloat(computed.minWidth) || 280;
+        const minHeight = parseFloat(computed.minHeight) || 220;
+        windowEl.style.width = `${Math.max(width, minWidth)}px`;
+        windowEl.style.height = `${Math.max(height, minHeight)}px`;
 
         Components.init(windowEl);
 
@@ -318,7 +771,7 @@ const Apps = {
         Apps._openApp('./about.html', 'About Me', 800, 600);
     },
     MovaNova() {
-        Apps._openApp('./movanova/index.html', 'About Me', 800, 600);
+        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 600);
     },
     WhiteBG() {
         if (confirm('Open White BG? Used for film scanning.')) {

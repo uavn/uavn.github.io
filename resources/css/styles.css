@@ -82,6 +82,7 @@ a {
 .clock {
     line-height: 26px;
     padding: 2px 4px;
+    flex-shrink: 0;
 
     border-top: 1px solid #808080;
     border-left: 1px solid #808080;
@@ -102,15 +103,59 @@ a {
     line-height: 26px;
     box-sizing: border-box;
     height: 38px;
-    z-index: 200;
+    z-index: 500;
 }
 
 .start-menu-inner {
     border-top: 1px solid #fff;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 2px;
+    gap: 6px;
+    padding: 2px 4px;
+}
+
+.taskbar-apps {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    padding: 0 4px;
+    overflow-x: auto;
+}
+
+.taskbar-apps::-webkit-scrollbar {
+    height: 6px;
+}
+
+.taskbar-apps::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.taskbar-item {
+    flex: 0 0 auto;
+    min-width: 120px;
+    padding: 2px 8px;
+    font: inherit;
+    background-color: var(--retro-gray);
+    border-top: 1px solid var(--retro-light);
+    border-left: 1px solid var(--retro-light);
+    border-bottom: 1px solid var(--retro-mid);
+    border-right: 1px solid var(--retro-mid);
+    text-align: left;
+    cursor: pointer;
+    color: #000;
+}
+
+.taskbar-item.is-active {
+    border-top: 1px solid var(--retro-mid);
+    border-left: 1px solid var(--retro-mid);
+    border-bottom: 1px solid var(--retro-light);
+    border-right: 1px solid var(--retro-light);
+    background-color: var(--retro-highlight);
+}
+
+.taskbar-item.is-minimized {
+    opacity: 0.7;
 }
 
 .start-panel {
@@ -175,6 +220,10 @@ a {
     margin: 8px 0;
 }
 
+.start-panel-items hr:last-of-type {
+    margin-top: auto;
+}
+
 .start-panel-item {
     display: flex;
     align-items: center;
@@ -232,7 +281,9 @@ a {
 }
 
 .window-inner {
-    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border-left: 1px solid #fff;
     border-top: 1px solid #fff;
     border-bottom: 1px solid #808183;
@@ -249,10 +300,14 @@ a {
 }
 
 .window .window-body {
-    height: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     background-color: #fff;
     padding: 6px;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .window .window-header {
@@ -265,18 +320,48 @@ a {
     padding: 2px 3px;
     cursor: grab;
     user-select: none;
+    gap: 6px;
 }
 
-.window .window-header .btn {
-    width: 25px;
-    height: 25px;
-}
-
-.window .window-header .window-header-title {
+.window .window-header-title {
     color: #fff;
     font-weight: bold;
     text-shadow: 1px 1px #000;
     font-size: 0.95rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.window .window-header .btn {
+    width: 26px;
+    height: 26px;
+}
+
+.window-controls .btn {
+    width: 26px;
+    height: 26px;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.window-controls .btn .btn-layer-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+.window-controls {
+    display: flex;
+    gap: 2px;
 }
 
 .window.is-active {
@@ -285,6 +370,85 @@ a {
 
 .window.is-dragging .window-header {
     cursor: grabbing;
+}
+
+.window.is-minimized {
+    display: none;
+}
+
+.window.is-resizing {
+    user-select: none;
+}
+
+.window-resize-handle {
+    position: absolute;
+    z-index: 20;
+    background: transparent;
+    touch-action: none;
+}
+
+.window-resize-handle--n,
+.window-resize-handle--s {
+    left: 4px;
+    right: 4px;
+    height: 8px;
+    cursor: ns-resize;
+}
+
+.window-resize-handle--n {
+    top: -4px;
+}
+
+.window-resize-handle--s {
+    bottom: -4px;
+}
+
+.window-resize-handle--e,
+.window-resize-handle--w {
+    top: 4px;
+    bottom: 4px;
+    width: 8px;
+    cursor: ew-resize;
+}
+
+.window-resize-handle--e {
+    right: -4px;
+}
+
+.window-resize-handle--w {
+    left: -4px;
+}
+
+.window-resize-handle--ne,
+.window-resize-handle--nw,
+.window-resize-handle--se,
+.window-resize-handle--sw {
+    width: 12px;
+    height: 12px;
+}
+
+.window-resize-handle--ne {
+    top: -4px;
+    right: -4px;
+    cursor: nesw-resize;
+}
+
+.window-resize-handle--nw {
+    top: -4px;
+    left: -4px;
+    cursor: nwse-resize;
+}
+
+.window-resize-handle--se {
+    bottom: -4px;
+    right: -4px;
+    cursor: nwse-resize;
+}
+
+.window-resize-handle--sw {
+    bottom: -4px;
+    left: -4px;
+    cursor: nesw-resize;
 }
 
 .desktop {
@@ -322,6 +486,9 @@ a {
 }
 
 .window .window-body iframe {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
     border: 1px solid #808080;
 }
 

@@ -40,6 +40,8 @@
             <div class="start-menu-inner">
                 <wtf-button data-title="<i class='bi bi-play-fill'></i> Start" data-click="start()"></wtf-button>
 
+                <div class="taskbar-apps" id="taskbar-apps" aria-label="Open windows"></div>
+
                 <div id="clock" class="clock">
                     12:00 PM
                 </div>
@@ -63,10 +65,6 @@
                 <button type="button" class="start-panel-item" data-action="openApp('MovaNova')">
                     <i class="bi bi-translate"></i>
                     <span>Mova Nova</span>
-                </button>
-                <button type="button" class="start-panel-item" data-action="openApp('WhiteBG')">
-                    <i class="bi bi-camera"></i>
-                    <span>White BG</span>
                 </button>
                 <hr />
                 <button type="button" class="start-panel-item start-panel-item--danger" data-action="turnOff()">
@@ -99,7 +97,11 @@
                 <div class="window-inner">
                     <div class="window-header">
                         <span class="window-header-title">{{appName}}</span>
-                        <wtf-button data-title="×" data-click="closeModal(event)"></wtf-button>
+                        <div class="window-controls">
+                            <wtf-button data-title="_" data-click="minimizeWindow(event)"></wtf-button>
+                            <wtf-button data-title="[]" data-click="toggleMaximizeWindow(event)"></wtf-button>
+                            <wtf-button data-title="×" data-click="closeModal(event)"></wtf-button>
+                        </div>
                     </div>
 
                     <div class="window-body">
