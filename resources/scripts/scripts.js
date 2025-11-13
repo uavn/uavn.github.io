@@ -74,6 +74,9 @@ const Apps = {
     AboutMe() {
         Apps._openApp('./about.html', 'About Me', 800, 600);
     },
+    MovaNova() {
+        Apps._openApp('./movanova/index.html', 'About Me', 800, 600);
+    },
     WhiteBG() {
         if (confirm('Open White BG? Used for film scanning.')) {
             location.href = './white.html';
