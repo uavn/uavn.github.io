@@ -31,14 +31,14 @@
         </div>
 
         <div class="desktop">
-            <wtf-icon data-icon="<i class='icon-img bi bi-file-earmark-person'></i>" data-title="About Me" data-click="openApp('AboutMe')"></wtf-icon>
-            <wtf-icon data-icon="<img class='icon-img' src='./resources/oug.png'/>" data-title="Out Of Gas" data-click="openApp('OutOfGas')"></wtf-icon>
-            <wtf-icon data-icon="<i class='icon-img bi bi-translate'></i>" data-title="Mova Nova" data-click="openApp('MovaNova')"></wtf-icon>
+            <wtf-icon data-icon-id="about-me" data-icon="<i class='icon-img bi bi-file-earmark-person'></i>" data-title="About Me" data-click="openApp('AboutMe')"></wtf-icon>
+            <wtf-icon data-icon-id="out-of-gas" data-icon="<img class='icon-img' src='./resources/oug.png'/>" data-title="Out Of Gas" data-click="openApp('OutOfGas')"></wtf-icon>
+            <wtf-icon data-icon-id="mova-nova" data-icon="<i class='icon-img bi bi-translate'></i>" data-title="Mova Nova" data-click="openApp('MovaNova')"></wtf-icon>
         </div>
 
         <div class="start-menu">
             <div class="start-menu-inner">
-                <wtf-button data-title="<i class='bi bi-play-fill'></i> Start" data-click="start()"></wtf-button>
+                <wtf-button data-title="<span class='start-button-label'>Menu</span>" data-click="start()"></wtf-button>
 
                 <div class="taskbar-apps" id="taskbar-apps" aria-label="Open windows"></div>
 
@@ -85,7 +85,7 @@
         </div>
 
         <template id="wtf-icon-tpl">
-            <a href="#" class="icon">
+            <a href="#" class="icon" data-icon-id="{{iconId}}">
                 {{icon}}
 
                 <span>{{title}}</span>

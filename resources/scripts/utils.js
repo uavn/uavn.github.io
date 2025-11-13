@@ -21,7 +21,7 @@ Components = {
             const clonedContent = template.content.firstElementChild.cloneNode(true);
 
             Object.entries(ph.dataset).forEach(([key, value]) => {
-                if (['click'].includes(key)) {
+                if (key === 'click') {
                     clonedContent.addEventListener(key, function(event) {
                         event.preventDefault();
 
@@ -33,6 +33,7 @@ Components = {
                         }
                     });
                 } else {
+                    clonedContent.dataset[key] = value;
                     clonedContent.innerHTML = clonedContent.innerHTML.replace(`{{${key}}}`, value);
                 }
             });

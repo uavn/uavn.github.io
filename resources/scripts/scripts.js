@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     Components.init();
 
+    Desktop.init();
+
     Widgets.init();
 
     Taskbar.init();
@@ -10,6 +12,181 @@ document.addEventListener('DOMContentLoaded', function() {
     StartMenu.init();
     ShutdownNotice.init();
 });
+
+const Desktop = {
+    container: null,
+    icons: [],
+    storageKey: 'desktopIconPositions',
+    iconSpacingX: 120,
+    iconSpacingY: 110,
+    init() {
+        this.container = document.querySelector('.desktop');
+
+        if (!this.container) {
+            return;
+        }
+
+        this.icons = Array.from(this.container.querySelectorAll('.icon'));
+        this.loadPositions();
+        this.layoutIcons();
+        window.addEventListener('resize', () => this.ensureIconsWithinBounds());
+    },
+    loadPositions() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            this.positions = stored ? JSON.parse(stored) : {};
+        } catch (error) {
+            console.warn('Failed to load icon positions', error);
+            this.positions = {};
+        }
+    },
+    savePositions() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.positions));
+        } catch (error) {
+            console.warn('Failed to save icon positions', error);
+        }
+    },
+    layoutIcons() {
+        const containerHeight = this.container.clientHeight;
+        const paddingTop = parseFloat(getComputedStyle(this.container).paddingTop) || 0;
+        const paddingLeft = parseFloat(getComputedStyle(this.container).paddingLeft) || 0;
+        const usableHeight = containerHeight - (parseFloat(getComputedStyle(this.container).paddingBottom) || 0) - paddingTop;
+        const iconsPerColumn = Math.max(1, Math.floor(usableHeight / this.iconSpacingY));
+
+        this.icons.forEach((icon, index) => {
+            const id = icon.dataset.iconId || `icon-${index}`;
+            icon.dataset.iconId = id;
+
+            const storedPosition = this.positions[id];
+
+            if (storedPosition) {
+                this.applyPosition(icon, storedPosition.left, storedPosition.top);
+            } else {
+                const column = Math.floor(index / iconsPerColumn);
+                const row = index % iconsPerColumn;
+                const left = paddingLeft + column * this.iconSpacingX;
+                const top = paddingTop + row * this.iconSpacingY;
+                this.applyPosition(icon, left, top);
+            }
+
+            this.makeDraggable(icon);
+        });
+    },
+    applyPosition(icon, left, top) {
+        const clamped = this.getClampedPosition(icon, left, top);
+        icon.style.left = `${clamped.left}px`;
+        icon.style.top = `${clamped.top}px`;
+    },
+    getClampedPosition(icon, left, top) {
+        const maxLeft = Math.max(0, this.container.clientWidth - icon.offsetWidth);
+        const maxTop = Math.max(0, this.container.clientHeight - icon.offsetHeight);
+        const clampedLeft = Math.min(Math.max(0, left), maxLeft);
+        const clampedTop = Math.min(Math.max(0, top), maxTop);
+
+        return { left: clampedLeft, top: clampedTop };
+    },
+    makeDraggable(icon) {
+        if (icon.dataset.draggableBound) {
+            return;
+        }
+
+        icon.dataset.draggableBound = 'true';
+
+        const onPointerMove = event => {
+            if (event.pointerId !== this.pointerId || !this.draggingIcon) {
+                return;
+            }
+
+            const deltaX = event.clientX - this.dragStartX;
+            const deltaY = event.clientY - this.dragStartY;
+
+            if (!this.iconIsDragging) {
+                if (Math.abs(deltaX) < 3 && Math.abs(deltaY) < 3) {
+                    return;
+                }
+
+                this.iconIsDragging = true;
+                this.draggingIcon.classList.add('is-dragging');
+            }
+
+            const targetLeft = this.iconStartLeft + deltaX;
+            const targetTop = this.iconStartTop + deltaY;
+            this.applyPosition(this.draggingIcon, targetLeft, targetTop);
+        };
+
+        const stopDragging = () => {
+            if (!this.draggingIcon) {
+                return;
+            }
+
+            if (this.iconIsDragging) {
+                const id = this.draggingIcon.dataset.iconId;
+                const left = parseFloat(this.draggingIcon.style.left) || 0;
+                const top = parseFloat(this.draggingIcon.style.top) || 0;
+                this.positions[id] = { left, top };
+                this.savePositions();
+
+                this.draggingIcon.dataset.wasDragged = 'true';
+                setTimeout(() => {
+                    delete this.draggingIcon.dataset.wasDragged;
+                }, 100);
+            }
+
+            this.draggingIcon.classList.remove('is-dragging');
+            this.draggingIcon = null;
+            this.iconIsDragging = false;
+            this.pointerId = null;
+
+            document.removeEventListener('pointermove', onPointerMove);
+            document.removeEventListener('pointerup', stopDragging);
+            document.removeEventListener('pointercancel', stopDragging);
+        };
+
+        icon.addEventListener('pointerdown', event => {
+            if (event.button !== 0) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const rect = icon.getBoundingClientRect();
+            const containerRect = this.container.getBoundingClientRect();
+
+            this.pointerId = event.pointerId;
+            this.dragStartX = event.clientX;
+            this.dragStartY = event.clientY;
+            this.iconStartLeft = rect.left - containerRect.left;
+            this.iconStartTop = rect.top - containerRect.top;
+            this.draggingIcon = icon;
+            this.iconIsDragging = false;
+
+            document.addEventListener('pointermove', onPointerMove);
+            document.addEventListener('pointerup', stopDragging);
+            document.addEventListener('pointercancel', stopDragging);
+        });
+
+        icon.addEventListener('click', event => {
+            if (icon.dataset.wasDragged === 'true') {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+        }, true);
+    },
+    ensureIconsWithinBounds() {
+        this.icons.forEach(icon => {
+            const left = parseFloat(icon.style.left) || 0;
+            const top = parseFloat(icon.style.top) || 0;
+            const clamped = this.getClampedPosition(icon, left, top);
+            icon.style.left = `${clamped.left}px`;
+            icon.style.top = `${clamped.top}px`;
+            const id = icon.dataset.iconId;
+            this.positions[id] = clamped;
+        });
+
+        this.savePositions();
+    }
+};
 
 const WindowManager = {
     zIndex: 100,
@@ -43,6 +220,7 @@ const WindowManager = {
         const titleEl = windowEl.querySelector('.window-header-title');
         const titleText = windowEl.dataset.appTitle || (titleEl ? titleEl.textContent.trim() : 'Window');
         windowEl.dataset.appTitle = titleText;
+        windowEl.dataset.appIcon = windowEl.dataset.appIcon || '';
 
         windowEl.dataset.minimized = 'false';
         windowEl.classList.remove('is-minimized');
@@ -469,12 +647,11 @@ const Taskbar = {
         button.type = 'button';
         button.className = 'taskbar-item';
         button.dataset.windowTarget = windowId;
-        button.title = windowEl.dataset.appTitle || 'Window';
-        button.textContent = windowEl.dataset.appTitle || 'Window';
 
         button.addEventListener('click', () => this.toggleWindow(windowId));
 
         this.container.appendChild(button);
+        this.renderButtonContent(button, windowEl);
         this.updateWindow(windowEl);
     },
     removeWindow(windowEl) {
@@ -512,8 +689,7 @@ const Taskbar = {
             return;
         }
 
-        button.title = windowEl.dataset.appTitle || button.title;
-        button.textContent = windowEl.dataset.appTitle || button.textContent;
+        this.renderButtonContent(button, windowEl);
 
         const isActive = windowEl.classList.contains('is-active');
         const isMinimized = windowEl.dataset.minimized === 'true';
@@ -540,6 +716,29 @@ const Taskbar = {
         } else {
             WindowManager.showWindow(windowEl);
         }
+    },
+    renderButtonContent(button, windowEl) {
+        const title = windowEl.dataset.appTitle || 'Window';
+        const iconHtml = windowEl.dataset.appIcon || '';
+
+        button.title = title;
+        button.innerHTML = '';
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'taskbar-item-icon';
+
+        if (iconHtml) {
+            iconSpan.innerHTML = iconHtml;
+        } else {
+            iconSpan.textContent = '•';
+        }
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'taskbar-item-label';
+        labelSpan.textContent = title;
+
+        button.appendChild(iconSpan);
+        button.appendChild(labelSpan);
     }
 };
 
@@ -703,7 +902,19 @@ function turnOff() {
 
 // App system
 const Apps = {
-    _openApp(iframeUrl, appTitle, width, height) {
+    _openApp(iframeUrl, appTitle, width, height, iconHtml, appKey) {
+        const key = appKey || appTitle;
+
+        if (key) {
+            const existingWindow = document.querySelector(`.window[data-app-key="${key}"]`);
+
+            if (existingWindow) {
+                WindowManager.showWindow(existingWindow);
+                WindowManager.bringToFront(existingWindow);
+
+                return;
+            }
+        }
         const templateElement = document.getElementById('window-tpl');
 
         if (!templateElement || templateElement.tagName !== 'TEMPLATE') {
@@ -739,6 +950,11 @@ const Apps = {
         }
 
         windowEl.dataset.appTitle = appTitle;
+        windowEl.dataset.appIcon = iconHtml || windowEl.dataset.appIcon || '';
+
+        if (key) {
+            windowEl.dataset.appKey = key;
+        }
 
         // Create the iframe
         const iframe = document.createElement('iframe');
@@ -765,13 +981,13 @@ const Apps = {
         WindowManager.registerWindow(windowEl);
     },
     OutOfGas() {
-        Apps._openApp('./out-of-gas/index.html', 'Out Of Gas', 960, 600);
+        Apps._openApp('./out-of-gas/index.html', 'Out Of Gas', 960, 600, "<img src='./resources/oug.png' alt='' />", 'OutOfGas');
     },
     AboutMe() {
-        Apps._openApp('./about.html', 'About Me', 800, 600);
+        Apps._openApp('./about.html', 'About Me', 800, 600, "<i class='bi bi-file-earmark-person'></i>", 'AboutMe');
     },
     MovaNova() {
-        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 600);
+        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 600, "<i class='bi bi-translate'></i>", 'MovaNova');
     },
     WhiteBG() {
         if (confirm('Open White BG? Used for film scanning.')) {

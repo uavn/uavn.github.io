@@ -19,11 +19,8 @@ body {
 body {
     margin: 0;
     padding: 0;
-    background-color: var(--retro-bg);
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 6px 6px;
+    background-color: #008080;
+    background-image: none;
     font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
     color: #000;
     overflow: hidden;
@@ -81,37 +78,83 @@ a {
 
 .clock {
     line-height: 26px;
-    padding: 2px 4px;
+    padding: 2px 8px;
     flex-shrink: 0;
 
-    border-top: 1px solid #808080;
-    border-left: 1px solid #808080;
-    border-right: 1px solid #fff;
-    border-bottom: 1px solid #fff;
-    background-color: #2E2E2E;
-    color: #fff;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-right: 1px solid #6E6E6E;
+    border-bottom: 1px solid #6E6E6E;
+    background: #ddd;
+    color: #000;
+    font-weight: bold;
 }
 
 
 .start-menu {
     background-color: var(--retro-gray);
-    border-top: 1px solid #C8E8EA;
+    border-top: 2px solid #efefef;
+    border-left: 2px solid #efefef;
+    border-right: 2px solid #797979;
+    border-bottom: 2px solid #797979;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    line-height: 26px;
     box-sizing: border-box;
-    height: 38px;
     z-index: 500;
+    background: linear-gradient(180deg, #C9CDD2 0%, #ABAFB5 100%);
 }
 
 .start-menu-inner {
-    border-top: 1px solid #fff;
+    border-top: 1px solid #DFE1E5;
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 2px 4px;
+    padding: 1px 2px;
+}
+
+.start-menu .btn {
+    min-width: 96px;
+    background: linear-gradient(180deg, #D9DBDE 0%, #B5B8BD 100%);
+    border-top: 2px solid #FFFFFF;
+    border-left: 2px solid #FFFFFF;
+    border-bottom: 2px solid #5F6266;
+    border-right: 2px solid #5F6266;
+    box-shadow: inset 1px 1px #F5F5F5, inset -1px -1px #8A8D92;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.start-menu .btn .btn-layer-1 {
+    background: transparent;
+    border: none;
+    color: #0A0A0A;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.start-button-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.start-button-label::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #FAFAFA 0%, #C6C6C6 100%);
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    box-shadow: inset 1px 1px rgba(255, 255, 255, 0.75);
 }
 
 .taskbar-apps {
@@ -121,6 +164,7 @@ a {
     gap: 4px;
     padding: 0 4px;
     overflow-x: auto;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .taskbar-apps::-webkit-scrollbar {
@@ -133,35 +177,67 @@ a {
 
 .taskbar-item {
     flex: 0 0 auto;
-    min-width: 120px;
-    padding: 2px 8px;
+    min-width: 140px;
+    padding: 2px 10px;
     font: inherit;
-    background-color: var(--retro-gray);
-    border-top: 1px solid var(--retro-light);
-    border-left: 1px solid var(--retro-light);
-    border-bottom: 1px solid var(--retro-mid);
-    border-right: 1px solid var(--retro-mid);
+    background-color: #C3C7CB;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #7B7B7B;
+    border-right: 2px solid #7B7B7B;
     text-align: left;
     cursor: pointer;
     color: #000;
+    box-shadow: inset 1px 1px #DFDFDF, inset -1px -1px #969696;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
 }
 
 .taskbar-item.is-active {
-    border-top: 1px solid var(--retro-mid);
-    border-left: 1px solid var(--retro-mid);
-    border-bottom: 1px solid var(--retro-light);
-    border-right: 1px solid var(--retro-light);
-    background-color: var(--retro-highlight);
+    border-top: 2px solid #848489;
+    border-left: 2px solid #848489;
+    border-bottom: 2px solid #fff;
+    border-right: 2px solid #fff;
+    background-color: #E7E7E7;
 }
 
 .taskbar-item.is-minimized {
     opacity: 0.7;
 }
 
+.taskbar-item-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.taskbar-item-icon img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.taskbar-item-icon i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.taskbar-item-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .start-panel {
     position: fixed;
-    bottom: 38px;
-    left: 8px;
+    bottom: 41px;
+    left: 0px;
     display: none;
     width: 280px;
     min-height: 280px;
@@ -268,15 +344,15 @@ a {
     position: absolute;
     top: 100px;
     left: 100px;
-    background-color: var(--retro-gray);
-    border-left: 2px solid #BDEBF8;
-    border-top: 2px solid #BDEBF8;
-    border-bottom: 2px solid #000;
-    border-right: 2px solid #000;
+    background-color: #C3C7CB;
+    border-left: 2px solid #fff;
+    border-top: 2px solid #fff;
+    border-bottom: 2px solid #4D4D4D;
+    border-right: 2px solid #4D4D4D;
     overflow: hidden;
     min-width: 280px;
     min-height: 220px;
-    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
     animation: window-pop 180ms ease-out;
 }
 
@@ -305,13 +381,14 @@ a {
     flex-direction: column;
     min-height: 0;
     background-color: #fff;
-    padding: 6px;
+    padding: 0px;
     box-sizing: border-box;
     overflow: hidden;
+    padding-top: 2px;
 }
 
 .window .window-header {
-    background: linear-gradient(90deg, #000082 0%, #2F64D6 100%);
+    background: linear-gradient(90deg, #0B3EA8 0%, #4B74DE 100%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -321,6 +398,7 @@ a {
     cursor: grab;
     user-select: none;
     gap: 6px;
+    border-bottom: 1px solid #0B2E6F;
 }
 
 .window .window-header-title {
@@ -453,27 +531,29 @@ a {
 
 .desktop {
     position: relative;
-    height: calc(100vh - 38px);
-    padding: 72px 16px 48px 16px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 120px);
-    align-content: flex-start;
-    gap: 10px;
+    height: calc(100vh - 36px);
+    padding: 60px 16px 48px 16px;
     overflow: hidden;
 }
 
 .icon {
     display: flex;
-    align-items: center;
-    align-content: space-between;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
     width: 120px;
     text-decoration: none;
     color: #fff;
-    margin: 0;
     text-align: center;
     text-shadow: 1px 1px #000;
+    position: absolute;
+    cursor: default;
+    user-select: none;
+}
+
+.icon.is-dragging {
+    opacity: 0.85;
+    cursor: grabbing;
 }
 
 .icon-img {
