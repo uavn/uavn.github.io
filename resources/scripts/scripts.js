@@ -984,13 +984,13 @@ const Apps = {
         Apps._openApp('./out-of-gas/index.html', 'Out Of Gas', 960, 600, "<img src='./resources/oug.png' alt='' />", 'OutOfGas');
     },
     AboutMe() {
-        Apps._openApp('./about.html', 'About Me', 1000, 800, "<i class='bi bi-file-earmark-person'></i>", 'AboutMe');
+        Apps._openApp('./about.html', 'About Me', 800, 600, "<i class='bi bi-file-earmark-person'></i>", 'AboutMe');
     },
     MovaNova() {
-        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 600, "<i class='bi bi-translate'></i>", 'MovaNova');
+        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 800, "<i class='bi bi-translate'></i>", 'MovaNova');
     },
     Weather() {
-        Apps._openApp('./weather/index.html', 'Weather', 800, 600, "<i class='bi bi-cloud-sun'></i>", 'Weather');
+        Apps._openApp('./weather/index.html', 'Weather', 1000, 800, "<i class='bi bi-cloud-sun'></i>", 'Weather');
     },
     WhiteBG() {
         if (confirm('Open White BG? Used for film scanning.')) {
