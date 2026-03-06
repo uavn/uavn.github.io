@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Comparison</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+        }
+        h1 { text-align: center; color: #333; }
+        .controls {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #555;
+        }
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 9px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .chart-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            height: 70vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather History Comparison</h1>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="month">Month</label>
+            <select id="month">
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="yearFrom">Year From</label>
+            <input type="number" id="yearFrom" min="1940" max="2025" value="2020">
+        </div>
+
+        <div class="control-group">
+            <label for="yearTo">Year To</label>
+            <input type="number" id="yearTo" min="1940" max="2025" value="2024">
+        </div>
+
+        <button onclick="fetchData()">Compare Data</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="weatherChart"></canvas>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        // Default to Calgary coordinates
+        const LAT = 51.0447;
+        const LON = -114.0719;
+
+        const currentYear = new Date().getFullYear();
+        document.getElementById('yearFrom').value = currentYear - 10;
+        document.getElementById('yearTo').value = currentYear;
+        document.getElementById('yearFrom').max = currentYear;
+        document.getElementById('yearTo').max = currentYear;
+
+        async function fetchData() {
+            const month = parseInt(document.getElementById('month').value);
+            const yearFrom = parseInt(document.getElementById('yearFrom').value);
+            const yearTo = parseInt(document.getElementById('yearTo').value);
+
+            if (yearFrom > yearTo) {
+                alert("Year From must be less than or equal to Year To");
+                return;
+            }
+
+            const datasets = [];
+            const years = [];
+            for (let y = yearFrom; y <= yearTo; y++) {
+                years.push(y);
+            }
+
+            const colors = years.map((_, i) => {
+                const hue = (i * 360 / years.length) % 360;
+                return `hsla(${hue}, 70%, 45%, 0.5)`;
+            });
+
+            const promises = years.map(async (year, index) => {
+                const startDate = new Date(year, month, 1);
+                const endDate = new Date(year, month + 1, 0);
+                const formatDate = (d) => {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+
+                const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+
+                    if (!data.daily) return;
+
+                    const color = colors[index];
+
+                    datasets.push({
+                        label: `${year}`,
+                        data: data.daily.temperature_2m_max,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderWidth: 1,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        fill: '+1'
+                    });
+
+                    datasets.push({
+                        label: `${year} Min`,
+                        data: data.daily.temperature_2m_min,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderWidth: 1,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        fill: false
+                    });
+
+                } catch (err) {
+                    console.error(`Failed to fetch data for ${year}`, err);
+                }
+            });
+
+            await Promise.all(promises);
+            datasets.sort((a, b) => a.label.localeCompare(b.label));
+            renderChart(datasets, month);
+        }
+
+        function renderChart(datasets, monthIndex) {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const labels = Array.from({length: 31}, (_, i) => i + 1);
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        title: { display: true, text: 'Daily Temperature Range (Calgary)' },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => `Day ${context[0].label}`
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                filter: item => !item.text.includes('Min')
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Temperature (°C)' } },
+                        x: { title: { display: true, text: 'Day of Month' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
