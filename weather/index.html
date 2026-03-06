@@ -68,6 +68,23 @@
             height: 70vh;
             width: 100%;
         }
+        .loader-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #007bff; /* Blue */
+            border-radius: 50%;
+            width: 60px; height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -79,6 +96,7 @@
             <select id="city">
                 <option value="current">Current Location</option>
                 <option value="51.0447,-114.0719">Calgary</option>
+                <option value="49.2331,28.4682">Vinnytsia</option>
                 <option value="50.4501,30.5234">Kyiv</option>
                 <option value="43.6532,-79.3832">Toronto</option>
                 <option value="49.2827,-123.1207">Vancouver</option>
@@ -106,12 +124,12 @@
 
         <div class="control-group">
             <label for="yearFrom">Year From</label>
-            <input type="number" id="yearFrom" min="1940" max="2025" value="2020">
+            <input type="number" id="yearFrom" min="1940">
         </div>
 
         <div class="control-group">
             <label for="yearTo">Year To</label>
-            <input type="number" id="yearTo" min="1940" max="2025" value="2024">
+            <input type="number" id="yearTo" min="1940">
         </div>
 
         <button onclick="fetchData()">Compare Data</button>
@@ -119,6 +137,9 @@
 
     <div class="chart-container">
         <canvas id="weatherChart"></canvas>
+        <div id="loader-overlay" class="loader-overlay" style="display: none;">
+            <div class="loader"></div>
+        </div>
     </div>
 
     <script>
@@ -129,66 +150,169 @@
         const currentMonth = date.getMonth();
 
         document.getElementById('month').value = currentMonth;
-        document.getElementById('yearFrom').value = currentYear - 5;
+        document.getElementById('yearFrom').value = currentYear - 10;
         document.getElementById('yearTo').value = currentYear;
         document.getElementById('yearFrom').max = currentYear;
         document.getElementById('yearTo').max = currentYear;
 
         async function fetchData() {
-            const citySelect = document.getElementById('city');
-            const cityValue = citySelect.value;
-            let lat, lon;
-            let cityName = citySelect.options[citySelect.selectedIndex].text;
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const compareButton = document.querySelector('button[onclick="fetchData()"]');
 
-            if (cityValue === 'current') {
-                try {
-                    const pos = await new Promise((resolve, reject) =>
-                        navigator.geolocation.getCurrentPosition(resolve, reject)
-                    );
-                    lat = pos.coords.latitude;
-                    lon = pos.coords.longitude;
-                } catch (e) {
-                    alert("Unable to retrieve location. Defaulting to Calgary.");
-                    lat = 51.0447;
-                    lon = -114.0719;
-                    cityName = "Calgary (Fallback)";
+            try {
+                loaderOverlay.style.display = 'flex';
+                compareButton.disabled = true;
+
+                const citySelect = document.getElementById('city');
+                const cityValue = citySelect.value;
+                let lat, lon;
+                let cityName = citySelect.options[citySelect.selectedIndex].text;
+
+                if (cityValue === 'current') {
+                    try {
+                        const pos = await new Promise((resolve, reject) =>
+                            navigator.geolocation.getCurrentPosition(resolve, reject)
+                        );
+                        lat = pos.coords.latitude;
+                        lon = pos.coords.longitude;
+                    } catch (e) {
+                        alert("Unable to retrieve location. Defaulting to Calgary.");
+                        lat = 51.0447;
+                        lon = -114.0719;
+                        cityName = "Calgary (Fallback)";
+                    }
+                } else {
+                    [lat, lon] = cityValue.split(',').map(Number);
                 }
-            } else {
-                [lat, lon] = cityValue.split(',').map(Number);
+
+                const month = parseInt(document.getElementById('month').value);
+                const yearFrom = parseInt(document.getElementById('yearFrom').value);
+                const yearTo = parseInt(document.getElementById('yearTo').value);
+
+                if (yearFrom > yearTo) {
+                    alert("Year From must be less than or equal to Year To");
+                    return;
+                }
+
+                const datasets = [];
+                const years = [];
+                for (let y = yearFrom; y <= yearTo; y++) {
+                    years.push(y);
+                }
+
+                const colors = years.map((_, i) => {
+                    const hue = (i * 360 / years.length) % 360;
+                    return `hsla(${hue}, 70%, 45%, 0.2)`;
+                });
+
+                for (const [index, year] of years.entries()) {
+                    const startDate = new Date(year, month, 1);
+                    let endDate = new Date(year, month + 1, 0);
+                    const today = new Date();
+
+                    if (endDate > today) {
+                        endDate = today;
+                    }
+
+                    if (startDate > endDate) {
+                        continue;
+                    }
+
+                    const formatDate = (d) => {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    };
+
+                    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+                    try {
+                        const res = await fetch(url);
+                        const data = await res.json();
+
+                        if (data.error) {
+                            alert(`API Error: ${data.reason}`);
+                            return;
+                        }
+
+                        if (!data.daily) continue;
+
+                        const color = colors[index];
+
+                        datasets.push({
+                            label: `${year}`,
+                            data: data.daily.temperature_2m_max,
+                            borderColor: color,
+                            backgroundColor: color,
+                            borderWidth: 1,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: '+1'
+                        });
+
+                        datasets.push({
+                            label: `${year} Min`,
+                            data: data.daily.temperature_2m_min,
+                            borderColor: color,
+                            backgroundColor: color,
+                            borderWidth: 1,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            fill: false
+                        });
+
+                    } catch (err) {
+                        console.error(`Failed to fetch data for ${year}`, err);
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 200)); // 200ms pause
+                }
+
+                datasets.sort((a, b) => a.label.localeCompare(b.label));
+                renderChart(datasets, month, cityName);
+            } finally {
+                loaderOverlay.style.display = 'none';
+                compareButton.disabled = false;
             }
+        }
 
-            const month = parseInt(document.getElementById('month').value);
-            const yearFrom = parseInt(document.getElementById('yearFrom').value);
-            const yearTo = parseInt(document.getElementById('yearTo').value);
+        function renderChart(datasets, monthIndex, cityName) {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
 
-            if (yearFrom > yearTo) {
-                alert("Year From must be less than or equal to Year To");
-                return;
-            }
+            const labels = Array.from({length: 31}, (_, i) => i + 1);
 
-            const datasets = [];
-            const years = [];
-            for (let y = yearFrom; y <= yearTo; y++) {
-                years.push(y);
-            }
-
-            const colors = years.map((_, i) => {
-                const hue = (i * 360 / years.length) % 360;
-                return `hsla(${hue}, 70%, 45%, 0.2)`;
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        title: { display: true, text: `Daily Temperature Range (${cityName})` },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => `Day ${context[0].label}`
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                filter: item => !item.text.includes('Min')
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Temperature (°C)' } },
+                        x: { title: { display: true, text: 'Day of Month' } }
+                    }
+                }
             });
-
-            const promises = years.map(async (year, index) => {
-                const startDate = new Date(year, month, 1);
-                const endDate = new Date(year, month + 1, 0);
-                const formatDate = (d) => {
-                    const year = d.getFullYear();
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const day = String(d.getDate()).padStart(2, '0');
-                    return `${year}-${month}-${day}`;
-                };
-
-                const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
-
+        }
+    </script>
+</body>
+</html>
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
