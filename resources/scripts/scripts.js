@@ -997,6 +997,9 @@ const Apps = {
             location.href = './white.html';
         }
     },
+    MusVis() {
+        Apps._openApp('./musvis/index.html', 'Music Visualizer', 1000, 800, "<i class='bi bi-music-note-beamed'></i>", 'MusVis');
+    }
 };
 
 function openApp(appName) {
