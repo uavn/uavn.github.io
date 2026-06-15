@@ -987,7 +987,7 @@ const Apps = {
         Apps._openApp('./about.html', 'About Me', 800, 600, "<i class='bi bi-file-earmark-person'></i>", 'AboutMe');
     },
     MovaNova() {
-        Apps._openApp('./movanova/index.html', 'Mova Nova', 800, 800, "<i class='bi bi-translate'></i>", 'MovaNova');
+        Apps._openApp('./_site/movanova/index.html', 'Mova Nova', 800, 800, "<i class='bi bi-translate'></i>", 'MovaNova');
     },
     Weather() {
         Apps._openApp('./weather/index.html', 'Weather', 1000, 800, "<i class='bi bi-cloud-sun'></i>", 'Weather');
@@ -998,7 +998,7 @@ const Apps = {
         }
     },
     MusVis() {
-        Apps._openApp('./musvis/index.html', 'Music Visualizer', 1000, 800, "<i class='bi bi-music-note-beamed'></i>", 'MusVis');
+        Apps._openApp('./_site/musvis/index.html', 'Music Visualizer', 1000, 800, "<i class='bi bi-music-note-beamed'></i>", 'MusVis');
     }
 };
 

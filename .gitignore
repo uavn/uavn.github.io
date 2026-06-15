@@ -1,2 +1,5 @@
-.history
-
+_site/
+musvis/
+movanova/
+.history/
+.env.local
