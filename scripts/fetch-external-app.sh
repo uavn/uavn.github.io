@@ -35,7 +35,7 @@ repo="${EXTERNAL_APP_REPO:-}"
 token=""
 
 if [ -z "$repo" ]; then
-  token="${EXTERNAL_APPS_TOKEN:-${MUSVIS_REPO_TOKEN:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}}"
+  token="${EXTERNAL_APPS_TOKEN:-${EXTERNAL_APPS_TOKEN:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}}"
   if [ -z "$token" ] && command -v gh >/dev/null 2>&1; then
     token="$(gh auth token 2>/dev/null || true)"
   fi

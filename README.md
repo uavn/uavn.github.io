@@ -28,7 +28,7 @@ Then run:
 scripts/build-site.sh
 ```
 
-If `.env.local` is absent, the script also accepts `MUSVIS_REPO_TOKEN`,
+If `.env.local` is absent, the script also accepts `EXTERNAL_APPS_TOKEN`,
 `GH_TOKEN`, or `GITHUB_TOKEN` from the current shell, and will try
 `gh auth token` when the GitHub CLI is logged in.
 

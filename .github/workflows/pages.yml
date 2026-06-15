@@ -31,7 +31,6 @@ jobs:
       - name: Build site
         env:
           EXTERNAL_APPS_TOKEN: ${{ secrets.EXTERNAL_APPS_TOKEN }}
-          MUSVIS_REPO_TOKEN: ${{ secrets.MUSVIS_REPO_TOKEN }}
         run: scripts/build-site.sh
 
       - name: Upload artifact
