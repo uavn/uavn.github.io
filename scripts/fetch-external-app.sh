@@ -70,16 +70,14 @@ if [ -n "$token" ] && command -v curl >/dev/null 2>&1; then
   fi
 fi
 
-if [ -n "$token" ]; then
-  auth="$(printf 'x-access-token:%s' "$token" | base64 | tr -d '\n')"
-  git_cmd=(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}")
-else
-  git_cmd=(git)
+auth_repo="$repo"
+if [ -n "$token" ] && [[ "$repo" =~ ^https://github\.com/ ]]; then
+  auth_repo="https://x-access-token:${token}@${repo#https://}"
 fi
 
 clone_dir="$tmpdir/repo"
 
-if ! "${git_cmd[@]}" clone --depth 1 --branch "$branch" "$repo" "$clone_dir" >/dev/null; then
+if ! git clone --depth 1 --branch "$branch" "$auth_repo" "$clone_dir" >/dev/null; then
   echo "Failed to clone ${repo_owner}/${repo_name}." >&2
   echo "Set EXTERNAL_APPS_TOKEN to a token with read access." >&2
   echo "Alternatively, set EXTERNAL_APP_REPO to an accessible git URL." >&2
