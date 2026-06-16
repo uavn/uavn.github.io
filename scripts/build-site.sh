@@ -21,10 +21,10 @@ rsync -a \
   --exclude '.env' \
   --exclude '.env.*' \
   --exclude '.DS_Store' \
-  --exclude '_site' \
-  --exclude 'scripts' \
-  --exclude 'musvis' \
-  --exclude 'movanova' \
+  --exclude '/_site' \
+  --exclude '/scripts' \
+  --exclude '/musvis' \
+  --exclude '/movanova' \
   ./ "$site_dir/"
 
 while IFS='|' read -r destination _; do
