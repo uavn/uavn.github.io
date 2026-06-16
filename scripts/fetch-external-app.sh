@@ -32,21 +32,19 @@ EOF
 destination="${destination_override:-$destination}"
 repo_path="${repo_owner}/${repo_name}.git"
 repo="${EXTERNAL_APP_REPO:-}"
-token=""
+token="${EXTERNAL_APPS_TOKEN:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}"
+
+if [ -z "$token" ] && command -v gh >/dev/null 2>&1; then
+  token="$(gh auth token 2>/dev/null || true)"
+fi
 
 if [ -z "$repo" ]; then
-  token="${EXTERNAL_APPS_TOKEN:-${EXTERNAL_APPS_TOKEN:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}}"
-  if [ -z "$token" ] && command -v gh >/dev/null 2>&1; then
-    token="$(gh auth token 2>/dev/null || true)"
-  fi
-
   if [ -z "$token" ]; then
-    echo "EXTERNAL_APPS_TOKEN is required to clone ${repo_owner}/${repo_name}." >&2
-    echo "Set it in .env.local for local builds or as a GitHub Actions repository secret." >&2
-    exit 1
+    # Public repositories can still be cloned anonymously when no token is set.
+    repo="https://github.com/${repo_path}"
+  else
+    repo="https://github.com/${repo_path}"
   fi
-
-  repo="https://github.com/${repo_path}"
 fi
 
 export GIT_TERMINAL_PROMPT=0
