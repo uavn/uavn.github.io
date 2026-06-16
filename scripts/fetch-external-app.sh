@@ -38,6 +38,11 @@ if [ -z "$token" ] && command -v gh >/dev/null 2>&1; then
   token="$(gh auth token 2>/dev/null || true)"
 fi
 
+# Normalize token read from env/secrets to avoid newline parsing issues in CI.
+if [ -n "$token" ]; then
+  token="$(printf '%s' "$token" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+fi
+
 if [ -z "$repo" ]; then
   if [ -z "$token" ]; then
     # Public repositories can still be cloned anonymously when no token is set.
@@ -48,6 +53,19 @@ if [ -z "$repo" ]; then
 fi
 
 export GIT_TERMINAL_PROMPT=0
+
+repo_override="no"
+if [ -n "${EXTERNAL_APP_REPO:-}" ]; then
+  repo_override="yes"
+fi
+
+if [ -n "${CI:-}" ] || [ "${EXTERNAL_APPS_DEBUG:-0}" = "1" ]; then
+  if [ -n "$token" ]; then
+    echo "External app auth debug: token present (length ${#token}), repo override: ${repo_override}" >&2
+  else
+    echo "External app auth debug: token missing, repo override: ${repo_override}" >&2
+  fi
+fi
 
 tmpdir="$(mktemp -d)"
 cleanup() {
@@ -70,14 +88,16 @@ if [ -n "$token" ] && command -v curl >/dev/null 2>&1; then
   fi
 fi
 
-auth_repo="$repo"
 if [ -n "$token" ] && [[ "$repo" =~ ^https://github\.com/ ]]; then
-  auth_repo="https://x-access-token:${token}@${repo#https://}"
+  auth="$(printf 'x-access-token:%s' "$token" | base64 | tr -d '\r\n')"
+  git_cmd=(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}")
+else
+  git_cmd=(git)
 fi
 
 clone_dir="$tmpdir/repo"
 
-if ! git clone --depth 1 --branch "$branch" "$auth_repo" "$clone_dir" >/dev/null; then
+if ! "${git_cmd[@]}" clone --depth 1 --branch "$branch" "$repo" "$clone_dir" >/dev/null; then
   echo "Failed to clone ${repo_owner}/${repo_name}." >&2
   echo "Set EXTERNAL_APPS_TOKEN to a token with read access." >&2
   echo "Alternatively, set EXTERNAL_APP_REPO to an accessible git URL." >&2
