@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     Components.init();
 
     Desktop.init();
+    SettingsManager.init();
+    DesktopContextMenu.init();
 
     Widgets.init();
 
@@ -34,18 +36,40 @@ const Desktop = {
     loadPositions() {
         try {
             const stored = localStorage.getItem(this.storageKey);
-            this.positions = stored ? JSON.parse(stored) : {};
+            const parsed = stored ? JSON.parse(stored) : null;
+
+            if (parsed && typeof parsed === 'object' && parsed.positions) {
+                this.positions = parsed.positions || {};
+                this.settings = parsed.settings || {};
+            } else {
+                this.positions = parsed || {};
+                this.settings = {};
+            }
         } catch (error) {
             console.warn('Failed to load icon positions', error);
             this.positions = {};
+            this.settings = {};
         }
     },
     savePositions() {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(this.positions));
+            localStorage.setItem(this.storageKey, JSON.stringify({
+                positions: this.positions,
+                settings: this.settings || {}
+            }));
         } catch (error) {
             console.warn('Failed to save icon positions', error);
         }
+    },
+    getSettings() {
+        return this.settings || {};
+    },
+    updateSettings(nextSettings) {
+        this.settings = {
+            ...(this.settings || {}),
+            ...(nextSettings || {})
+        };
+        this.savePositions();
     },
     layoutIcons() {
         const containerHeight = this.container.clientHeight;
@@ -739,6 +763,331 @@ const Taskbar = {
 
         button.appendChild(iconSpan);
         button.appendChild(labelSpan);
+    }
+};
+
+const SettingsManager = {
+    windowEl: null,
+    contentEl: null,
+    state: {
+        backgroundMode: 'color',
+        backgroundColor: '#0a6f73',
+        wallpaper: '',
+        showBanner: true
+    },
+    colorOptions: ['#0a6f73', '#0a5a75', '#3f3f7c', '#5c6f2b', '#7a4b2b', '#4b4b4b'],
+    wallpapers: [],
+    maxWallpaperOptions: 8,
+    init() {
+        this.loadFromStorage();
+        this.loadWallpaperManifest();
+        this.apply();
+    },
+    ensureWindow() {
+        const existingWindow = document.querySelector('.window[data-app-key="Settings"]');
+
+        if (existingWindow) {
+            this.windowEl = existingWindow;
+            this.contentEl = existingWindow.querySelector('.settings-content');
+            return;
+        }
+
+        const templateElement = document.getElementById('window-tpl');
+
+        if (!templateElement || templateElement.tagName !== 'TEMPLATE') {
+            return;
+        }
+
+        const clonedFragment = templateElement.content.cloneNode(true);
+        const windowEl = clonedFragment.querySelector('.window');
+        const windowBody = windowEl ? windowEl.querySelector('.window-body') : null;
+        const appTitleEl = windowEl ? windowEl.querySelector('.window-header-title') : null;
+
+        if (!windowEl || !windowBody) {
+            return;
+        }
+
+        if (appTitleEl) {
+            appTitleEl.textContent = 'Settings';
+        }
+
+        windowEl.dataset.appTitle = 'Settings';
+        windowEl.dataset.appIcon = "<i class='bi bi-sliders'></i>";
+        windowEl.dataset.appKey = 'Settings';
+
+        windowBody.innerHTML = `
+            <div class="settings-content">
+                <div class="settings-body">
+                    <section class="settings-group">
+                        <h4>Background Colors</h4>
+                        <div class="settings-options" data-color-options></div>
+                    </section>
+                    <section class="settings-group">
+                        <h4>Wallpapers</h4>
+                        <div class="settings-wallpaper-preview" data-wallpaper-preview></div>
+                        <div class="settings-options" data-wallpaper-options></div>
+                    </section>
+                    <section class="settings-group">
+                        <label>
+                            <input type="checkbox" data-setting="showBanner" />
+                            Show top notice
+                        </label>
+                    </section>
+                </div>
+                <div class="settings-footer">
+                    <button type="button" class="btn" data-close-settings><span class="btn-layer-1">Close</span></button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(windowEl);
+        windowEl.style.width = '420px';
+        windowEl.style.height = '460px';
+
+        Components.init(windowEl);
+        WindowManager.registerWindow(windowEl);
+
+        this.windowEl = windowEl;
+        this.contentEl = windowEl.querySelector('.settings-content');
+
+        this.bindEvents();
+    },
+    loadFromStorage() {
+        const saved = Desktop.getSettings ? Desktop.getSettings() : {};
+        this.state = {
+            ...this.state,
+            ...(saved || {})
+        };
+    },
+    save() {
+        Desktop.updateSettings(this.state);
+    },
+    bindEvents() {
+        if (!this.contentEl) {
+            return;
+        }
+
+        const closeButton = this.contentEl.querySelector('[data-close-settings]');
+        const bannerCheckbox = this.contentEl.querySelector('[data-setting="showBanner"]');
+
+        if (closeButton) {
+            closeButton.addEventListener('click', () => this.close(), { once: false });
+        }
+
+        if (bannerCheckbox) {
+            bannerCheckbox.addEventListener('change', event => {
+                this.state.showBanner = event.target.checked;
+                this.apply();
+                this.save();
+            }, { once: false });
+        }
+    },
+    async loadWallpaperManifest() {
+        try {
+            const response = await fetch('./resources/wallpapers/manifest.json', { cache: 'no-store' });
+
+            if (!response.ok) {
+                this.wallpapers = [];
+                this.render();
+                return;
+            }
+
+            const payload = await response.json();
+            this.wallpapers = Array.isArray(payload.wallpapers) ? payload.wallpapers : [];
+            this.render();
+        } catch (error) {
+            console.warn('Failed to load wallpapers manifest', error);
+            this.wallpapers = [];
+            this.render();
+        }
+    },
+    setBackgroundColor(color) {
+        this.state.backgroundMode = 'color';
+        this.state.backgroundColor = color;
+        this.state.wallpaper = '';
+        this.apply();
+        this.save();
+        this.render();
+    },
+    setWallpaper(filename) {
+        this.state.backgroundMode = 'wallpaper';
+        this.state.wallpaper = filename;
+        this.apply();
+        this.save();
+        this.render();
+    },
+    apply() {
+        const body = document.body;
+        const banner = document.querySelector('.system-banner');
+
+        if (this.state.backgroundMode === 'wallpaper' && this.state.wallpaper) {
+            body.style.backgroundColor = '#000';
+            body.style.backgroundImage = `url('./resources/wallpapers/${this.state.wallpaper}')`;
+            body.style.backgroundRepeat = 'no-repeat';
+            body.style.backgroundSize = 'cover';
+            body.style.backgroundPosition = 'center center';
+        } else {
+            body.style.backgroundColor = this.state.backgroundColor || '#0a6f73';
+            body.style.backgroundImage = 'none';
+            body.style.backgroundSize = 'auto';
+            body.style.backgroundPosition = '0 0';
+            body.style.backgroundRepeat = 'no-repeat';
+        }
+
+        if (banner) {
+            banner.style.display = this.state.showBanner ? 'block' : 'none';
+        }
+    },
+    render() {
+        if (!this.contentEl) {
+            return;
+        }
+
+        const colorWrap = this.contentEl.querySelector('[data-color-options]');
+        const wallpaperWrap = this.contentEl.querySelector('[data-wallpaper-options]');
+        const wallpaperPreview = this.contentEl.querySelector('[data-wallpaper-preview]');
+        const bannerCheckbox = this.contentEl.querySelector('[data-setting="showBanner"]');
+
+        if (colorWrap) {
+            colorWrap.innerHTML = '';
+            this.colorOptions.forEach(color => {
+                const swatch = document.createElement('button');
+                swatch.type = 'button';
+                swatch.className = 'swatch';
+                if (this.state.backgroundMode === 'color' && this.state.backgroundColor === color) {
+                    swatch.classList.add('is-active');
+                }
+                swatch.style.backgroundColor = color;
+                swatch.title = color;
+                swatch.addEventListener('click', () => this.setBackgroundColor(color));
+                colorWrap.appendChild(swatch);
+            });
+        }
+
+        if (wallpaperWrap) {
+            wallpaperWrap.innerHTML = '';
+
+            if (!this.wallpapers.length) {
+                const hint = document.createElement('div');
+                hint.textContent = 'No wallpapers found.';
+                wallpaperWrap.appendChild(hint);
+            }
+
+            this.wallpapers.slice(0, this.maxWallpaperOptions).forEach(filename => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'wallpaper-option';
+                if (this.state.backgroundMode === 'wallpaper' && this.state.wallpaper === filename) {
+                    button.classList.add('is-active');
+                }
+                button.title = filename;
+                button.textContent = filename;
+                button.addEventListener('click', () => this.setWallpaper(filename));
+                wallpaperWrap.appendChild(button);
+            });
+        }
+
+        if (wallpaperPreview) {
+            if (this.state.backgroundMode === 'wallpaper' && this.state.wallpaper) {
+                wallpaperPreview.innerHTML = `<img src="./resources/wallpapers/${this.state.wallpaper}" alt="${this.state.wallpaper}" loading="lazy" />`;
+            } else {
+                wallpaperPreview.innerHTML = '<span>No wallpaper selected</span>';
+            }
+        }
+
+        if (bannerCheckbox) {
+            bannerCheckbox.checked = this.state.showBanner !== false;
+        }
+    },
+    open() {
+        this.ensureWindow();
+
+        if (!this.windowEl) {
+            return;
+        }
+
+        this.render();
+        WindowManager.showWindow(this.windowEl);
+        WindowManager.bringToFront(this.windowEl);
+    },
+    close() {
+        if (!this.windowEl) {
+            return;
+        }
+
+        WindowManager.minimizeWindow(this.windowEl);
+    }
+};
+
+const DesktopContextMenu = {
+    menu: null,
+    init() {
+        const desktop = document.querySelector('.desktop');
+
+        if (!desktop) {
+            return;
+        }
+
+        this.createMenu();
+
+        desktop.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            StartMenu.close();
+            this.openAt(event.clientX, event.clientY);
+        });
+
+        document.addEventListener('mousedown', event => {
+            if (!this.menu || !this.menu.classList.contains('is-open')) {
+                return;
+            }
+
+            if (this.menu.contains(event.target)) {
+                return;
+            }
+
+            this.close();
+        });
+    },
+    createMenu() {
+        const menu = document.createElement('div');
+        menu.className = 'desktop-context-menu';
+        menu.innerHTML = '<button type="button" data-action="settings">Settings...</button>';
+
+        menu.addEventListener('click', event => {
+            const button = event.target.closest('[data-action="settings"]');
+
+            if (!button) {
+                return;
+            }
+
+            this.close();
+            SettingsManager.open();
+        });
+
+        document.body.appendChild(menu);
+        this.menu = menu;
+    },
+    openAt(x, y) {
+        if (!this.menu) {
+            return;
+        }
+
+        this.menu.classList.add('is-open');
+        this.menu.style.left = `${x}px`;
+        this.menu.style.top = `${y}px`;
+
+        const rect = this.menu.getBoundingClientRect();
+        const clampedLeft = Math.min(rect.left, window.innerWidth - rect.width - 4);
+        const clampedTop = Math.min(rect.top, window.innerHeight - rect.height - 4);
+        this.menu.style.left = `${Math.max(4, clampedLeft)}px`;
+        this.menu.style.top = `${Math.max(4, clampedTop)}px`;
+    },
+    close() {
+        if (!this.menu) {
+            return;
+        }
+
+        this.menu.classList.remove('is-open');
     }
 };
 
