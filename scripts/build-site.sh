@@ -25,6 +25,9 @@ rsync -a \
   --exclude '/scripts' \
   --exclude '/musvis' \
   --exclude '/movanova' \
+  --exclude '/unicorn-noir' \
+  --exclude '/games' \
+  --exclude '/medieval-drift' \
   ./ "$site_dir/"
 
 while IFS='|' read -r destination _; do
@@ -34,6 +37,25 @@ while IFS='|' read -r destination _; do
 
   "$(dirname "$0")/fetch-external-app.sh" "$destination" "$site_dir/$destination"
 done < "$(dirname "$0")/external-apps.conf"
+
+# Games kept in this repository: build each one and publish its dist/ at /<name>.
+for game_dir in games/*/; do
+  [ -f "${game_dir}package.json" ] || continue
+
+  game_name="$(basename "$game_dir")"
+  echo "Building game: $game_name"
+
+  (cd "$game_dir" && npm ci --no-audit --no-fund && npm run build)
+
+  if [ ! -d "${game_dir}dist" ]; then
+    echo "Game build produced no dist/: $game_name" >&2
+    exit 1
+  fi
+
+  rm -rf "$site_dir/$game_name"
+  mkdir -p "$site_dir/$game_name"
+  rsync -a "${game_dir}dist/" "$site_dir/$game_name/"
+done
 
 wallpapers_dir="$site_dir/resources/wallpapers"
 manifest_file="$wallpapers_dir/manifest.json"

@@ -771,11 +771,12 @@ const SettingsManager = {
     contentEl: null,
     state: {
         backgroundMode: 'color',
-        backgroundColor: '#0a6f73',
+        backgroundColor: '#05070a',
         wallpaper: '',
-        showBanner: true
+        showBanner: true,
+        theme: 'terminal'
     },
-    colorOptions: ['#0a6f73', '#0a5a75', '#3f3f7c', '#5c6f2b', '#7a4b2b', '#4b4b4b'],
+    colorOptions: ['#05070a', '#04120a', '#0a0f16', '#120a10', '#001014', '#161616'],
     wallpapers: [],
     maxWallpaperOptions: 8,
     init() {
@@ -858,6 +859,13 @@ const SettingsManager = {
             ...this.state,
             ...(saved || {})
         };
+
+        // Drop background colors saved by the old Win95 skin.
+        if (this.state.theme !== 'terminal') {
+            this.state.theme = 'terminal';
+            this.state.backgroundColor = '#05070a';
+            this.save();
+        }
     },
     save() {
         Desktop.updateSettings(this.state);
@@ -927,7 +935,7 @@ const SettingsManager = {
             body.style.backgroundSize = 'cover';
             body.style.backgroundPosition = 'center center';
         } else {
-            body.style.backgroundColor = this.state.backgroundColor || '#0a6f73';
+            body.style.backgroundColor = this.state.backgroundColor || '#05070a';
             body.style.backgroundImage = 'none';
             body.style.backgroundSize = 'auto';
             body.style.backgroundPosition = '0 0';
@@ -1348,6 +1356,15 @@ const Apps = {
     },
     MusVis() {
         Apps._openApp('./musvis/index.html', 'Music Visualizer', 1000, 800, "<i class='bi bi-music-note-beamed'></i>", 'MusVis');
+    },
+    NinetyPines() {
+        Apps._openApp('./ninety-pines/index.html', 'Ninety Pines', 900, 700, "<i class='bi bi-tree-fill'></i>", 'NinetyPines');
+    },
+    UnicornNoir() {
+        Apps._openApp('./unicorn-noir/index.html', 'Unicorn Noir', 900, 660, "<i class='bi bi-rainbow'></i>", 'UnicornNoir');
+    },
+    MedievalDrift() {
+        Apps._openApp('./medieval-drift/index.html', 'Medieval Drift', 840, 700, "<i class='bi bi-tornado'></i>", 'MedievalDrift');
     }
 };
 
@@ -1359,3 +1376,15 @@ function openApp(appName) {
         alert(`Error: App "${appName}" could not be loaded.`);
     }
 }
+
+// Deep links: /#NinetyPines opens that app on load.
+function openAppFromHash() {
+    const appName = (location.hash || '').replace('#', '').trim();
+
+    if (appName && Apps && typeof Apps[appName] === 'function') {
+        Apps[appName]();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', openAppFromHash);
+window.addEventListener('hashchange', openAppFromHash);

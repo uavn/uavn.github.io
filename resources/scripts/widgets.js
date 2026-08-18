@@ -1,6 +1,66 @@
 Widgets = {
     init() {
         this.clock();
+        this.timecode();
+        this.log();
+    },
+    // Camcorder timecode, same readout as the Ninety Pines page.
+    timecode() {
+        const element = document.getElementById('hud-timecode');
+
+        if (!element) {
+            return;
+        }
+
+        const start = Date.now();
+        const pad = value => String(value).padStart(2, '0');
+
+        setInterval(() => {
+            const elapsed = Date.now() - start;
+            const seconds = Math.floor(elapsed / 1000);
+
+            element.textContent = `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}:${pad(Math.floor((elapsed % 1000) / 40))}`;
+        }, 40);
+    },
+    // Ambient background chatter, purely decorative.
+    log() {
+        const logElement = document.getElementById('hud-log');
+
+        if (!logElement) {
+            return;
+        }
+
+        const templates = [
+            'tail /var/log/pines.log ... ok',
+            'gc: reclaimed {n}K',
+            'ping 10.0.0.{n} ... {n}ms',
+            'sha256 verify block {n} ... ok',
+            'fs: /dev/pines {n}% used',
+            'socket {n} opened',
+            'socket {n} closed',
+            'trace: {n} hops masked',
+            'render: {n} fps',
+            'idle {n}%',
+            'no signal on cam 0{n}',
+            'unity build cached ({n}MB)'
+        ];
+
+        function push() {
+            const line = document.createElement('div');
+            line.textContent = templates[Math.floor(Math.random() * templates.length)]
+                .replace(/\{n\}/g, () => Math.floor(Math.random() * 90) + 4);
+            logElement.appendChild(line);
+
+            while (logElement.childElementCount > 14) {
+                logElement.removeChild(logElement.firstElementChild);
+            }
+        }
+
+        for (let i = 0; i < 8; i += 1) {
+            push();
+        }
+
+        setInterval(push, 1800);
     },
     clock() {
         const clockElement = document.getElementById('clock');
