@@ -49,28 +49,10 @@ body {
     z-index: 90;
 }
 
-.fx-scanlines {
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0) 0px,
-        rgba(0, 0, 0, 0) 2px,
-        rgba(0, 0, 0, 0.45) 3px,
-        rgba(0, 0, 0, 0.45) 4px
-    );
-    mix-blend-mode: multiply;
-    opacity: 0.75;
-}
-
 .fx-grain {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.42'/></svg>");
     opacity: 0.30;
     animation: grain 0.6s steps(4) infinite;
-}
-
-.fx-vignette {
-    background:
-        radial-gradient(ellipse at center, rgba(0,0,0,0) 42%, rgba(0,0,0,0.85) 100%),
-        linear-gradient(to bottom, rgba(168,17,26,0.05), rgba(0,0,0,0) 30%);
 }
 
 .fx-flicker {
@@ -142,10 +124,122 @@ body {
 }
 
 .hero-mark {
-    font-size: 46px;
-    color: var(--moss);
-    line-height: 1;
-    text-shadow: 0 0 18px rgba(111, 138, 92, 0.35);
+    line-height: 0;
+}
+
+.mark {
+    width: 132px;
+    height: 132px;
+    overflow: visible;
+    filter: drop-shadow(0 0 14px rgba(111, 138, 92, 0.25));
+    animation: mark-jolt 7s steps(1) infinite;
+}
+
+/* the whole mark twitches for two frames every few seconds */
+@keyframes mark-jolt {
+    0%, 90%, 100% { transform: translate(0, 0) skewX(0); }
+    91%           { transform: translate(-2px, 1px) skewX(-3deg); }
+    92%           { transform: translate(2px, -1px) skewX(2deg); }
+    93%           { transform: translate(-1px, 0) skewX(0); }
+    96%           { transform: translate(1px, 0) skewX(1.5deg); }
+}
+
+.mark-tear {
+    opacity: 0;
+}
+
+.mark-tear--hi {
+    animation: tear-hi 7s steps(1) infinite;
+}
+
+.mark-tear--lo {
+    animation: tear-lo 7s steps(1) infinite;
+}
+
+@keyframes tear-hi {
+    0%, 90%, 94%, 100% { opacity: 0; transform: translateX(0); }
+    91%                { opacity: 1; transform: translateX(-7px); }
+    92%                { opacity: 1; transform: translateX(5px); }
+    96%                { opacity: 1; transform: translateX(-3px); }
+}
+
+@keyframes tear-lo {
+    0%, 90%, 93%, 100% { opacity: 0; transform: translateX(0); }
+    91%                { opacity: 1; transform: translateX(6px); }
+    92%                { opacity: 1; transform: translateX(-4px); }
+    97%                { opacity: 1; transform: translateX(3px); }
+}
+
+.mark-back path {
+    fill: var(--moss);
+    opacity: 0.28;
+}
+
+.mark-pine path,
+.mark-pine rect {
+    fill: var(--moss);
+    opacity: 0.9;
+    stroke: #06070a;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+}
+
+.mark-ground {
+    stroke: var(--moss);
+    stroke-width: 1;
+    opacity: 0.5;
+}
+
+.mark-num,
+.mark-ghost {
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 78px;
+    letter-spacing: 2px;
+    paint-order: stroke;
+    stroke: #06070a;
+    stroke-width: 2.5;
+}
+
+.mark-num {
+    fill: #e6ece1;
+}
+
+/* chromatic aberration: red and cyan copies pulled apart under the white 90 */
+.mark-ghost {
+    stroke: none;
+    mix-blend-mode: screen;
+}
+
+.mark-ghost--red {
+    fill: #e11d24;
+    opacity: 0.6;
+    animation: ghost-red 7s steps(1) infinite;
+}
+
+.mark-ghost--cyan {
+    fill: #3cbec8;
+    opacity: 0.45;
+    animation: ghost-cyan 7s steps(1) infinite;
+}
+
+@keyframes ghost-red {
+    0%, 90%, 98%, 100% { transform: translateX(0); }
+    91%, 96%           { transform: translateX(-3px); }
+    92%                { transform: translateX(-1px); }
+}
+
+@keyframes ghost-cyan {
+    0%, 90%, 98%, 100% { transform: translateX(0); }
+    91%, 96%           { transform: translateX(3px); }
+    92%                { transform: translateX(1px); }
+}
+
+.hero:hover .mark-ghost--red {
+    transform: translateX(-1px);
+}
+
+.hero:hover .mark-ghost--cyan {
+    transform: translateX(1px);
 }
 
 .hero h1 {
@@ -362,18 +456,6 @@ p:last-child {
     filter: grayscale(0) contrast(1.3) brightness(1.4);
 }
 
-.game-art .noise {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.4) 0px,
-        rgba(0, 0, 0, 0.4) 1px,
-        rgba(0, 0, 0, 0) 2px,
-        rgba(0, 0, 0, 0) 3px
-    );
-}
-
 .game-art i {
     font-size: 52px;
     color: var(--ink-dim);
@@ -406,6 +488,10 @@ p:last-child {
     text-transform: uppercase;
     letter-spacing: 4px;
     font-size: 20px;
+}
+
+.btn + .btn {
+    margin-left: 10px;
 }
 
 .btn:hover,
@@ -523,6 +609,10 @@ footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .mark,
+    .mark-tear,
+    .mark-ghost--red,
+    .mark-ghost--cyan,
     .fx-grain,
     .fx-flicker,
     .hero h1,
@@ -537,10 +627,8 @@ footer {
 </head>
 <body>
 
-<div class="fx fx-scanlines"></div>
 <div class="fx fx-grain"></div>
 <div class="fx fx-flicker"></div>
-<div class="fx fx-vignette"></div>
 
 <div class="shell">
 
@@ -551,7 +639,44 @@ footer {
     </div>
 
     <header class="hero">
-        <div class="hero-mark"><i class="bi bi-tree-fill"></i></div>
+        <div class="hero-mark">
+            <svg class="mark" viewBox="0 0 160 160" role="img" aria-label="Ninety Pines logo">
+                <defs>
+                    <clipPath id="tear-hi"><rect x="0" y="66" width="160" height="13" /></clipPath>
+                    <clipPath id="tear-lo"><rect x="0" y="96" width="160" height="9" /></clipPath>
+                </defs>
+
+                <g id="mark-core">
+                    <!-- back treeline -->
+                    <g class="mark-back">
+                        <path d="M40 118 52 80 64 118z" />
+                        <path d="M120 118 108 80 96 118z" />
+                        <path d="M28 118 36 92 44 118z" />
+                        <path d="M132 118 124 92 116 118z" />
+                    </g>
+
+                    <!-- the pine, in front of the treeline -->
+                    <g class="mark-pine">
+                        <path d="M80 24 95 55 65 55z" />
+                        <path d="M80 43 103 81 57 81z" />
+                        <path d="M80 63 112 110 48 110z" />
+                        <rect x="76" y="106" width="8" height="13" />
+                    </g>
+
+                    <!-- ground line -->
+                    <path class="mark-ground" d="M30 118h100" />
+
+                    <!-- 90 in front -->
+                    <text class="mark-ghost mark-ghost--cyan" x="80" y="108" text-anchor="middle" dx="2">90</text>
+                    <text class="mark-ghost mark-ghost--red" x="80" y="108" text-anchor="middle" dx="-2">90</text>
+                    <text class="mark-num" x="80" y="108" text-anchor="middle">90</text>
+                </g>
+
+                <!-- slices that jump sideways on the glitch frames -->
+                <g class="mark-tear mark-tear--hi" clip-path="url(#tear-hi)"><use href="#mark-core" /></g>
+                <g class="mark-tear mark-tear--lo" clip-path="url(#tear-lo)"><use href="#mark-core" /></g>
+            </svg>
+        </div>
         <h1>NINETY PINES</h1>
         <p class="tagline">Independent Game Studio</p>
         <p class="sub">small builds &middot; horror, arcade &amp; odd ideas<span class="cursor"></span></p>
@@ -605,9 +730,41 @@ footer {
 
                 <div class="game">
                     <div class="game-art">
-                        <img class="cover" src="./art/darkwater-lake.png" alt="Whispers of Darkwater Lake" />
-                        <span class="noise"></span>
+                        <img src="./art/late-checkout.png" alt="Late Checkout" />
+                        </div>
+                    <div>
+                        <h3>Late Checkout</h3>
+                        <p class="tags">First-person horror &middot; Windows / macOS / Linux &middot; Out now on Steam</p>
+                        <p>
+                            Winter 1999. A roadside motel cut off by a blizzard, a night shift, and a
+                            notebook of chores: clean the rooms, drink the coffee, pet the motel cat.
+                            Then the lights go out and the routine turns into something else.
+                        </p>
+                        <p class="dim">A flashlight, a cat, and three endings to this night.</p>
+                        <a class="btn" href="https://store.steampowered.com/app/5134130/Late_Checkout/" target="_blank" rel="noreferrer">&#9654; Steam</a>
                     </div>
+                </div>
+
+                <div class="game">
+                    <div class="game-art">
+                        <img src="./art/ninety-pines-game.jpg" alt="Ninety Pines" />
+                        </div>
+                    <div>
+                        <h3>Ninety Pines</h3>
+                        <p class="tags">Survival &middot; Windows / macOS / Linux &middot; Released 2026</p>
+                        <p>
+                            Your plane went down in the open ocean. You wake up on a small island with
+                            an axe, a knife and a piece of paracord &mdash; and ninety trees between you
+                            and hunger, cold and exhaustion. Permadeath, about half an hour a run.
+                        </p>
+                        <a class="btn" href="https://artbonvic.itch.io/ninety-pines" target="_blank" rel="noreferrer">&#9654; Download</a>
+                    </div>
+                </div>
+
+                <div class="game">
+                    <div class="game-art">
+                        <img class="cover" src="./art/darkwater-lake.png" alt="Whispers of Darkwater Lake" />
+                        </div>
                     <div>
                         <h3>Whispers of Darkwater Lake</h3>
                         <p class="tags">First-person survival horror &middot; Windows / macOS / Linux &middot; Released 2024</p>
@@ -623,8 +780,7 @@ footer {
                 <div class="game">
                     <div class="game-art">
                         <img src="../resources/oug.png" alt="Out Of Gas" />
-                        <span class="noise"></span>
-                    </div>
+                        </div>
                     <div>
                         <h3>Out Of Gas</h3>
                         <p class="tags">Night driving &middot; Unity WebGL &middot; Released</p>
@@ -633,11 +789,12 @@ footer {
                             and try not to look too long at what stands between the trees.
                         </p>
                         <a class="btn" href="../out-of-gas/index.html" data-app="OutOfGas">&#9654; Play</a>
+                        <a class="btn" href="https://artbonvic.itch.io/out-of-gas" target="_blank" rel="noreferrer">&#9660; Download</a>
                     </div>
                 </div>
 
                 <div class="game">
-                    <div class="game-art"><i class="bi bi-rainbow"></i><span class="noise"></span></div>
+                    <div class="game-art"><i class="bi bi-rainbow"></i></div>
                     <div>
                         <h3>Unicorn Noir</h3>
                         <p class="tags">Detective &middot; Browser &middot; js13k 2026</p>
@@ -647,11 +804,12 @@ footer {
                             world back one band of the rainbow. The whole game fits in 13 KB.
                         </p>
                         <a class="btn" href="../unicorn-noir/index.html" data-app="UnicornNoir">&#9654; Play</a>
+                        <a class="btn" href="https://js13kgames.com/2026/games/unicorn-noir" target="_blank" rel="noreferrer">&#8599; js13k</a>
                     </div>
                 </div>
 
                 <div class="game">
-                    <div class="game-art"><i class="bi bi-tornado"></i><span class="noise"></span></div>
+                    <div class="game-art"><i class="bi bi-tornado"></i></div>
                     <div>
                         <h3>Medieval Drift</h3>
                         <p class="tags">Arcade &middot; Browser &middot; js13k</p>
@@ -660,19 +818,6 @@ footer {
                             tile-built medieval town and bank points before the timer runs out.
                         </p>
                         <a class="btn" href="../medieval-drift/index.html" data-app="MedievalDrift">&#9654; Play</a>
-                    </div>
-                </div>
-
-                <div class="game">
-                    <div class="game-art"><i class="bi bi-door-closed"></i><span class="noise"></span></div>
-                    <div>
-                        <h3>Late Checkout</h3>
-                        <p class="tags">Horror &middot; In development &middot; Unannounced</p>
-                        <p>
-                            The next one. Still behind the door &mdash; details when it survives
-                            its own playtest.
-                        </p>
-                        <span class="badge">Unreleased</span>
                     </div>
                 </div>
 
