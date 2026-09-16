@@ -358,18 +358,11 @@ footer a:hover {
     </figure>
 
     <section>
-        <h2>How it works</h2>
-        <p>Window and Space membership come from the same private window-server calls AltTab and yabai use, and focus is handed to a window directly through the window server. That is why the Dock never drags you to another desktop.</p>
-        <p class="dim">Needs Accessibility permission to see Cmd+Tab. Does not need Screen Recording, and never touches the network.</p>
-    </section>
-
-    <section>
         <h2>Build from source</h2>
 <pre>git clone https://github.com/uavn/tab-stash.git
 cd tab-stash
 ./build.sh
 open build/TabStash.app</pre>
-        <p class="dim" style="margin-top:16px">On first launch grant Accessibility in System Settings &rarr; Privacy &amp; Security &rarr; Accessibility.</p>
     </section>
 
     <section>
@@ -380,6 +373,12 @@ open build/TabStash.app</pre>
         <p class="dim" style="margin-top:16px">Then open it normally. If macOS says the developer
         cannot be verified instead, open System Settings &rarr; Privacy &amp; Security and press
         Open Anyway. Building from source avoids quarantine entirely.</p>
+    </section>
+
+    <section>
+        <h2>First launch</h2>
+        <p>TabStash needs Accessibility permission to see Cmd+Tab: System Settings &rarr;
+        Privacy &amp; Security &rarr; Accessibility. It does not need Screen Recording.</p>
     </section>
 
     <footer>
