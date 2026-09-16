@@ -1365,6 +1365,9 @@ const Apps = {
     },
     MedievalDrift() {
         Apps._openApp('./medieval-drift/index.html', 'Medieval Drift', 840, 700, "<i class='bi bi-tornado'></i>", 'MedievalDrift');
+    },
+    TabStash() {
+        Apps._openApp('./tab-stash/index.html', 'TabStash', 900, 700, "<i class='bi bi-window-stack'></i>", 'TabStash');
     }
 };
 

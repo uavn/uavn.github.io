@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TabStash — Cmd+Tab that respects your Spaces</title>
+<meta name="description" content="A free, open-source macOS menu-bar app that replaces Cmd+Tab with a switcher listing only the apps and windows on the Space you are looking at." />
+<link rel="icon" href="../resources/logo.png" />
+<style>
+:root {
+    --bg: #fff;
+    --bg-soft: #f5f5f7;
+    --ink: #1d1d1f;
+    --ink-dim: #6e6e73;
+    --line: #d2d2d7;
+    --accent: #0071e3;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000;
+        --bg-soft: #1d1d1f;
+        --ink: #f5f5f7;
+        --ink-dim: #86868b;
+        --line: #333336;
+        --accent: #2997ff;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+        'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 22px;
+}
+
+/* ---- hero ---- */
+.hero {
+    text-align: center;
+    padding: 88px 0 0;
+}
+
+.icon {
+    width: 108px;
+    height: 108px;
+}
+
+h1 {
+    margin: 22px 0 0;
+    font-size: clamp(40px, 7vw, 56px);
+    line-height: 1.07;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+}
+
+.lede {
+    margin: 12px auto 0;
+    max-width: 520px;
+    font-size: clamp(19px, 2.6vw, 23px);
+    line-height: 1.38;
+    letter-spacing: -0.01em;
+    color: var(--ink-dim);
+}
+
+.actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 11px 24px;
+    border-radius: 980px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+a.plain {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 17px;
+}
+
+a.plain:hover {
+    text-decoration: underline;
+}
+
+.req {
+    margin: 16px 0 0;
+    font-size: 13px;
+    color: var(--ink-dim);
+}
+
+/* ---- screenshots ---- */
+figure {
+    margin: 56px 0 0;
+}
+
+figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+}
+
+figure.framed img {
+    border: 1px solid var(--line);
+}
+
+figcaption {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-dim);
+}
+
+/* ---- sections ---- */
+section {
+    padding: 72px 0 0;
+}
+
+h2 {
+    margin: 0 0 24px;
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+}
+
+p {
+    margin: 0 0 16px;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+.dim {
+    color: var(--ink-dim);
+}
+
+/* ---- features ---- */
+.features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 34px 40px;
+}
+
+.features h3 {
+    margin: 0 0 5px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.features p {
+    margin: 0;
+    color: var(--ink-dim);
+}
+
+/* ---- keys ---- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 13px 0;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+}
+
+tr:first-child td {
+    border-top: 0;
+}
+
+td:last-child {
+    color: var(--ink-dim);
+    text-align: right;
+    padding-left: 16px;
+}
+
+kbd {
+    font: inherit;
+    font-weight: 500;
+}
+
+/* ---- install ---- */
+pre {
+    margin: 0;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-family: 'SF Mono', ui-monospace, Menlo, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: auto;
+}
+
+/* ---- footer ---- */
+footer {
+    margin-top: 80px;
+    padding: 26px 0 40px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-dim);
+}
+
+footer .row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+}
+
+footer a {
+    color: var(--ink-dim);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: var(--ink);
+}
+
+@media (max-width: 620px) {
+    .hero {
+        padding-top: 60px;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    section {
+        padding-top: 56px;
+    }
+
+    figure {
+        margin-top: 44px;
+    }
+
+    td:last-child {
+        text-align: left;
+        padding-left: 0;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <header class="hero">
+        <svg class="icon" viewBox="0 0 120 120" role="img" aria-label="TabStash">
+            <defs>
+                <mask id="knockout">
+                    <rect x="4" y="4" width="112" height="112" rx="26" fill="#fff" />
+                    <path d="M36 60h30M60 46l14 14-14 14" fill="none" stroke="#000" stroke-width="9"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="80" y="42" width="9" height="36" rx="4.5" fill="#000" />
+                </mask>
+            </defs>
+            <rect x="4" y="4" width="112" height="112" rx="26" fill="currentColor" mask="url(#knockout)" />
+        </svg>
+
+        <h1>TabStash</h1>
+        <p class="lede">Cmd+Tab that respects your Spaces. Only the apps and windows on the desktop you are looking at.</p>
+
+        <div class="actions">
+            <a class="btn" href="https://github.com/uavn/tab-stash/releases/latest/download/TabStash.zip">Download</a>
+            <a class="plain" href="https://github.com/uavn/tab-stash" target="_blank" rel="noreferrer">View on GitHub &rsaquo;</a>
+        </div>
+
+        <p class="req">Free and open source. macOS 13 or newer, Apple Silicon.</p>
+    </header>
+
+    <figure>
+        <img src="./art/switcher.jpg" alt="The TabStash switcher: a row of app icons over the desktop, one highlighted with its window title underneath." />
+        <figcaption>Only what is on this Space. The window title sits under the selection.</figcaption>
+    </figure>
+
+    <section>
+        <h2>Why</h2>
+        <p>macOS Cmd+Tab shows every app on every Space. Pick one and the screen jumps to another desktop, scattering your context.</p>
+        <p class="dim">TabStash lists only what is in front of you, and activating an app raises its window right here instead of throwing you somewhere else.</p>
+    </section>
+
+    <section>
+        <h2>Features</h2>
+        <div class="features">
+            <div>
+                <h3>Per-Space switching</h3>
+                <p>Only apps with a window on the current Space. One checkbox brings back the full list.</p>
+            </div>
+            <div>
+                <h3>Stays where you are</h3>
+                <p>No more being thrown to another desktop. Pick a window that really is elsewhere and macOS follows you there.</p>
+            </div>
+            <div>
+                <h3>Windows, not just apps</h3>
+                <p>Turn grouping off and each window is its own entry, captioned with its title.</p>
+            </div>
+            <div>
+                <h3>Recency that makes sense</h3>
+                <p>It remembers windows, not only apps, so one Cmd+Tab flips between the two you actually use.</p>
+            </div>
+            <div>
+                <h3>Minimized and hidden apps</h3>
+                <p>Optional and dimmed. Picking one brings the window back, Cmd+H included.</p>
+            </div>
+            <div>
+                <h3>Quiet by design</h3>
+                <p>Menu bar only. No Dock icon, no telemetry, no network access, no accounts, no ads.</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Keys</h2>
+        <table>
+            <tr><td><kbd>Cmd + Tab</kbd></td><td>Open switcher, next</td></tr>
+            <tr><td><kbd>Cmd + Shift + Tab</kbd>, arrows</td><td>Previous, navigate</td></tr>
+            <tr><td><kbd>Cmd + Q</kbd> / <kbd>Cmd + H</kbd></td><td>Quit or hide the selection</td></tr>
+        </table>
+    </section>
+
+    <figure class="framed">
+        <img src="./art/settings.jpg" alt="TabStash settings: checkboxes for Space filtering, grouping and hidden apps, Order, Appearance and Glass menus, and the list of apps in the switcher." />
+        <figcaption>Settings: three checkboxes, three menus, and every app the switcher has seen.</figcaption>
+    </figure>
+
+    <section>
+        <h2>How it works</h2>
+        <p>Window and Space membership come from the same private window-server calls AltTab and yabai use, and focus is handed to a window directly through the window server. That is why the Dock never drags you to another desktop.</p>
+        <p class="dim">Needs Accessibility permission to see Cmd+Tab. Does not need Screen Recording, and never touches the network.</p>
+    </section>
+
+    <section>
+        <h2>Build from source</h2>
+<pre>git clone https://github.com/uavn/tab-stash.git
+cd tab-stash
+./build.sh
+open build/TabStash.app</pre>
+        <p class="dim" style="margin-top:16px">On first launch grant Accessibility in System Settings &rarr; Privacy &amp; Security &rarr; Accessibility.</p>
+    </section>
+
+    <footer>
+        <div class="row">
+            <span>TabStash &middot; GPL-3.0</span>
+            <span>
+                <a href="https://github.com/uavn/tab-stash" target="_blank" rel="noreferrer">GitHub</a>
+                &nbsp;&middot;&nbsp;
+                <a href="https://www.buymeacoffee.com/artbonvic" target="_blank" rel="noreferrer">Buy me a coffee</a>
+            </span>
+        </div>
+    </footer>
+
+</div>
+
+</body>
+</html>
