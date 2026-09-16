@@ -372,6 +372,16 @@ open build/TabStash.app</pre>
         <p class="dim" style="margin-top:16px">On first launch grant Accessibility in System Settings &rarr; Privacy &amp; Security &rarr; Accessibility.</p>
     </section>
 
+    <section>
+        <h2>&ldquo;TabStash is damaged&rdquo;</h2>
+        <p>The build is not signed by Apple, so macOS quarantines it after download and may refuse
+        to open it, or claim it is damaged. Drag it to Applications and strip the quarantine flag:</p>
+<pre>xattr -dr com.apple.quarantine /Applications/TabStash.app</pre>
+        <p class="dim" style="margin-top:16px">Then open it normally. If macOS says the developer
+        cannot be verified instead, open System Settings &rarr; Privacy &amp; Security and press
+        Open Anyway. Building from source avoids quarantine entirely.</p>
+    </section>
+
     <footer>
         <div class="row">
             <span>TabStash &middot; GPL-3.0</span>
