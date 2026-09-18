@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TabStash — Cmd+Tab that respects your Spaces</title>
-<meta name="description" content="A free, open-source macOS menu-bar app that replaces Cmd+Tab with a switcher listing only the apps and windows on the Space you are looking at." />
+<title>TabStash — A Cmd+Tab you can configure</title>
+<meta name="description" content="A free, open-source macOS menu-bar app: a Cmd+Tab you can configure. Only the apps and windows on the current Space, or every Space, grouped or window by window." />
 <link rel="icon" href="../resources/logo.png" />
 <style>
 :root {
@@ -304,7 +304,7 @@ footer a:hover {
 
     <figure>
         <img src="./art/switcher.jpg" alt="The TabStash switcher: a row of app icons over the desktop, one highlighted with its window title underneath." />
-        <figcaption>Only the apps on the Space you are on.</figcaption>
+        <figcaption>Only this Space — unless you tell it otherwise. Windows get names, not just apps.</figcaption>
     </figure>
 
     <section>
@@ -337,6 +337,14 @@ footer a:hover {
                 <p>Optional and dimmed. Picking one brings the window back, Cmd+H included.</p>
             </div>
             <div>
+                <h3>Order and looks</h3>
+                <p>Sort by recent use, name or window order. Liquid Glass that follows the system, or pinned light, dark, frosted or clear.</p>
+            </div>
+            <div>
+                <h3>A list that remembers</h3>
+                <p>Every app the switcher has shown stays in Settings, even after you quit it, so hiding one for good is a single checkbox.</p>
+            </div>
+            <div>
                 <h3>Quiet by design</h3>
                 <p>Menu bar only. No Dock icon, no telemetry, no network access, no accounts, no ads.</p>
             </div>
@@ -349,6 +357,7 @@ footer a:hover {
             <tr><td><kbd>Cmd + Tab</kbd></td><td>Open switcher, next</td></tr>
             <tr><td><kbd>Cmd + Shift + Tab</kbd>, arrows</td><td>Previous, navigate</td></tr>
             <tr><td><kbd>Cmd + Q</kbd> / <kbd>Cmd + H</kbd></td><td>Quit or hide the selection</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Close without switching</td></tr>
         </table>
     </section>
 
