@@ -99,6 +99,41 @@
         .forecast-table th {
             background-color: #f2f2f2;
         }
+        .pred-figures {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 14px 0;
+        }
+        .pred-figure {
+            background: #f7f9fc;
+            border: 1px solid #e3e8ef;
+            border-radius: 6px;
+            padding: 12px 16px;
+            min-width: 165px;
+        }
+        .pred-figure .label {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7684;
+        }
+        .pred-figure .value {
+            font-size: 1.45em;
+            font-weight: 600;
+            color: #222;
+            line-height: 1.3;
+        }
+        .pred-figure .sub {
+            font-size: 0.8em;
+            color: #7a8595;
+        }
+        .pred-note {
+            font-size: 0.85em;
+            color: #777;
+            line-height: 1.6;
+            margin-top: 12px;
+        }
         .loader-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -173,6 +208,11 @@
         <div id="forecast-table-container"></div>
     </div>
 
+    <div id="prediction" class="forecast-summary" style="display: none;">
+        <h2></h2>
+        <div id="prediction-body"></div>
+    </div>
+
     <div class="chart-container">
         <canvas id="weatherChart"></canvas>
         <div id="loader-overlay" class="loader-overlay" style="display: none;">
@@ -201,6 +241,263 @@
                 return (sortedArr[mid - 1] + sortedArr[mid]) / 2;
             }
             return sortedArr[mid];
+        }
+
+        function average(arr) {
+            return arr.reduce((sum, v) => sum + v, 0) / arr.length;
+        }
+
+        // Least-squares fit of y over x. The line always passes through the
+        // centroid, so predict(meanX) is just meanY.
+        function linearFit(xs, ys) {
+            const meanX = average(xs);
+            const meanY = average(ys);
+            let num = 0, den = 0;
+
+            for (let i = 0; i < xs.length; i++) {
+                num += (xs[i] - meanX) * (ys[i] - meanY);
+                den += (xs[i] - meanX) ** 2;
+            }
+
+            const slope = den === 0 ? 0 : num / den;
+            const intercept = meanY - slope * meanX;
+            const residuals = ys.map((y, i) => y - (intercept + slope * xs[i]));
+
+            return {
+                slope,
+                meanX,
+                meanY,
+                rmse: Math.sqrt(average(residuals.map(r => r * r))),
+                predict: x => intercept + slope * x
+            };
+        }
+
+        // The next time this month comes around. The month we are currently in
+        // is already under way, so that one points at next year.
+        function nextOccurrenceYear(monthIndex) {
+            const now = new Date();
+            return monthIndex > now.getMonth() ? now.getFullYear() : now.getFullYear() + 1;
+        }
+
+        // Day-by-day climatology shifted by the warming trend fitted across the
+        // selected years. Partial months would drag the trend down, so only
+        // years with most of the month present are fitted.
+        function buildPrediction(dailyStats, yearlySeries, monthIndex, targetYear) {
+            const daysInMonth = new Date(targetYear, monthIndex + 1, 0).getDate();
+            const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+            const complete = yearlySeries.filter(y => y.coverage >= 0.8);
+
+            const baseMax = {}, baseMin = {};
+            for (const day of days) {
+                baseMax[day] = calculateMedian(dailyStats[day] && dailyStats[day].maxTemps);
+                baseMin[day] = calculateMedian(dailyStats[day] && dailyStats[day].minTemps);
+            }
+
+            if (complete.length < 3) {
+                return {
+                    method: 'climatology',
+                    years: complete.length,
+                    days, daysInMonth,
+                    maxByDay: baseMax,
+                    minByDay: baseMin
+                };
+            }
+
+            const xs = complete.map(y => y.year);
+            const fitMax = linearFit(xs, complete.map(y => y.meanMax));
+            const fitMin = linearFit(xs, complete.map(y => y.meanMin));
+
+            const shiftMax = fitMax.slope * (targetYear - fitMax.meanX);
+            const shiftMin = fitMin.slope * (targetYear - fitMin.meanX);
+
+            const maxByDay = {}, minByDay = {};
+            for (const day of days) {
+                maxByDay[day] = baseMax[day] === null ? null : baseMax[day] + shiftMax;
+                minByDay[day] = baseMin[day] === null ? null : baseMin[day] + shiftMin;
+            }
+
+            return {
+                method: 'trend',
+                years: complete.length,
+                yearFrom: Math.min(...xs),
+                yearTo: Math.max(...xs),
+                days, daysInMonth,
+                maxByDay, minByDay,
+                meanMax: fitMax.predict(targetYear),
+                meanMin: fitMin.predict(targetYear),
+                trendMaxPerDecade: fitMax.slope * 10,
+                trendMinPerDecade: fitMin.slope * 10,
+                spreadMax: fitMax.rmse,
+                spreadMin: fitMin.rmse
+            };
+        }
+
+        // Open-Meteo's seasonal ensemble, when the target month is inside its
+        // horizon. Returns the per-day median across the 50 members.
+        async function fetchSeasonal(lat, lon, monthIndex, targetYear) {
+            const pad = n => String(n).padStart(2, '0');
+            const start = `${targetYear}-${pad(monthIndex + 1)}-01`;
+            const end = `${targetYear}-${pad(monthIndex + 1)}-${pad(new Date(targetYear, monthIndex + 1, 0).getDate())}`;
+            const url = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${lat}&longitude=${lon}` +
+                `&daily=temperature_2m_max,temperature_2m_min&start_date=${start}&end_date=${end}&timezone=auto`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error || !data.daily) return null;
+
+                const daily = data.daily;
+                const maxKeys = Object.keys(daily).filter(k => k.startsWith('temperature_2m_max_member'));
+                const minKeys = Object.keys(daily).filter(k => k.startsWith('temperature_2m_min_member'));
+
+                if (!maxKeys.length || !minKeys.length) return null;
+
+                const maxByDay = {}, minByDay = {};
+                const allMax = [], allMin = [];
+
+                daily.time.forEach((dateStr, i) => {
+                    const day = Number(dateStr.slice(8, 10));
+                    const maxVals = maxKeys.map(k => daily[k][i]).filter(v => v !== null && v !== undefined);
+                    const minVals = minKeys.map(k => daily[k][i]).filter(v => v !== null && v !== undefined);
+
+                    if (maxVals.length) { maxByDay[day] = calculateMedian(maxVals); allMax.push(...maxVals); }
+                    if (minVals.length) { minByDay[day] = calculateMedian(minVals); allMin.push(...minVals); }
+                });
+
+                if (!allMax.length || !allMin.length) return null;
+
+                return {
+                    members: maxKeys.length,
+                    maxByDay, minByDay,
+                    meanMax: average(Object.values(maxByDay)),
+                    meanMin: average(Object.values(minByDay))
+                };
+            } catch (err) {
+                console.error('Seasonal forecast unavailable', err);
+                return null;
+            }
+        }
+
+        function renderPrediction(prediction, seasonal, monthIndex, targetYear, cityName) {
+            const el = document.getElementById('prediction');
+            const body = document.getElementById('prediction-body');
+            const monthName = new Date(2000, monthIndex).toLocaleString('default', { month: 'long' });
+
+            el.querySelector('h2').textContent = `Prediction for ${monthName} ${targetYear} (${cityName})`;
+
+            if (prediction.method === 'climatology') {
+                body.innerHTML = '<p class="pred-note">Only ' + prediction.years +
+                    ' complete year(s) in the selected range. Widen Year From / Year To to at least three ' +
+                    'full years to get a trend-based prediction.</p>';
+                el.style.display = 'block';
+                return;
+            }
+
+            const sign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+
+            let html = '<div class="pred-figures">';
+            html += `<div class="pred-figure"><div class="label">Avg high</div>` +
+                `<div class="value">${prediction.meanMax.toFixed(1)}°C</div>` +
+                `<div class="sub">± ${prediction.spreadMax.toFixed(1)}°C</div></div>`;
+            html += `<div class="pred-figure"><div class="label">Avg low</div>` +
+                `<div class="value">${prediction.meanMin.toFixed(1)}°C</div>` +
+                `<div class="sub">± ${prediction.spreadMin.toFixed(1)}°C</div></div>`;
+            html += `<div class="pred-figure"><div class="label">Trend / decade</div>` +
+                `<div class="value">${sign(prediction.trendMaxPerDecade)}°C</div>` +
+                `<div class="sub">highs, ${prediction.yearFrom}–${prediction.yearTo}</div></div>`;
+
+            if (seasonal) {
+                html += `<div class="pred-figure"><div class="label">Seasonal model</div>` +
+                    `<div class="value">${seasonal.meanMax.toFixed(1)}° / ${seasonal.meanMin.toFixed(1)}°</div>` +
+                    `<div class="sub">${seasonal.members}-member ensemble</div></div>`;
+            }
+            html += '</div>';
+
+            html += '<table class="forecast-table"><thead><tr><th>Day</th>' +
+                '<th>Max (trend)</th><th>Min (trend)</th>' +
+                (seasonal ? '<th>Max (model)</th><th>Min (model)</th>' : '') +
+                '</tr></thead><tbody>';
+
+            for (const day of prediction.days) {
+                const pMax = prediction.maxByDay[day];
+                const pMin = prediction.minByDay[day];
+                if (pMax === null || pMin === null) continue;
+
+                const cell = v => (v === undefined || v === null ? '—' : v.toFixed(1) + '°C');
+                html += `<tr><td>${day}</td><td>${pMax.toFixed(1)}°C</td><td>${pMin.toFixed(1)}°C</td>` +
+                    (seasonal ? `<td>${cell(seasonal.maxByDay[day])}</td><td>${cell(seasonal.minByDay[day])}</td>` : '') +
+                    '</tr>';
+            }
+            html += '</tbody></table>';
+
+            html += '<p class="pred-note">The trend columns extrapolate this month\'s day-by-day median over ' +
+                `${prediction.yearFrom}–${prediction.yearTo} by the fitted warming trend; ± is the year-to-year ` +
+                'spread around that fit, not a guarantee. ' +
+                (seasonal
+                    ? 'The model columns are the median of Open-Meteo\'s seasonal ensemble.'
+                    : 'A seasonal model run does not reach this far ahead, so only the statistical estimate is shown.') +
+                ' Neither is a day-accurate forecast — treat them as the shape of a typical month.</p>';
+
+            body.innerHTML = html;
+            el.style.display = 'block';
+        }
+
+        function appendPredictionDatasets(datasets, prediction, seasonal, targetYear) {
+            const toSeries = byDay => Array.from({ length: 31 }, (_, i) => {
+                const v = byDay[i + 1];
+                return v === undefined || v === null ? null : v;
+            });
+
+            datasets.push({
+                label: `${targetYear} predicted`,
+                data: toSeries(prediction.maxByDay),
+                borderColor: '#d62828',
+                backgroundColor: '#d62828',
+                borderWidth: 3,
+                borderDash: [6, 4],
+                tension: 0.3,
+                pointRadius: 0,
+                fill: false
+            });
+
+            datasets.push({
+                label: `${targetYear} predicted Min`,
+                data: toSeries(prediction.minByDay),
+                borderColor: '#d62828',
+                backgroundColor: '#d62828',
+                borderWidth: 3,
+                borderDash: [6, 4],
+                tension: 0.3,
+                pointRadius: 0,
+                fill: false
+            });
+
+            if (seasonal) {
+                datasets.push({
+                    label: `${targetYear} seasonal model`,
+                    data: toSeries(seasonal.maxByDay),
+                    borderColor: '#1b998b',
+                    backgroundColor: '#1b998b',
+                    borderWidth: 3,
+                    borderDash: [2, 3],
+                    tension: 0.3,
+                    pointRadius: 0,
+                    fill: false
+                });
+
+                datasets.push({
+                    label: `${targetYear} seasonal model Min`,
+                    data: toSeries(seasonal.minByDay),
+                    borderColor: '#1b998b',
+                    backgroundColor: '#1b998b',
+                    borderWidth: 3,
+                    borderDash: [2, 3],
+                    tension: 0.3,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
         }
 
         function renderForecast(dailyStats, monthIndex) {
@@ -276,6 +573,7 @@
                 }
 
                 const dailyStats = {};
+                const yearlySeries = [];
 
                 const datasets = [];
                 const years = [];
@@ -333,6 +631,18 @@
                                 dailyStats[dayOfMonth].minTemps.push(data.daily.temperature_2m_min[i]);
                             }
                         });
+                        const monthMax = data.daily.temperature_2m_max.filter(v => v !== null);
+                        const monthMin = data.daily.temperature_2m_min.filter(v => v !== null);
+
+                        if (monthMax.length && monthMin.length) {
+                            yearlySeries.push({
+                                year,
+                                meanMax: average(monthMax),
+                                meanMin: average(monthMin),
+                                coverage: monthMax.length / new Date(year, month + 1, 0).getDate()
+                            });
+                        }
+
                         const color = colors[index];
 
                         datasets.push({
@@ -364,6 +674,19 @@
                 }
 
                 datasets.sort((a, b) => a.label.localeCompare(b.label));
+
+                const targetYear = nextOccurrenceYear(month);
+                const prediction = buildPrediction(dailyStats, yearlySeries, month, targetYear);
+                const seasonal = prediction.method === 'trend'
+                    ? await fetchSeasonal(lat, lon, month, targetYear)
+                    : null;
+
+                renderPrediction(prediction, seasonal, month, targetYear, cityName);
+
+                if (prediction.method === 'trend') {
+                    appendPredictionDatasets(datasets, prediction, seasonal, targetYear);
+                }
+
                 renderForecast(dailyStats, month);
                 renderChart(datasets, month, cityName);
             } finally {
