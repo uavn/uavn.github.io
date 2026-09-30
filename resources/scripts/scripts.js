@@ -1357,6 +1357,9 @@ const Apps = {
     MusVis() {
         Apps._openApp('./musvis/index.html', 'Music Visualizer', 1000, 800, "<i class='bi bi-music-note-beamed'></i>", 'MusVis');
     },
+    MapVis() {
+        Apps._openApp('./mapvis/index.html', 'Route Animator', 1100, 800, "<i class='bi bi-map'></i>", 'MapVis');
+    },
     NinetyPines() {
         Apps._openApp('./ninety-pines/index.html', 'Ninety Pines', 900, 700, "<i class='bi bi-tree-fill'></i>", 'NinetyPines');
     },

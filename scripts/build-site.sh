@@ -24,6 +24,7 @@ rsync -a \
   --exclude '/_site' \
   --exclude '/scripts' \
   --exclude '/musvis' \
+  --exclude '/mapvis' \
   --exclude '/movanova' \
   --exclude '/unicorn-noir' \
   --exclude '/games' \
