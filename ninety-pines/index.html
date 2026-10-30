@@ -3,362 +3,164 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NINETY PINES — Indie Game Studio</title>
+<title>Ninety Pines — Indie Game Studio</title>
 <meta name="description" content="Ninety Pines is a one-person indie studio making small games — horror, arcade, and whatever the idea asks for." />
 <link rel="icon" href="../resources/logo.png" />
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 <style>
 :root {
-    --bg: #06070a;
-    --bg-panel: #0c0f12;
-    --ink: #b9c2b4;
-    --ink-dim: #6d7770;
-    --blood: #a8111a;
-    --blood-bright: #e11d24;
-    --moss: #6f8a5c;
-    --amber: #c99a3f;
-    --line: #1d2420;
+    --bg: #fff;
+    --bg-soft: #f5f5f7;
+    --ink: #1d1d1f;
+    --ink-dim: #6e6e73;
+    --line: #d2d2d7;
+    --accent: #0071e3;
+    --pine: #2f5d3a;
+    --pine-soft: #8fb39a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000;
+        --bg-soft: #1d1d1f;
+        --ink: #f5f5f7;
+        --ink-dim: #86868b;
+        --line: #333336;
+        --accent: #2997ff;
+        --pine: #6fa77c;
+        --pine-soft: #35523d;
+    }
 }
 
 * {
     box-sizing: border-box;
 }
 
-html, body {
-    min-height: 100%;
-}
-
 body {
     margin: 0;
-    padding: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: 'VT323', 'Courier New', monospace;
-    font-size: 20px;
-    line-height: 1.35;
-    letter-spacing: 0.4px;
-    overflow-x: hidden;
-}
-
-/* ---- CRT / VHS overlays ---- */
-.fx {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 90;
-}
-
-.fx-grain {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.42'/></svg>");
-    opacity: 0.30;
-    animation: grain 0.6s steps(4) infinite;
-}
-
-.fx-flicker {
-    background: #9fb08c;
-    mix-blend-mode: overlay;
-    opacity: 0;
-    animation: flicker 7s steps(1) infinite;
-}
-
-@keyframes grain {
-    0%   { transform: translate(0, 0); }
-    25%  { transform: translate(-3px, 2px); }
-    50%  { transform: translate(2px, -3px); }
-    75%  { transform: translate(-2px, -2px); }
-    100% { transform: translate(3px, 1px); }
-}
-
-@keyframes flicker {
-    0%, 96%, 100% { opacity: 0; }
-    97%           { opacity: 0.05; }
-    98%           { opacity: 0.012; }
-    99%           { opacity: 0.045; }
-}
-
-/* ---- layout ---- */
-.shell {
-    position: relative;
-    z-index: 2;
-    max-width: 940px;
-    margin: 0 auto;
-    padding: 22px 20px 60px;
-}
-
-/* ---- HUD ---- */
-.hud {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+        'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 17px;
-    color: var(--ink-dim);
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
-.rec {
-    color: var(--blood-bright);
+.wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 22px;
 }
 
-.rec .dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: var(--blood-bright);
-    vertical-align: 1px;
-    animation: blink 1.4s steps(1) infinite;
+a {
+    color: var(--accent);
+    text-decoration: none;
 }
 
-@keyframes blink {
-    0%, 55% { opacity: 1; }
-    56%, 100% { opacity: 0.1; }
+a:hover {
+    text-decoration: underline;
 }
 
-/* ---- title ---- */
+/* ---- hero ---- */
 .hero {
-    margin: 26px 0 34px;
     text-align: center;
-}
-
-.hero-mark {
-    line-height: 0;
+    padding: 88px 0 0;
 }
 
 .mark {
-    width: 132px;
-    height: 132px;
-    overflow: visible;
-    filter: drop-shadow(0 0 14px rgba(111, 138, 92, 0.25));
-    animation: mark-jolt 7s steps(1) infinite;
+    width: 108px;
+    height: 108px;
 }
 
-/* the whole mark twitches for two frames every few seconds */
-@keyframes mark-jolt {
-    0%, 90%, 100% { transform: translate(0, 0) skewX(0); }
-    91%           { transform: translate(-2px, 1px) skewX(-3deg); }
-    92%           { transform: translate(2px, -1px) skewX(2deg); }
-    93%           { transform: translate(-1px, 0) skewX(0); }
-    96%           { transform: translate(1px, 0) skewX(1.5deg); }
+.mark-back {
+    fill: var(--pine-soft);
 }
 
-.mark-tear {
-    opacity: 0;
-}
-
-.mark-tear--hi {
-    animation: tear-hi 7s steps(1) infinite;
-}
-
-.mark-tear--lo {
-    animation: tear-lo 7s steps(1) infinite;
-}
-
-@keyframes tear-hi {
-    0%, 90%, 94%, 100% { opacity: 0; transform: translateX(0); }
-    91%                { opacity: 1; transform: translateX(-7px); }
-    92%                { opacity: 1; transform: translateX(5px); }
-    96%                { opacity: 1; transform: translateX(-3px); }
-}
-
-@keyframes tear-lo {
-    0%, 90%, 93%, 100% { opacity: 0; transform: translateX(0); }
-    91%                { opacity: 1; transform: translateX(6px); }
-    92%                { opacity: 1; transform: translateX(-4px); }
-    97%                { opacity: 1; transform: translateX(3px); }
-}
-
-.mark-back path {
-    fill: var(--moss);
-    opacity: 0.28;
-}
-
-.mark-pine path,
-.mark-pine rect {
-    fill: var(--moss);
-    opacity: 0.9;
-    stroke: #06070a;
-    stroke-width: 2.5;
-    stroke-linejoin: round;
+.mark-pine {
+    fill: var(--pine);
 }
 
 .mark-ground {
-    stroke: var(--moss);
-    stroke-width: 1;
+    stroke: var(--pine);
+    stroke-width: 2;
     opacity: 0.5;
 }
 
-.mark-num,
-.mark-ghost {
-    font-family: 'VT323', 'Courier New', monospace;
-    font-size: 78px;
-    letter-spacing: 2px;
-    paint-order: stroke;
-    stroke: #06070a;
-    stroke-width: 2.5;
-}
-
 .mark-num {
-    fill: #e6ece1;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 6px;
+    stroke-linejoin: round;
 }
 
-/* chromatic aberration: red and cyan copies pulled apart under the white 90 */
-.mark-ghost {
-    stroke: none;
-    mix-blend-mode: screen;
+h1 {
+    margin: 22px 0 0;
+    font-size: clamp(40px, 7vw, 56px);
+    line-height: 1.07;
+    letter-spacing: -0.02em;
+    font-weight: 600;
 }
 
-.mark-ghost--red {
-    fill: #e11d24;
-    opacity: 0.6;
-    animation: ghost-red 7s steps(1) infinite;
-}
-
-.mark-ghost--cyan {
-    fill: #3cbec8;
-    opacity: 0.45;
-    animation: ghost-cyan 7s steps(1) infinite;
-}
-
-@keyframes ghost-red {
-    0%, 90%, 98%, 100% { transform: translateX(0); }
-    91%, 96%           { transform: translateX(-3px); }
-    92%                { transform: translateX(-1px); }
-}
-
-@keyframes ghost-cyan {
-    0%, 90%, 98%, 100% { transform: translateX(0); }
-    91%, 96%           { transform: translateX(3px); }
-    92%                { transform: translateX(1px); }
-}
-
-.hero:hover .mark-ghost--red {
-    transform: translateX(-1px);
-}
-
-.hero:hover .mark-ghost--cyan {
-    transform: translateX(1px);
-}
-
-.hero h1 {
-    margin: 8px 0 0;
-    font-size: clamp(48px, 12vw, 104px);
-    line-height: 0.9;
-    letter-spacing: 8px;
-    color: #dfe6da;
-    text-shadow:
-        2px 0 0 rgba(225, 29, 36, 0.75),
-        -2px 0 0 rgba(60, 190, 200, 0.55);
-    animation: shift 6s steps(1) infinite;
-}
-
-@keyframes shift {
-    0%, 92%, 100% { transform: translate(0, 0); }
-    93%  { transform: translate(-3px, 1px) skewX(-1.5deg); }
-    95%  { transform: translate(3px, -1px) skewX(1.5deg); }
-    97%  { transform: translate(-1px, 0); }
-}
-
-.hero .tagline {
-    margin: 12px 0 0;
-    font-size: 21px;
-    letter-spacing: 5px;
-    text-transform: uppercase;
+.lede {
+    margin: 12px auto 0;
+    max-width: 540px;
+    font-size: clamp(19px, 2.6vw, 23px);
+    line-height: 1.38;
+    letter-spacing: -0.01em;
     color: var(--ink-dim);
 }
 
-.hero .sub {
-    margin: 6px 0 0;
-    color: var(--moss);
-    font-size: 19px;
-    letter-spacing: 1px;
+.actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 22px;
 }
 
-.cursor {
+.btn {
     display: inline-block;
-    width: 10px;
-    height: 17px;
-    background: var(--moss);
-    vertical-align: -2px;
-    animation: blink 1s steps(1) infinite;
-}
-
-/* ---- ticker ---- */
-.ticker {
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    overflow: hidden;
-    white-space: nowrap;
-    padding: 5px 0;
-    margin-bottom: 30px;
-    color: var(--blood);
+    padding: 11px 24px;
+    border-radius: 980px;
+    background: var(--accent);
+    color: #fff;
     font-size: 17px;
-    letter-spacing: 3px;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
 }
 
-.ticker span {
-    display: inline-block;
-    padding-left: 100%;
-    animation: crawl 24s linear infinite;
+.btn:hover {
+    opacity: 0.85;
+    text-decoration: none;
 }
 
-@keyframes crawl {
-    to { transform: translateX(-100%); }
+.btn--small {
+    padding: 7px 18px;
+    font-size: 15px;
 }
 
-/* ---- panels ---- */
-.panel {
-    position: relative;
-    background: linear-gradient(180deg, rgba(18, 22, 25, 0.9), rgba(8, 10, 12, 0.9));
-    border: 1px solid var(--line);
-    padding: 18px 20px 20px;
-    margin-bottom: 22px;
+/* ---- sections ---- */
+section {
+    padding: 72px 0 0;
 }
 
-.panel::before,
-.panel::after {
-    content: '';
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border: 1px solid var(--moss);
-    opacity: 0.6;
-}
-
-.panel::before {
-    top: -1px;
-    left: -1px;
-    border-right: 0;
-    border-bottom: 0;
-}
-
-.panel::after {
-    bottom: -1px;
-    right: -1px;
-    border-left: 0;
-    border-top: 0;
-}
-
-.panel-title {
-    margin: 0 0 12px;
-    font-size: 24px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: #e2e8dd;
-    border-bottom: 1px dashed var(--line);
-    padding-bottom: 8px;
-}
-
-.panel-title .num {
-    color: var(--blood);
-    margin-right: 10px;
+h2 {
+    margin: 0 0 24px;
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    font-weight: 600;
 }
 
 p {
-    margin: 0 0 12px;
-    color: var(--ink);
+    margin: 0 0 16px;
 }
 
 p:last-child {
@@ -369,531 +171,416 @@ p:last-child {
     color: var(--ink-dim);
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 22px;
-    align-items: start;
-}
-
-/* ---- dossier ---- */
-.dossier dl {
-    margin: 0;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 2px 12px;
-    font-size: 19px;
-}
-
-.dossier dt {
-    color: var(--ink-dim);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.dossier dd {
-    margin: 0;
-    color: var(--ink);
-}
-
-.stamp {
-    margin-top: 16px;
-    padding: 6px 8px;
-    border: 2px solid var(--blood);
-    color: var(--blood-bright);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-align: center;
-    font-size: 17px;
-    transform: rotate(-2deg);
-    opacity: 0.9;
-}
-
 /* ---- games ---- */
 .game {
     display: grid;
-    grid-template-columns: 150px 1fr;
-    gap: 18px;
+    grid-template-columns: 128px 1fr;
+    gap: 22px;
     align-items: start;
-    padding: 14px 0;
+    padding: 26px 0;
+    border-top: 1px solid var(--line);
 }
 
-.game + .game {
-    border-top: 1px dashed var(--line);
+.game:first-of-type {
+    border-top: 0;
+    padding-top: 0;
 }
 
 .game-art {
-    position: relative;
-    height: 150px;
-    border: 1px solid var(--line);
-    background: #05070a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 128px;
+    height: 128px;
+    border-radius: 22px;
     overflow: hidden;
+    background: var(--bg-soft);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .game-art img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    image-rendering: pixelated;
-    filter: grayscale(1) contrast(1.5) brightness(0.8) sepia(0.35) hue-rotate(50deg);
-    transition: filter 0.25s steps(3);
-}
-
-/* Wide store banners fill the tile; the lake art is already near-black. */
-.game-art img.cover {
     object-fit: cover;
-    filter: grayscale(0.7) contrast(1.35) brightness(1.15) sepia(0.25) hue-rotate(40deg);
-}
-
-.game:hover .game-art img {
-    filter: grayscale(0.35) contrast(1.7) brightness(1.05);
-}
-
-.game:hover .game-art img.cover {
-    filter: grayscale(0) contrast(1.3) brightness(1.4);
 }
 
 .game-art i {
-    font-size: 52px;
+    font-size: 54px;
     color: var(--ink-dim);
 }
 
 .game h3 {
-    margin: 0 0 4px;
-    font-size: 27px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #e6ece1;
+    margin: 0;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 .tags {
-    margin: 0 0 10px;
-    font-size: 18px;
-    color: var(--moss);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-.btn {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 5px 22px;
-    border: 1px solid var(--blood);
-    background: rgba(168, 17, 26, 0.12);
-    color: #f0dcdc;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    font-size: 20px;
-}
-
-.btn + .btn {
-    margin-left: 10px;
-}
-
-.btn:hover,
-.btn:focus {
-    background: var(--blood);
-    color: #fff;
-    animation: jitter 0.18s steps(2) infinite;
-    outline: none;
-}
-
-@keyframes jitter {
-    0%   { transform: translate(0, 0); }
-    50%  { transform: translate(-1px, 1px); }
-    100% { transform: translate(1px, -1px); }
-}
-
-.badge {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 2px 10px;
-    border: 1px dashed var(--ink-dim);
+    margin: 2px 0 10px;
+    font-size: 14px;
     color: var(--ink-dim);
-    text-transform: uppercase;
-    letter-spacing: 3px;
+}
+
+.game p {
+    margin-bottom: 8px;
+}
+
+.game-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 14px;
+}
+
+.game-links a:not(.btn) {
+    font-size: 15px;
+}
+
+.pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 980px;
+    background: var(--bg-soft);
+    color: var(--ink-dim);
+    font-size: 12px;
+    font-weight: 500;
+    vertical-align: 3px;
+}
+
+/* ---- studio facts ---- */
+.features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 34px 40px;
+}
+
+.features h3 {
+    margin: 0 0 5px;
     font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
-/* ---- lists ---- */
-ul.log {
+.features p {
     margin: 0;
-    padding: 0;
-    list-style: none;
+    color: var(--ink-dim);
 }
 
-ul.log li {
-    padding: 3px 0 3px 26px;
-    position: relative;
+/* ---- facts table ---- */
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-ul.log li::before {
-    content: '>';
-    position: absolute;
-    left: 6px;
-    color: var(--blood);
+td {
+    padding: 13px 0;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+}
+
+tr:first-child td {
+    border-top: 0;
+}
+
+td:last-child {
+    color: var(--ink-dim);
+    text-align: right;
+    padding-left: 16px;
 }
 
 /* ---- contact ---- */
-.links {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+.contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.contact a {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
+    padding: 9px 16px;
+    border-radius: 980px;
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-size: 15px;
 }
 
-a {
-    color: var(--amber);
+.contact a:hover {
     text-decoration: none;
+    opacity: 0.8;
 }
 
-.links a {
-    display: block;
-    padding: 6px 10px;
-    border: 1px solid var(--line);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-.links a:hover {
-    border-color: var(--blood);
-    color: #f0dcdc;
-    background: rgba(168, 17, 26, 0.12);
-}
-
-.links a::before {
-    content: '[ ';
-    color: var(--ink-dim);
-}
-
-.links a::after {
-    content: ' ]';
-    color: var(--ink-dim);
-}
-
-footer .prompt {
-    color: var(--moss);
-    text-transform: none;
-    letter-spacing: 1px;
-}
-
+/* ---- footer ---- */
 footer {
-    margin-top: 34px;
-    padding-top: 14px;
+    margin-top: 80px;
+    padding: 26px 0 40px;
     border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-dim);
+}
+
+footer .row {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
     flex-wrap: wrap;
-    font-size: 17px;
-    color: var(--ink-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    gap: 10px 20px;
 }
 
-@media (max-width: 760px) {
-    .grid {
+@media (max-width: 620px) {
+    .hero {
+        padding-top: 60px;
+    }
+
+    section {
+        padding-top: 56px;
+    }
+
+    .features {
         grid-template-columns: 1fr;
+        gap: 28px;
     }
 
     .game {
-        grid-template-columns: 110px 1fr;
+        grid-template-columns: 84px 1fr;
+        gap: 16px;
     }
 
     .game-art {
-        height: 110px;
+        width: 84px;
+        height: 84px;
+        border-radius: 16px;
     }
-}
 
-@media (prefers-reduced-motion: reduce) {
-    .mark,
-    .mark-tear,
-    .mark-ghost--red,
-    .mark-ghost--cyan,
-    .fx-grain,
-    .fx-flicker,
-    .hero h1,
-    .ticker span,
-    .rec .dot,
-    .cursor,
-    .btn:hover {
-        animation: none;
+    .game-art i {
+        font-size: 36px;
     }
 }
 </style>
 </head>
 <body>
 
-<div class="fx fx-grain"></div>
-<div class="fx fx-flicker"></div>
-
-<div class="shell">
-
-    <div class="hud">
-        <span class="rec"><span class="dot"></span>REC</span>
-        <span id="timecode">00:00:00:00</span>
-        <span>CAM 01 &middot; PINE RIDGE</span>
-    </div>
+<div class="wrap">
 
     <header class="hero">
-        <div class="hero-mark">
-            <svg class="mark" viewBox="0 0 160 160" role="img" aria-label="Ninety Pines logo">
-                <defs>
-                    <clipPath id="tear-hi"><rect x="0" y="66" width="160" height="13" /></clipPath>
-                    <clipPath id="tear-lo"><rect x="0" y="96" width="160" height="9" /></clipPath>
-                </defs>
-
-                <g id="mark-core">
-                    <!-- back treeline -->
-                    <g class="mark-back">
-                        <path d="M40 118 52 80 64 118z" />
-                        <path d="M120 118 108 80 96 118z" />
-                        <path d="M28 118 36 92 44 118z" />
-                        <path d="M132 118 124 92 116 118z" />
-                    </g>
-
-                    <!-- the pine, in front of the treeline -->
-                    <g class="mark-pine">
-                        <path d="M80 24 95 55 65 55z" />
-                        <path d="M80 43 103 81 57 81z" />
-                        <path d="M80 63 112 110 48 110z" />
-                        <rect x="76" y="106" width="8" height="13" />
-                    </g>
-
-                    <!-- ground line -->
-                    <path class="mark-ground" d="M30 118h100" />
-
-                    <!-- 90 in front -->
-                    <text class="mark-ghost mark-ghost--cyan" x="80" y="108" text-anchor="middle" dx="2">90</text>
-                    <text class="mark-ghost mark-ghost--red" x="80" y="108" text-anchor="middle" dx="-2">90</text>
-                    <text class="mark-num" x="80" y="108" text-anchor="middle">90</text>
-                </g>
-
-                <!-- slices that jump sideways on the glitch frames -->
-                <g class="mark-tear mark-tear--hi" clip-path="url(#tear-hi)"><use href="#mark-core" /></g>
-                <g class="mark-tear mark-tear--lo" clip-path="url(#tear-lo)"><use href="#mark-core" /></g>
-            </svg>
+        <svg class="mark" viewBox="0 0 160 160" role="img" aria-label="Ninety Pines logo">
+            <g class="mark-back">
+                <path d="M40 118 52 80 64 118z" />
+                <path d="M120 118 108 80 96 118z" />
+                <path d="M28 118 36 92 44 118z" />
+                <path d="M132 118 124 92 116 118z" />
+            </g>
+            <g class="mark-pine">
+                <path d="M80 24 95 55 65 55z" />
+                <path d="M80 43 103 81 57 81z" />
+                <path d="M80 63 112 110 48 110z" />
+                <rect x="76" y="106" width="8" height="13" />
+            </g>
+            <path class="mark-ground" d="M30 118h100" />
+            <text class="mark-num" x="80" y="104" text-anchor="middle">90</text>
+        </svg>
+        <h1>Ninety Pines</h1>
+        <p class="lede">An independent game studio. Small games &mdash; mostly horror, sometimes not, in whatever art style the idea asks for.</p>
+        <div class="actions">
+            <a class="btn" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer">Terminal Fall on Steam</a>
+            <a href="#games">See all games &rsaquo;</a>
         </div>
-        <h1>NINETY PINES</h1>
-        <p class="tagline">Independent Game Studio</p>
-        <p class="sub">small builds &middot; horror, arcade &amp; odd ideas<span class="cursor"></span></p>
     </header>
 
-    <div class="ticker">
-        <span>SIGNAL LOST &nbsp;///&nbsp; DO NOT LEAVE THE TRAIL &nbsp;///&nbsp; 90 TREES COUNTED, 91 SHADOWS &nbsp;///&nbsp; PLAYTEST BUILDS AVAILABLE ON REQUEST &nbsp;///&nbsp; SIGNAL LOST &nbsp;///&nbsp;</span>
-    </div>
+    <section id="games">
+        <h2>Games</h2>
 
-    <div class="grid">
-        <aside>
-            <section class="panel dossier">
-                <h2 class="panel-title"><span class="num">00</span>Dossier</h2>
-                <dl>
-                    <dt>Studio</dt><dd>Ninety Pines</dd>
-                    <dt>Est.</dt><dd>2024</dd>
-                    <dt>Base</dt><dd>Calgary, AB</dd>
-                    <dt>Crew</dt><dd>1 (all roles)</dd>
-                    <dt>Engine</dt><dd>Unity / Blender</dd>
-                    <dt>Target</dt><dd>Windows, macOS,<br>Linux, Android,<br>browser</dd>
-                    <dt>Genres</dt><dd>Horror, arcade,<br>experiments</dd>
-                </dl>
-                <div class="stamp">Open for playtesters</div>
-            </section>
-
-            <section class="panel">
-                <h2 class="panel-title"><span class="num">04</span>Signal</h2>
-                <div class="links">
-                    <a href="mailto:artbonvic@gmail.com">Email</a>
-                    <a href="https://artbonvic.itch.io/" target="_blank" rel="noreferrer">Itch.io</a>
-                    <a href="https://github.com/uavn" target="_blank" rel="noreferrer">GitHub</a>
-                    <a href="https://www.youtube.com/@computer-rat" target="_blank" rel="noreferrer">YouTube</a>
-                    <a href="https://instagram.com/n8avenue" target="_blank" rel="noreferrer">Instagram</a>
-                </div>
-            </section>
-        </aside>
-
-        <main>
-            <section class="panel">
-                <h2 class="panel-title"><span class="num">01</span>About</h2>
+        <div class="game">
+            <div class="game-art">
+                <img src="./art/terminal-fall.jpg" alt="Terminal Fall" />
+            </div>
+            <div>
+                <h3>Terminal Fall <span class="pill">November 2026</span></h3>
+                <p class="tags">First-person survival horror &middot; Windows / macOS / Linux &middot; November 2026 on Steam</p>
                 <p>
-                    Ninety Pines makes small games &mdash; mostly horror, sometimes not, in
-                    whatever art style the idea asks for.
+                    Your plane goes down in an autumn forest at sunset. The only way out: a fire
+                    lookout tower, a dead radio and a long night. And somewhere in the dark is
+                    someone who doesn't like the light.
                 </p>
-                <p class="dim">
-                    One person, everything in-house. Prototype in a week, ship it or bury it.
+                <p class="dim">Keep the flashlight on. The rangers on the radio are trying to help. Well, almost.</p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer">Steam</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="game">
+            <div class="game-art">
+                <img src="./art/late-checkout.png" alt="Late Checkout" />
+            </div>
+            <div>
+                <h3>Late Checkout <span class="pill">Out now</span></h3>
+                <p class="tags">First-person horror &middot; Windows / macOS / Linux &middot; Out now on Steam</p>
+                <p>
+                    Winter 1999. A roadside motel cut off by a blizzard, a night shift, and a
+                    notebook of chores: clean the rooms, drink the coffee, pet the motel cat.
+                    Then the lights go out and the routine turns into something else.
                 </p>
-            </section>
-
-            <section class="panel">
-                <h2 class="panel-title"><span class="num">02</span>Games</h2>
-
-                <div class="game">
-                    <div class="game-art">
-                        <img src="./art/terminal-fall.jpg" alt="Terminal Fall" />
-                        </div>
-                    <div>
-                        <h3>Terminal Fall</h3>
-                        <p class="tags">First-person survival horror &middot; Windows / macOS / Linux &middot; November 2026 on Steam</p>
-                        <p>
-                            Your plane goes down in an autumn forest at sunset. The only way out: a fire
-                            lookout tower, a dead radio and a long night. And somewhere in the dark is
-                            someone who doesn't like the light.
-                        </p>
-                        <p class="dim">Keep the flashlight on. The rangers on the radio are trying to help. Well, almost.</p>
-                        <a class="btn" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer">&#9654; Steam</a>
-                    </div>
+                <p class="dim">A flashlight, a cat, and three endings to this night.</p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="https://store.steampowered.com/app/5134130/Late_Checkout/" target="_blank" rel="noreferrer">Steam</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="game">
-                    <div class="game-art">
-                        <img src="./art/late-checkout.png" alt="Late Checkout" />
-                        </div>
-                    <div>
-                        <h3>Late Checkout</h3>
-                        <p class="tags">First-person horror &middot; Windows / macOS / Linux &middot; Out now on Steam</p>
-                        <p>
-                            Winter 1999. A roadside motel cut off by a blizzard, a night shift, and a
-                            notebook of chores: clean the rooms, drink the coffee, pet the motel cat.
-                            Then the lights go out and the routine turns into something else.
-                        </p>
-                        <p class="dim">A flashlight, a cat, and three endings to this night.</p>
-                        <a class="btn" href="https://store.steampowered.com/app/5134130/Late_Checkout/" target="_blank" rel="noreferrer">&#9654; Steam</a>
-                    </div>
+        <div class="game">
+            <div class="game-art">
+                <img src="./art/ninety-pines-game.jpg" alt="Ninety Pines" />
+            </div>
+            <div>
+                <h3>Ninety Pines</h3>
+                <p class="tags">Survival &middot; Windows / macOS / Linux &middot; Released 2026</p>
+                <p>
+                    Your plane went down in the open ocean. You wake up on a small island with
+                    an axe, a knife and a piece of paracord &mdash; and ninety trees between you
+                    and hunger, cold and exhaustion. Permadeath, about half an hour a run.
+                </p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="https://artbonvic.itch.io/ninety-pines" target="_blank" rel="noreferrer">Download</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="game">
-                    <div class="game-art">
-                        <img src="./art/ninety-pines-game.jpg" alt="Ninety Pines" />
-                        </div>
-                    <div>
-                        <h3>Ninety Pines</h3>
-                        <p class="tags">Survival &middot; Windows / macOS / Linux &middot; Released 2026</p>
-                        <p>
-                            Your plane went down in the open ocean. You wake up on a small island with
-                            an axe, a knife and a piece of paracord &mdash; and ninety trees between you
-                            and hunger, cold and exhaustion. Permadeath, about half an hour a run.
-                        </p>
-                        <a class="btn" href="https://artbonvic.itch.io/ninety-pines" target="_blank" rel="noreferrer">&#9654; Download</a>
-                    </div>
+        <div class="game">
+            <div class="game-art">
+                <img src="./art/darkwater-lake.png" alt="Whispers of Darkwater Lake" />
+            </div>
+            <div>
+                <h3>Whispers of Darkwater Lake</h3>
+                <p class="tags">First-person survival horror &middot; Windows / macOS / Linux &middot; Released 2024</p>
+                <p>
+                    An evacuated lake town overrun by something grotesque. Atmospheric survival
+                    around a forlorn lighthouse, about half an hour in the dark.
+                </p>
+                <p class="dim">The creatures are afraid of glowsticks. Yes, you read that right.</p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="https://artbonvic.itch.io/whispers-of-darkwater-lake" target="_blank" rel="noreferrer">Download</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="game">
-                    <div class="game-art">
-                        <img class="cover" src="./art/darkwater-lake.png" alt="Whispers of Darkwater Lake" />
-                        </div>
-                    <div>
-                        <h3>Whispers of Darkwater Lake</h3>
-                        <p class="tags">First-person survival horror &middot; Windows / macOS / Linux &middot; Released 2024</p>
-                        <p>
-                            An evacuated lake town overrun by something grotesque. Atmospheric survival
-                            around a forlorn lighthouse, about half an hour in the dark.
-                        </p>
-                        <p class="dim">The creatures are afraid of glowsticks. Yes, you read that right.</p>
-                        <a class="btn" href="https://artbonvic.itch.io/whispers-of-darkwater-lake" target="_blank" rel="noreferrer">&#9654; Download</a>
-                    </div>
+        <div class="game">
+            <div class="game-art">
+                <img src="../resources/oug.png" alt="Out Of Gas" />
+            </div>
+            <div>
+                <h3>Out Of Gas</h3>
+                <p class="tags">Night driving &middot; Unity WebGL &middot; Released</p>
+                <p>
+                    One road, one tank, and it never stops draining. Keep the car moving
+                    and try not to look too long at what stands between the trees.
+                </p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="../out-of-gas/index.html" data-app="OutOfGas">Play</a>
+                    <a href="https://artbonvic.itch.io/out-of-gas" target="_blank" rel="noreferrer">Download on itch.io &rsaquo;</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="game">
-                    <div class="game-art">
-                        <img src="../resources/oug.png" alt="Out Of Gas" />
-                        </div>
-                    <div>
-                        <h3>Out Of Gas</h3>
-                        <p class="tags">Night driving &middot; Unity WebGL &middot; Released</p>
-                        <p>
-                            One road, one tank, and it never stops draining. Keep the car moving
-                            and try not to look too long at what stands between the trees.
-                        </p>
-                        <a class="btn" href="../out-of-gas/index.html" data-app="OutOfGas">&#9654; Play</a>
-                        <a class="btn" href="https://artbonvic.itch.io/out-of-gas" target="_blank" rel="noreferrer">&#9660; Download</a>
-                    </div>
+        <div class="game">
+            <div class="game-art"><i class="bi bi-rainbow"></i></div>
+            <div>
+                <h3>Unicorn Noir</h3>
+                <p class="tags">Detective &middot; Browser &middot; js13k 2026</p>
+                <p>
+                    Someone stole the colour. A unicorn works seven locations, questions
+                    the witnesses, and names a thief &mdash; each case solved gives the
+                    world back one band of the rainbow. The whole game fits in 13 KB.
+                </p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="../unicorn-noir/index.html" data-app="UnicornNoir">Play</a>
+                    <a href="https://js13kgames.com/2026/games/unicorn-noir" target="_blank" rel="noreferrer">js13k entry &rsaquo;</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="game">
-                    <div class="game-art"><i class="bi bi-rainbow"></i></div>
-                    <div>
-                        <h3>Unicorn Noir</h3>
-                        <p class="tags">Detective &middot; Browser &middot; js13k 2026</p>
-                        <p>
-                            Someone stole the colour. A unicorn works seven locations, questions
-                            the witnesses, and names a thief &mdash; each case solved gives the
-                            world back one band of the rainbow. The whole game fits in 13 KB.
-                        </p>
-                        <a class="btn" href="../unicorn-noir/index.html" data-app="UnicornNoir">&#9654; Play</a>
-                        <a class="btn" href="https://js13kgames.com/2026/games/unicorn-noir" target="_blank" rel="noreferrer">&#8599; js13k</a>
-                    </div>
+        <div class="game">
+            <div class="game-art"><i class="bi bi-tornado"></i></div>
+            <div>
+                <h3>Medieval Drift</h3>
+                <p class="tags">Arcade &middot; Browser &middot; js13k</p>
+                <p>
+                    Drifting, but on a horse. Hold the slide through the turns of a
+                    tile-built medieval town and bank points before the timer runs out.
+                </p>
+                <div class="game-links">
+                    <a class="btn btn--small" href="../medieval-drift/index.html" data-app="MedievalDrift">Play</a>
                 </div>
+            </div>
+        </div>
+    </section>
 
-                <div class="game">
-                    <div class="game-art"><i class="bi bi-tornado"></i></div>
-                    <div>
-                        <h3>Medieval Drift</h3>
-                        <p class="tags">Arcade &middot; Browser &middot; js13k</p>
-                        <p>
-                            Drifting, but on a horse. Hold the slide through the turns of a
-                            tile-built medieval town and bank points before the timer runs out.
-                        </p>
-                        <a class="btn" href="../medieval-drift/index.html" data-app="MedievalDrift">&#9654; Play</a>
-                    </div>
-                </div>
+    <section>
+        <h2>What we do</h2>
+        <div class="features">
+            <div>
+                <h3>Design and prototyping</h3>
+                <p>Horror, arcade and experiments. Prototype in a week, ship it or bury it.</p>
+            </div>
+            <div>
+                <h3>Unity and C#</h3>
+                <p>Gameplay, AI and tools programming.</p>
+            </div>
+            <div>
+                <h3>Art direction</h3>
+                <p>From PSX low-poly to clean modern.</p>
+            </div>
+            <div>
+                <h3>Every platform</h3>
+                <p>Builds for PC, mobile and the browser.</p>
+            </div>
+            <div>
+                <h3>Jam to release</h3>
+                <p>Turning jam prototypes into finished small games.</p>
+            </div>
+            <div>
+                <h3>Contract work</h3>
+                <p>Gameplay systems, UI, engine glue.</p>
+            </div>
+        </div>
+    </section>
 
-            </section>
+    <section>
+        <h2>Studio</h2>
+        <table>
+            <tr><td>Founded</td><td>2024</td></tr>
+            <tr><td>Based in</td><td>Calgary, AB</td></tr>
+            <tr><td>Team</td><td>One person, all roles</td></tr>
+            <tr><td>Tools</td><td>Unity, Blender</td></tr>
+            <tr><td>Platforms</td><td>Windows, macOS, Linux, Android, browser</td></tr>
+            <tr><td>Playtesting</td><td>Open for playtesters &mdash; builds on request</td></tr>
+        </table>
+    </section>
 
-            <section class="panel">
-                <h2 class="panel-title"><span class="num">03</span>What We Do</h2>
-                <ul class="log">
-                    <li>Game design and rapid prototyping &mdash; horror, arcade, experimental</li>
-                    <li>Unity / C# gameplay, AI and tools programming</li>
-                    <li>Art direction from PSX low-poly to clean modern</li>
-                    <li>Builds for PC, mobile and the browser</li>
-                    <li>Turning jam prototypes into finished small games</li>
-                    <li>Contract work: gameplay systems, UI, engine glue</li>
-                </ul>
-            </section>
-
-        </main>
-    </div>
+    <section>
+        <h2>Get in touch</h2>
+        <div class="contact">
+            <a href="mailto:artbonvic@gmail.com"><i class="bi bi-envelope"></i>Email</a>
+            <a href="https://artbonvic.itch.io/" target="_blank" rel="noreferrer"><i class="bi bi-controller"></i>Itch.io</a>
+            <a href="https://github.com/uavn" target="_blank" rel="noreferrer"><i class="bi bi-github"></i>GitHub</a>
+            <a href="https://www.youtube.com/@computer-rat" target="_blank" rel="noreferrer"><i class="bi bi-youtube"></i>YouTube</a>
+            <a href="https://instagram.com/n8avenue" target="_blank" rel="noreferrer"><i class="bi bi-instagram"></i>Instagram</a>
+        </div>
+    </section>
 
     <footer>
-        <span>&copy; Ninety Pines</span>
-        <span class="prompt">root@pines:~$ tail -f /var/log/tape_090.log</span>
-        <span>All signals recorded</span>
+        <div class="row">
+            <span>&copy; Ninety Pines</span>
+            <span>Calgary, Alberta</span>
+        </div>
     </footer>
 
 </div>
 
 <script>
-// Camcorder timecode.
-(function () {
-    var el = document.getElementById('timecode');
-
-    if (!el) {
-        return;
-    }
-
-    var start = Date.now();
-
-    function pad(value) {
-        return String(value).padStart(2, '0');
-    }
-
-    function tick() {
-        var elapsed = Date.now() - start;
-        var frames = Math.floor((elapsed % 1000) / 40);
-        var seconds = Math.floor(elapsed / 1000);
-
-        el.textContent = pad(Math.floor(seconds / 3600)) + ':' +
-            pad(Math.floor(seconds / 60) % 60) + ':' +
-            pad(seconds % 60) + ':' + pad(frames);
-    }
-
-    tick();
-    setInterval(tick, 40);
-})();
-
-// Inside UAVN OS the game opens as its own window; standalone it is a plain link.
+// Inside the desktop the game opens as its own window; standalone it is a plain link.
 document.querySelectorAll('[data-app]').forEach(function (el) {
     el.addEventListener('click', function (event) {
         var appName = el.getAttribute('data-app');
