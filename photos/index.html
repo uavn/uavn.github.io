@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Photos - Artem Bondarenko</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="./styles.css" />
+        <script src="./app.js" defer></script>
+    </head>
+
+    <body>
+        <div class="app" id="app">
+            <aside class="sidebar" id="sidebar">
+                <section class="sidebar-section">
+                    <h2 class="sidebar-heading">Library</h2>
+                    <div id="nav-library"></div>
+                </section>
+                <section class="sidebar-section">
+                    <h2 class="sidebar-heading">Albums</h2>
+                    <div id="nav-albums"></div>
+                </section>
+                <section class="sidebar-section">
+                    <h2 class="sidebar-heading">Cameras</h2>
+                    <div id="nav-cameras"></div>
+                </section>
+                <section class="sidebar-section">
+                    <h2 class="sidebar-heading">Film</h2>
+                    <div id="nav-films"></div>
+                </section>
+            </aside>
+
+            <div class="main">
+                <header class="toolbar">
+                    <button type="button" class="toolbar-toggle" id="sidebar-toggle" aria-label="Show sidebar">
+                        <i class="bi bi-layout-sidebar"></i>
+                    </button>
+                    <div class="toolbar-title">
+                        <h1 id="view-title">All Photos</h1>
+                        <p id="view-meta"></p>
+                    </div>
+                    <label class="toolbar-zoom" title="Thumbnail size">
+                        <i class="bi bi-dash-lg"></i>
+                        <input type="range" id="zoom" min="120" max="320" step="10" value="200" />
+                        <i class="bi bi-plus-lg"></i>
+                    </label>
+                    <a class="toolbar-link" id="view-link" href="https://www.lomography.com/homes/artbonvic" target="_blank" rel="noreferrer">Lomography <i class="bi bi-box-arrow-up-right"></i></a>
+                </header>
+
+                <div class="content" id="content">
+                    <div class="state">Loading photos&hellip;</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewer" id="viewer" aria-hidden="true">
+            <div class="viewer-stage">
+                <img id="viewer-image" alt="" />
+                <span class="viewer-counter" id="viewer-counter"></span>
+                <button type="button" class="viewer-button" data-viewer="close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+                <button type="button" class="viewer-button" data-viewer="info" aria-label="Toggle info"><i class="bi bi-info-lg"></i></button>
+                <button type="button" class="viewer-button" data-viewer="prev" aria-label="Previous photo"><i class="bi bi-chevron-left"></i></button>
+                <button type="button" class="viewer-button" data-viewer="next" aria-label="Next photo"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <aside class="viewer-info" id="viewer-info"></aside>
+        </div>
+    </body>
+</html>

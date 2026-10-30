@@ -49,3 +49,26 @@ Anything under `games/<name>/` with a `package.json` is built during
 The build output and `node_modules` stay out of git.
 
 - `games/medieval-drift` → `/medieval-drift`
+
+## Photos
+
+The Photos app (`/photos`) shows the film photos from
+[Lomography](https://www.lomography.com/homes/artbonvic). Lomography is behind a
+Cloudflare challenge and has no CORS, so the page can't read it live; instead it
+reads `photos/lomography.json`, while the images themselves load straight from
+Lomography's CDN.
+
+To refresh the list, open https://www.lomography.com/homes/artbonvic/photos in a
+browser, paste `scripts/lomography-sync.js` into the DevTools console, and save
+the downloaded `lomography.json` over `photos/lomography.json`.
+
+## Wallpapers
+
+Originals live in `resources/wallpapers/`. The desktop uses resized copies:
+`web/` (2560px) for the background and `thumbs/` (480px) for the picker. After
+adding a wallpaper, generate both, e.g.:
+
+```sh
+sips -Z 2560 resources/wallpapers/NAME.jpg --out resources/wallpapers/web/NAME.jpg
+sips -Z 480 resources/wallpapers/NAME.jpg --out resources/wallpapers/thumbs/NAME.jpg
+```
