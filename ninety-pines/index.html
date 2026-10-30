@@ -270,11 +270,82 @@ a:hover {
     transform: rotate(2deg);
 }
 
+.featured-art--glyph {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(150deg, var(--c1), var(--c2));
+    font-size: 140px;
+}
+
 .featured-art img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* Slide change: fade the content and art, cross-fade the backdrop. */
+.featured-inner > * {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.featured.is-changing .featured-inner > * {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.featured-bg {
+    transition: opacity 0.6s ease;
+}
+
+.featured.is-changing .featured-bg {
+    opacity: 0.4;
+}
+
+.featured-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.featured-dots button {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 980px;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    overflow: hidden;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.featured-dots button.is-active {
+    width: 28px;
+}
+
+/* The active dot fills up while the slide is on screen. */
+.featured-dots button.is-active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    transform-origin: left;
+    animation: dot-fill var(--slide-ms, 7000ms) linear forwards;
+}
+
+.featured.is-paused .featured-dots button.is-active::after {
+    animation-play-state: paused;
+}
+
+@keyframes dot-fill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
 }
 
 /* ---- intro ---- */
@@ -407,6 +478,7 @@ a:hover {
 
 .badge {
     position: absolute;
+    z-index: 1;
     top: 12px;
     left: 12px;
     padding: 4px 10px;
@@ -475,152 +547,6 @@ a:hover {
     font-size: 14px;
 }
 
-/* ---- studio ---- */
-.studio {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    align-items: start;
-    padding-top: 96px;
-}
-
-.studio h2,
-.services h2 {
-    margin: 0 0 16px;
-    font-size: 32px;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-}
-
-.studio p {
-    margin: 0 0 14px;
-    font-size: 18px;
-}
-
-.studio .dim {
-    color: var(--ink-dim);
-}
-
-.stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-}
-
-.stat {
-    padding: 20px;
-    border-radius: 18px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-}
-
-.stat b {
-    display: block;
-    font-size: 34px;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-}
-
-.stat span {
-    color: var(--ink-dim);
-    font-size: 14px;
-}
-
-/* ---- services ---- */
-.services {
-    padding-top: 96px;
-}
-
-.tiles {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.tile {
-    padding: 22px;
-    border-radius: 18px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-}
-
-.tile i {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    margin-bottom: 14px;
-    border-radius: 11px;
-    background: linear-gradient(150deg, var(--c1), var(--c2));
-    color: #fff;
-    font-size: 19px;
-}
-
-.tile h3 {
-    margin: 0 0 4px;
-    font-size: 17px;
-    font-weight: 600;
-}
-
-.tile p {
-    margin: 0;
-    font-size: 15px;
-    color: var(--ink-dim);
-}
-
-/* ---- contact ---- */
-.contact {
-    margin-top: 96px;
-    padding: 56px 32px;
-    border-radius: 28px;
-    background: linear-gradient(160deg, #1f3d2a, #0e1a13);
-    color: #fff;
-    text-align: center;
-}
-
-.contact h2 {
-    margin: 0;
-    font-size: clamp(28px, 4vw, 40px);
-    letter-spacing: -0.02em;
-    font-weight: 700;
-}
-
-.contact p {
-    margin: 10px auto 0;
-    max-width: 480px;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 18px;
-}
-
-.contact .btn {
-    margin-top: 24px;
-}
-
-.socials {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 24px;
-}
-
-.socials a {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 19px;
-    transition: background 0.2s ease;
-}
-
-.socials a:hover {
-    background: rgba(255, 255, 255, 0.22);
-    text-decoration: none;
-}
-
 /* ---- footer ---- */
 footer {
     margin-top: 56px;
@@ -652,14 +578,6 @@ footer .wrap {
         transform: none;
     }
 
-    .studio {
-        grid-template-columns: 1fr;
-        gap: 28px;
-    }
-
-    .tiles {
-        grid-template-columns: 1fr 1fr;
-    }
 }
 
 @media (max-width: 560px) {
@@ -671,16 +589,16 @@ footer .wrap {
         gap: 16px;
     }
 
-    .nav-links a:nth-child(2) {
-        display: none;
-    }
-
     .nav .btn {
         display: none;
     }
 
     .featured {
         border-radius: 22px;
+    }
+
+    .featured-art--glyph {
+        font-size: 80px;
     }
 
     .intro {
@@ -697,14 +615,6 @@ footer .wrap {
         grid-template-columns: 1fr;
     }
 
-    .tiles {
-        grid-template-columns: 1fr;
-    }
-
-    .contact {
-        padding: 44px 20px;
-        border-radius: 22px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -712,6 +622,7 @@ footer .wrap {
     *::before,
     *::after {
         transition: none !important;
+        animation: none !important;
         scroll-behavior: auto !important;
     }
 }
@@ -742,8 +653,6 @@ footer .wrap {
         <a class="brand" href="#top"><svg role="img" aria-label="Ninety Pines logo"><use href="#mark" /></svg>Ninety Pines</a>
         <div class="nav-links">
             <a href="#games">Games</a>
-            <a href="#studio">Studio</a>
-            <a href="#contact">Contact</a>
         </div>
         <a class="btn btn--small" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer"><i class="bi bi-steam"></i>Terminal Fall</a>
     </div>
@@ -753,26 +662,28 @@ footer .wrap {
 
     <!-- Featured: the next release -->
     <section class="featured" aria-labelledby="featured-title">
-        <div class="featured-bg" aria-hidden="true"></div>
-        <div class="featured-inner">
+        <div class="featured-bg" id="featured-bg" aria-hidden="true"></div>
+        <div class="featured-inner" id="featured-inner">
             <div>
-                <p class="eyebrow"><i class="bi bi-calendar-event"></i>Coming November 2026</p>
+                <p class="eyebrow" id="featured-eyebrow"><i class="bi bi-steam"></i>Out now on Steam</p>
                 <h1 id="featured-title">Terminal Fall</h1>
-                <p class="lede">
-                    Your plane goes down in an autumn forest at sunset. The only way out: a fire
-                    lookout tower, a dead radio and a long night. And somewhere in the dark is
-                    someone who doesn't like the light.
+                <p class="lede" id="featured-lede">
+                    Your engine dies over an autumn forest at sunset. You survive the crash, but
+                    all that's left is rain, darkness and something waiting at the edge of your
+                    flashlight beam. Find fuel, start the generator and reach the rangers before
+                    the night swallows you.
                 </p>
-                <p class="meta">First-person survival horror &middot; Windows, macOS, Linux</p>
-                <div class="actions">
+                <p class="meta" id="featured-meta">First-person survival horror &middot; Windows, macOS, Linux</p>
+                <div class="actions" id="featured-actions">
                     <a class="btn" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer"><i class="bi bi-steam"></i>View on Steam</a>
                     <a class="btn btn--ghost" href="#games">All games</a>
                 </div>
             </div>
-            <div class="featured-art">
+            <div class="featured-art" id="featured-art">
                 <img src="./art/terminal-fall.jpg" alt="Terminal Fall cover art" />
             </div>
         </div>
+        <div class="featured-dots" id="featured-dots" role="tablist" aria-label="Featured games"></div>
     </section>
 
     <!-- Who we are, in one line -->
@@ -780,7 +691,7 @@ footer .wrap {
         <svg role="img" aria-label="Ninety Pines logo"><use href="#mark" /></svg>
         <div>
             <h2>Ninety Pines is a one-person game studio.</h2>
-            <p>Small games &mdash; mostly horror, sometimes not, in whatever art style the idea asks for.</p>
+            <p>Small games &mdash; mostly horror, sometimes not.</p>
         </div>
     </section>
 
@@ -791,15 +702,20 @@ footer .wrap {
             <span>Premium releases</span>
         </div>
         <div class="cards">
-            <article class="card">
+            <article class="card" data-order="1" data-eyebrow="Out now on Steam" data-lede="Your engine dies over an autumn forest at sunset. You survive the crash, but all that's left is rain, darkness and something waiting at the edge of your flashlight beam. Find fuel, start the generator and reach the rangers before the night swallows you.">
                 <div class="card-art card-art--contain" style="--art: url('./art/terminal-fall.jpg')">
-                    <span class="badge badge--new">November 2026</span>
+                    <span class="badge badge--new">Out now</span>
                     <img src="./art/terminal-fall.jpg" alt="Terminal Fall" loading="lazy" />
                 </div>
                 <div class="card-body">
                     <h3>Terminal Fall</h3>
                     <p class="genre">First-person survival horror</p>
-                    <p class="quip">Keep the flashlight on. The rangers on the radio are trying to help. Well, almost.</p>
+                    <p>
+                        A fire lookout tower looms out of the dark. The radio works, but there's no
+                        power, and the generator in the shed is bone dry. Someone is wandering the
+                        woods tonight &mdash; keep your flashlight trained on him.
+                    </p>
+                    <p class="quip">The rangers on the radio, Curtis and Wayne, genuinely try to help. Well, almost.</p>
                     <div class="card-foot">
                         <a class="btn btn--small" href="https://store.steampowered.com/app/5493430/Terminal_Fall/" target="_blank" rel="noreferrer"><i class="bi bi-steam"></i>Steam</a>
                         <span class="platforms" title="Windows, macOS, Linux"><i class="bi bi-windows"></i><i class="bi bi-apple"></i><i class="bi bi-ubuntu"></i></span>
@@ -807,7 +723,7 @@ footer .wrap {
                 </div>
             </article>
 
-            <article class="card">
+            <article class="card" data-order="2" data-eyebrow="Out now on Steam">
                 <div class="card-art card-art--contain" style="--art: url('./art/late-checkout.png')">
                     <span class="badge">Out now</span>
                     <img src="./art/late-checkout.png" alt="Late Checkout" loading="lazy" />
@@ -833,10 +749,10 @@ footer .wrap {
     <section class="shelf">
         <div class="shelf-head">
             <h2>Free on itch.io</h2>
-            <span>Download and play</span>
+            <span>Free to download</span>
         </div>
         <div class="cards">
-            <article class="card">
+            <article class="card" data-order="4" data-eyebrow="Free on itch.io">
                 <div class="card-art">
                     <span class="badge">2026</span>
                     <img src="./art/ninety-pines-game.jpg" alt="Ninety Pines" loading="lazy" style="object-position: center top" />
@@ -856,7 +772,7 @@ footer .wrap {
                 </div>
             </article>
 
-            <article class="card">
+            <article class="card" data-order="7" data-eyebrow="Free on itch.io">
                 <div class="card-art">
                     <span class="badge">2024</span>
                     <img src="./art/darkwater-lake.png" alt="Whispers of Darkwater Lake" loading="lazy" />
@@ -875,16 +791,7 @@ footer .wrap {
                     </div>
                 </div>
             </article>
-        </div>
-    </section>
-
-    <section class="shelf">
-        <div class="shelf-head">
-            <h2>Play in your browser</h2>
-            <span>No install</span>
-        </div>
-        <div class="cards">
-            <article class="card">
+            <article class="card" data-order="6" data-eyebrow="Free on itch.io">
                 <div class="card-art card-art--contain" style="--art: url('../resources/oug.png')">
                     <img src="../resources/oug.png" alt="Out Of Gas" loading="lazy" />
                 </div>
@@ -897,12 +804,21 @@ footer .wrap {
                     </p>
                     <div class="card-foot">
                         <a class="btn btn--small" href="../out-of-gas/index.html" data-app="OutOfGas"><i class="bi bi-play-fill"></i>Play</a>
-                        <a href="https://artbonvic.itch.io/out-of-gas" target="_blank" rel="noreferrer">itch.io &rsaquo;</a>
+                        <a href="https://artbonvic.itch.io/out-of-gas" target="_blank" rel="noreferrer">Download on itch.io &rsaquo;</a>
                     </div>
                 </div>
             </article>
+        </div>
+    </section>
 
-            <article class="card">
+    <section class="shelf">
+        <div class="shelf-head">
+            <h2>Play in your browser</h2>
+            <span>No install</span>
+        </div>
+        <div class="cards">
+
+            <article class="card" data-order="3" data-eyebrow="Play in your browser">
                 <div class="card-art card-art--glyph" style="--c1: #bf5af2; --c2: #3a0ca3">
                     <span class="badge">js13k 2026</span>
                     <i class="bi bi-rainbow"></i>
@@ -922,7 +838,7 @@ footer .wrap {
                 </div>
             </article>
 
-            <article class="card">
+            <article class="card" data-order="5" data-eyebrow="Play in your browser">
                 <div class="card-art card-art--glyph" style="--c1: #d4a373; --c2: #7f5539">
                     <span class="badge">js13k</span>
                     <i class="bi bi-tornado"></i>
@@ -942,75 +858,6 @@ footer .wrap {
         </div>
     </section>
 
-    <!-- Studio -->
-    <section class="studio" id="studio">
-        <div>
-            <h2>The studio</h2>
-            <p>
-                Ninety Pines makes small games &mdash; mostly horror, sometimes not, in
-                whatever art style the idea asks for.
-            </p>
-            <p class="dim">
-                One person, everything in-house. Prototype in a week, ship it or bury it.
-                Unity and Blender, builds for Windows, macOS, Linux, Android and the browser.
-            </p>
-        </div>
-        <div class="stats">
-            <div class="stat"><b>2024</b><span>Founded</span></div>
-            <div class="stat"><b>1</b><span>Person, all roles</span></div>
-            <div class="stat"><b>7</b><span>Games made</span></div>
-            <div class="stat"><b>Calgary</b><span>Alberta, Canada</span></div>
-        </div>
-    </section>
-
-    <section class="services">
-        <h2>What we do</h2>
-        <div class="tiles">
-            <div class="tile">
-                <i class="bi bi-lightbulb" style="--c1: #ffb340; --c2: #ff7a00"></i>
-                <h3>Design and prototyping</h3>
-                <p>Horror, arcade and experimental ideas, playable fast.</p>
-            </div>
-            <div class="tile">
-                <i class="bi bi-code-slash" style="--c1: #5ac8fa; --c2: #0a64d6"></i>
-                <h3>Unity and C#</h3>
-                <p>Gameplay, AI and tools programming.</p>
-            </div>
-            <div class="tile">
-                <i class="bi bi-palette" style="--c1: #ff6482; --c2: #c41e3a"></i>
-                <h3>Art direction</h3>
-                <p>From PSX low-poly to clean modern.</p>
-            </div>
-            <div class="tile">
-                <i class="bi bi-display" style="--c1: #8e8e93; --c2: #3a3a3c"></i>
-                <h3>Every platform</h3>
-                <p>Builds for PC, mobile and the browser.</p>
-            </div>
-            <div class="tile">
-                <i class="bi bi-rocket-takeoff" style="--c1: #34c759; --c2: #0c8a5e"></i>
-                <h3>Jam to release</h3>
-                <p>Turning jam prototypes into finished small games.</p>
-            </div>
-            <div class="tile">
-                <i class="bi bi-puzzle" style="--c1: #bf5af2; --c2: #5e2ca5"></i>
-                <h3>Contract work</h3>
-                <p>Gameplay systems, UI, engine glue.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact -->
-    <section class="contact" id="contact">
-        <h2>Want to playtest?</h2>
-        <p>Builds are available on request. Same address for contract work and everything else.</p>
-        <a class="btn" href="mailto:artbonvic@gmail.com"><i class="bi bi-envelope"></i>artbonvic@gmail.com</a>
-        <div class="socials">
-            <a href="https://artbonvic.itch.io/" target="_blank" rel="noreferrer" aria-label="Itch.io" title="Itch.io"><i class="bi bi-controller"></i></a>
-            <a href="https://github.com/uavn" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><i class="bi bi-github"></i></a>
-            <a href="https://www.youtube.com/@computer-rat" target="_blank" rel="noreferrer" aria-label="YouTube" title="YouTube"><i class="bi bi-youtube"></i></a>
-            <a href="https://instagram.com/n8avenue" target="_blank" rel="noreferrer" aria-label="Instagram" title="Instagram"><i class="bi bi-instagram"></i></a>
-        </div>
-    </section>
 
 </main>
 
@@ -1023,20 +870,185 @@ footer .wrap {
 
 <script>
 // Inside the desktop the game opens as its own window; standalone it is a plain link.
-document.querySelectorAll('[data-app]').forEach(function (el) {
-    el.addEventListener('click', function (event) {
-        var appName = el.getAttribute('data-app');
+document.addEventListener('click', function (event) {
+    var el = event.target.closest('[data-app]');
 
-        try {
-            if (window.parent !== window && typeof window.parent.openApp === 'function') {
-                event.preventDefault();
-                window.parent.openApp(appName);
-            }
-        } catch (error) {
-            // Cross-origin parent: fall through to the normal link.
+    if (!el) {
+        return;
+    }
+
+    try {
+        if (window.parent !== window && typeof window.parent.openApp === 'function') {
+            event.preventDefault();
+            window.parent.openApp(el.getAttribute('data-app'));
+        }
+    } catch (error) {
+        // Cross-origin parent: fall through to the normal link.
+    }
+});
+
+// Featured banner: cycles through every game card, newest first, then wraps around.
+(function () {
+    var SLIDE_MS = 7000;
+    var root = document.querySelector('.featured');
+    var els = {
+        bg: document.getElementById('featured-bg'),
+        eyebrow: document.getElementById('featured-eyebrow'),
+        title: document.getElementById('featured-title'),
+        lede: document.getElementById('featured-lede'),
+        meta: document.getElementById('featured-meta'),
+        actions: document.getElementById('featured-actions'),
+        art: document.getElementById('featured-art'),
+        dots: document.getElementById('featured-dots')
+    };
+    var eyebrowIcons = {
+        'Out now on Steam': 'bi-steam',
+        'Free on itch.io': 'bi-download',
+        'Play in your browser': 'bi-play-circle'
+    };
+
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.card[data-order]'))
+        .sort(function (a, b) { return a.dataset.order - b.dataset.order; })
+        .map(function (card) {
+            var art = card.querySelector('.card-art');
+            var img = art.querySelector('img');
+            var glyph = art.querySelector('.bi');
+            var text = card.querySelector('.card-body p:not(.genre):not(.quip)');
+            var platforms = card.querySelector('.platforms');
+
+            return {
+                eyebrow: card.dataset.eyebrow,
+                title: card.querySelector('h3').textContent,
+                lede: card.dataset.lede || (text ? text.textContent.replace(/\s+/g, ' ').trim() : ''),
+                meta: card.querySelector('.genre').textContent + (platforms ? ' \u00b7 ' + platforms.title : ''),
+                button: card.querySelector('.card-foot .btn'),
+                image: img ? img.getAttribute('src') : null,
+                glyph: glyph ? glyph.className : null,
+                colors: art.style.getPropertyValue('--c1') ? [art.style.getPropertyValue('--c1'), art.style.getPropertyValue('--c2')] : null
+            };
+        });
+
+    if (!root || slides.length < 2) {
+        return;
+    }
+
+    root.style.setProperty('--slide-ms', SLIDE_MS + 'ms');
+
+    var index = 0;
+    var timer = null;
+    var paused = false;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (slide, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', slide.title);
+        dot.addEventListener('click', function () { go(i); });
+        els.dots.appendChild(dot);
+
+        // Warm the cache so switching never shows a blank frame.
+        if (slide.image) {
+            new Image().src = slide.image;
         }
     });
-});
+
+    function render(slide) {
+        els.eyebrow.innerHTML = '<i class="bi ' + (eyebrowIcons[slide.eyebrow] || 'bi-controller') + '"></i>';
+        els.eyebrow.appendChild(document.createTextNode(slide.eyebrow));
+        els.title.textContent = slide.title;
+        els.lede.textContent = slide.lede;
+        els.meta.textContent = slide.meta;
+
+        var primary = slide.button.cloneNode(true);
+        primary.classList.remove('btn--small');
+        els.actions.replaceChild(primary, els.actions.firstElementChild);
+
+        if (slide.image) {
+            els.art.className = 'featured-art';
+            els.art.removeAttribute('style');
+            els.art.innerHTML = '';
+            var img = document.createElement('img');
+            img.src = slide.image;
+            img.alt = slide.title + ' cover art';
+            els.art.appendChild(img);
+            els.bg.style.background = 'url("' + slide.image + '") center / cover';
+        } else {
+            els.art.className = 'featured-art featured-art--glyph';
+            els.art.style.setProperty('--c1', slide.colors[0]);
+            els.art.style.setProperty('--c2', slide.colors[1]);
+            els.art.innerHTML = '<i class="' + slide.glyph + '"></i>';
+            els.bg.style.background = 'linear-gradient(150deg, ' + slide.colors[0] + ', ' + slide.colors[1] + ')';
+        }
+
+        Array.prototype.forEach.call(els.dots.children, function (dot, i) {
+            var active = slides[i] === slide;
+            dot.classList.toggle('is-active', active);
+            dot.setAttribute('aria-selected', active ? 'true' : 'false');
+            // Restart the fill animation on the newly active dot.
+            if (active) {
+                dot.classList.remove('is-active');
+                void dot.offsetWidth;
+                dot.classList.add('is-active');
+            }
+        });
+    }
+
+    function go(next) {
+        index = (next + slides.length) % slides.length;
+
+        if (reduceMotion) {
+            render(slides[index]);
+        } else {
+            root.classList.add('is-changing');
+            setTimeout(function () {
+                render(slides[index]);
+                root.classList.remove('is-changing');
+            }, 350);
+        }
+
+        schedule();
+    }
+
+    function schedule() {
+        clearTimeout(timer);
+
+        if (!paused) {
+            timer = setTimeout(function () { go(index + 1); }, SLIDE_MS);
+        }
+    }
+
+    function setPaused(value) {
+        paused = value;
+        root.classList.toggle('is-paused', value);
+        schedule();
+    }
+
+    root.addEventListener('mouseenter', function () { setPaused(true); });
+    root.addEventListener('mouseleave', function () { setPaused(false); });
+    root.addEventListener('focusin', function () { setPaused(true); });
+    root.addEventListener('focusout', function () { setPaused(false); });
+    document.addEventListener('visibilitychange', function () { setPaused(document.hidden); });
+
+    // Swipe on touch screens.
+    var touchX = null;
+    root.addEventListener('touchstart', function (event) { touchX = event.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', function (event) {
+        if (touchX === null) {
+            return;
+        }
+
+        var delta = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+
+        if (Math.abs(delta) > 50) {
+            go(index + (delta < 0 ? 1 : -1));
+        }
+    });
+
+    render(slides[0]);
+    schedule();
+})();
 </script>
 
 </body>
