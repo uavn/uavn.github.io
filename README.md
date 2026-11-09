@@ -62,13 +62,24 @@ To refresh the list, open https://www.lomography.com/homes/artbonvic/photos in a
 browser, paste `scripts/lomography-sync.js` into the DevTools console, and save
 the downloaded `lomography.json` over `photos/lomography.json`.
 
+## Photo Reel
+
+`/photo-reel` turns a set of photos into a slideshow video: each photo sits on a
+coloured (or blurred) background with an optional frame — border, rough edge,
+filed negative carrier, 35mm strip, 120 film, Polaroid or Instax. Everything runs
+in the browser: frames are drawn on a canvas, encoded with WebCodecs (H.264, up
+to 4K/60) and muxed to MP4 with `mp4-muxer`. In Chrome the file streams straight
+to disk; elsewhere it's built in memory and downloaded.
+
+Camera sounds in `photo-reel/sounds/` are cut from CC0 recordings on
+Freesound: the wind lever from
+["analog camera wind and shutter click #2"](https://freesound.org/s/170139/) by
+jgrzinich, the film shutter from
+["Camera shutter click"](https://freesound.org/s/554268/) by Clagnar, and the
+digital shutter from
+["camera DSLR single shots"](https://freesound.org/s/453782/) by kyles.
+
 ## Wallpapers
 
-Originals live in `resources/wallpapers/`. The desktop uses resized copies:
-`web/` (2560px) for the background and `thumbs/` (480px) for the picker. After
-adding a wallpaper, generate both, e.g.:
-
-```sh
-sips -Z 2560 resources/wallpapers/NAME.jpg --out resources/wallpapers/web/NAME.jpg
-sips -Z 480 resources/wallpapers/NAME.jpg --out resources/wallpapers/thumbs/NAME.jpg
-```
+Desktop wallpapers are CSS gradients with a pattern on top, defined in the
+`Wallpapers` list in `resources/scripts/scripts.js`.

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Photo Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Caveat:wght@500;600&family=Cormorant+Garamond:wght@500&family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Lora:wght@500&family=Manrope:wght@600&family=Marck+Script&family=Montserrat:wght@600&family=Oswald:wght@500&family=PT+Mono&family=PT+Serif&family=Pacifico&family=Playfair+Display:wght@500&family=Prata&family=Rubik:wght@500&family=Russo+One&family=Unbounded:wght@500&family=Yeseva+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="./styles.css?v=16" />
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.js" defer></script>
+<script src="./app.js?v=27" defer></script>
+</head>
+<body>
+<div class="app">
+    <aside class="panel photos">
+        <div class="panel-head">
+            <h2>Photos <span class="count" id="photo-count">0</span></h2>
+            <button type="button" class="btn" id="lomo-open" title="Import from the film gallery"><i class="bi bi-camera"></i> Gallery</button>
+            <label class="btn btn--primary">
+                <i class="bi bi-plus-lg"></i> Add
+                <input type="file" id="file-input" accept="image/*" multiple hidden />
+            </label>
+        </div>
+        <div class="busy" id="busy" hidden><span class="spinner"></span><span id="busy-text"></span></div>
+        <ol class="photo-list" id="photo-list"></ol>
+        <div class="dropzone" id="dropzone">
+            <i class="bi bi-images"></i>
+            <span>Drop photos here<br /><small>JPEG, PNG, WebP — drag to reorder</small></span>
+        </div>
+        <div class="panel-foot">
+            <button type="button" class="btn" data-action="sort" title="Sort by file name"><i class="bi bi-sort-alpha-down"></i></button>
+            <button type="button" class="btn" data-action="shuffle" title="Shuffle"><i class="bi bi-shuffle"></i></button>
+            <button type="button" class="btn" data-action="clear" title="Remove all"><i class="bi bi-trash3"></i></button>
+        </div>
+    </aside>
+
+    <main class="stage">
+        <div class="viewport" id="viewport">
+            <canvas id="preview"></canvas>
+        </div>
+        <div class="transport">
+            <button type="button" class="btn btn--icon" id="play" aria-label="Play"><i class="bi bi-play-fill"></i></button>
+            <span class="time" id="time-now">0:00.0</span>
+            <input type="range" id="scrubber" min="0" max="1" step="0.01" value="0" aria-label="Timeline" />
+            <span class="time" id="time-total">0:00.0</span>
+        </div>
+        <div class="summary" id="summary"></div>
+    </main>
+
+    <aside class="panel controls">
+        <div class="presets" id="presets"></div>
+        <div id="controls"></div>
+        <div class="export">
+            <button type="button" class="btn btn--primary btn--wide" id="export"><i class="bi bi-download"></i> Export MP4</button>
+            <button type="button" class="btn btn--wide" id="cancel" hidden>Cancel</button>
+            <div class="progress" id="progress" hidden><div class="progress-bar" id="progress-bar"></div></div>
+            <p class="status" id="status"></p>
+            <button type="button" class="link" id="reset">Reset settings</button>
+        </div>
+    </aside>
+</div>
+
+<div class="picker" id="picker" hidden>
+    <div class="picker-window" role="dialog" aria-label="Import from gallery">
+        <div class="picker-head">
+            <h2>Film gallery</h2>
+            <select id="picker-album" aria-label="Album"></select>
+            <button type="button" class="btn" id="picker-all">Select all</button>
+            <button type="button" class="btn btn--icon" id="picker-close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="picker-grid" id="picker-grid"></div>
+        <div class="picker-foot">
+            <span class="picker-meta" id="picker-meta"></span>
+            <button type="button" class="btn btn--primary" id="picker-import" disabled>Import</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
