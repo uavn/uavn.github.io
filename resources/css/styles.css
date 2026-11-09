@@ -1,47 +1,32 @@
+/* Black-and-green "terminal" scheme. The desktop itself is always dark. */
 :root {
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Ubuntu', 'Segoe UI', Roboto, sans-serif;
 
     --menubar-height: 30px;
     --dock-space: 84px;
 
-    --glass: rgba(246, 246, 248, 0.72);
-    --glass-strong: rgba(250, 250, 252, 0.9);
-    --glass-line: rgba(255, 255, 255, 0.55);
-    --ink: #1d1d1f;
-    --ink-2: #6e6e73;
-    --accent: #0a84ff;
-    --hover: rgba(0, 0, 0, 0.06);
+    --glass: rgba(4, 12, 7, 0.74);
+    --glass-strong: rgba(5, 14, 9, 0.94);
+    --glass-line: rgba(57, 255, 136, 0.2);
+    --ink: #c6f8d5;
+    --ink-2: #63b07e;
+    --accent: #39ff88;
+    --accent-ink: #001a0a;
+    --hover: rgba(57, 255, 136, 0.12);
 
-    --window-bg: #ffffff;
-    --window-header: #ececef;
-    --window-header-inactive: #f5f5f7;
-    --window-line: rgba(0, 0, 0, 0.12);
-    --window-shadow: 0 22px 70px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.25);
-    --window-shadow-inactive: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+    --window-bg: #050a07;
+    --window-header: #0b1811;
+    --window-header-inactive: #07100b;
+    --window-line: rgba(57, 255, 136, 0.16);
+    --window-shadow: 0 22px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(57, 255, 136, 0.35), 0 0 36px rgba(57, 255, 136, 0.1);
+    --window-shadow-inactive: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(57, 255, 136, 0.14);
 
-    --desktop-bg: #2b3a42;
-    color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --glass: rgba(30, 30, 32, 0.62);
-        --glass-strong: rgba(36, 36, 38, 0.92);
-        --glass-line: rgba(255, 255, 255, 0.12);
-        --ink: #f5f5f7;
-        --ink-2: #a1a1a6;
-        --hover: rgba(255, 255, 255, 0.1);
-
-        --window-bg: #1c1c1e;
-        --window-header: #2c2c2e;
-        --window-header-inactive: #232325;
-        --window-line: rgba(255, 255, 255, 0.1);
-        --window-shadow: 0 22px 70px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.18);
-        --window-shadow-inactive: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-
-        --desktop-bg: #111417;
-        color-scheme: dark;
-    }
+    /* Default wallpaper; Settings swaps it for the chosen gradient. */
+    --desktop-bg:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 14px),
+        radial-gradient(circle at 85% 15%, rgba(233, 84, 32, 0.55), transparent 55%),
+        linear-gradient(135deg, #2c001e 0%, #5e2750 48%, #77216f 70%, #e95420 120%);
+    color-scheme: dark;
 }
 
 * {
@@ -59,7 +44,8 @@ body {
     font-family: var(--font);
     font-size: 13px;
     color: var(--ink);
-    background: var(--desktop-bg) center / cover no-repeat;
+    background: var(--desktop-bg);
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     user-select: none;
 }
@@ -176,7 +162,7 @@ body.is-interacting {
 
 .menubar .menu button:hover {
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-ink);
 }
 
 .menu hr {
@@ -191,63 +177,6 @@ body.is-interacting {
 .desktop {
     position: fixed;
     inset: var(--menubar-height) 0 0 0;
-}
-
-.desktop-note {
-    position: absolute;
-    left: 32px;
-    bottom: calc(var(--dock-space) + 24px);
-    max-width: 380px;
-    padding: 22px 24px;
-    border-radius: 18px;
-    background: var(--glass);
-    backdrop-filter: saturate(180%) blur(28px);
-    -webkit-backdrop-filter: saturate(180%) blur(28px);
-    border: 0.5px solid var(--glass-line);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
-    user-select: text;
-}
-
-.desktop-note h1 {
-    margin: 0 0 6px;
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.desktop-note p {
-    margin: 0;
-    color: var(--ink-2);
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.desktop-note-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--hover);
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.pill:hover {
-    filter: brightness(0.95);
-}
-
-.pill--primary {
-    background: var(--accent);
-    color: #fff;
 }
 
 /* Dock */
@@ -372,7 +301,7 @@ body.is-interacting {
     align-items: center;
     justify-content: center;
     padding: 60px 24px calc(var(--dock-space) + 20px);
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 8, 3, 0.55);
     backdrop-filter: blur(30px) saturate(140%);
     -webkit-backdrop-filter: blur(30px) saturate(140%);
     opacity: 0;
@@ -408,8 +337,8 @@ body.is-interacting {
     gap: 8px;
     border: 0;
     background: none;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    color: var(--ink);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     cursor: pointer;
 }
 
@@ -498,38 +427,46 @@ body.is-interacting {
     color: var(--ink);
 }
 
+/* Window controls: three small squares. Close is solid, minimize is half
+   filled, zoom is an outline; hovering shows the glyph. */
 .window-controls {
     position: relative;
     z-index: 1;
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .window-control {
     position: relative;
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
     padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: #c7c7cc;
-    box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--ink-2);
+    border-radius: 2px;
+    background: transparent;
     cursor: default;
+    opacity: 0.55;
 }
 
-.window.is-active .window-control--close,
-.window-controls:hover .window-control--close {
-    background: #ff5f57;
+.window.is-active .window-control {
+    border-color: var(--accent);
+    opacity: 1;
 }
 
-.window.is-active .window-control--minimize,
-.window-controls:hover .window-control--minimize {
-    background: #febc2e;
+.window-control--close {
+    background: var(--ink-2);
 }
 
-.window.is-active .window-control--maximize,
-.window-controls:hover .window-control--maximize {
-    background: #28c840;
+.window.is-active .window-control--close {
+    background: var(--accent);
+}
+
+.window-control--minimize {
+    background: linear-gradient(to top, var(--ink-2) 50%, transparent 50%);
+}
+
+.window.is-active .window-control--minimize {
+    background: linear-gradient(to top, var(--accent) 50%, transparent 50%);
 }
 
 .window-control::after {
@@ -537,11 +474,22 @@ body.is-interacting {
     inset: 0;
     display: grid;
     place-items: center;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.55);
+    color: var(--accent-ink);
     opacity: 0;
+}
+
+.window-controls:hover .window-control {
+    opacity: 1;
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.window-controls .window-control--close:hover {
+    border-color: #ff4f6d;
+    background: #ff4f6d;
 }
 
 .window-controls:hover .window-control::after {
@@ -550,7 +498,7 @@ body.is-interacting {
 
 .window-control--close::after {
     content: '×';
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .window-control--minimize::after {
@@ -653,22 +601,22 @@ body.is-interacting {
     outline-offset: 2px;
 }
 
-.wallpaper-option img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
 .wallpaper-option.is-active {
     outline-color: var(--accent);
 }
 
-.wallpaper-option--color {
-    display: grid;
-    place-items: center;
+.wallpaper-option {
+    position: relative;
+}
+
+.wallpaper-option span {
+    position: absolute;
+    left: 8px;
+    bottom: 6px;
     color: #fff;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 /* Phones: windows open full screen, the dock scrolls. */
@@ -681,12 +629,6 @@ body.is-interacting {
     .menubar-links,
     .menubar-status a {
         display: none;
-    }
-
-    .desktop-note {
-        left: 16px;
-        right: 16px;
-        max-width: none;
     }
 
     /* Scrolling clips overflow on both axes, so only phones (no hover zoom) get it. */

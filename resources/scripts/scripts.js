@@ -21,6 +21,7 @@ const AppRegistry = [
     { key: 'Weather', title: 'Weather', url: './weather/index.html', width: 1000, height: 800, icon: 'bi-cloud-sun-fill', colors: ['#64d2ff', '#0a84ff'], dock: true },
     { key: 'MusVis', title: 'Music Visualizer', url: './musvis/index.html', width: 1000, height: 800, icon: 'bi-music-note-beamed', colors: ['#ff6482', '#c41e3a'], dock: true },
     { key: 'MapVis', title: 'Route Animator', url: './mapvis/index.html', width: 1100, height: 800, icon: 'bi-map-fill', colors: ['#34c759', '#0c8a5e'], dock: true },
+    { key: 'PhotoReel', title: 'Photo Reel', url: './photo-reel/index.html', width: 1280, height: 820, icon: 'bi-film', colors: ['#39ff88', '#0b5d2c'], dock: true },
     { key: 'TabStash', title: 'TabStash', url: './tab-stash/index.html', width: 900, height: 700, icon: 'bi-window-stack', colors: ['#8e8e93', '#3a3a3c'], dock: true }
 ];
 
@@ -577,40 +578,92 @@ const MenuBar = {
     }
 };
 
+// Wallpapers are pure CSS: gradients with a pattern on top, in an orange /
+// aubergine palette (#e95420, #77216f, #5e2750, #2c001e, warm grey #aea79f).
+const Wallpapers = [
+    {
+        id: 'jammy',
+        name: 'Jammy',
+        css: `repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 14px),
+              radial-gradient(circle at 85% 15%, rgba(233, 84, 32, 0.55), transparent 55%),
+              linear-gradient(135deg, #2c001e 0%, #5e2750 48%, #77216f 70%, #e95420 120%)`
+    },
+    {
+        id: 'dots',
+        name: 'Dots',
+        css: `radial-gradient(rgba(255, 255, 255, 0.11) 1.2px, transparent 1.8px) 0 0 / 22px 22px,
+              radial-gradient(ellipse at 20% 110%, rgba(233, 84, 32, 0.7), transparent 60%),
+              linear-gradient(160deg, #1a0012 0%, #5e2750 60%, #77216f 100%)`
+    },
+    {
+        id: 'grid',
+        name: 'Grid',
+        css: `linear-gradient(rgba(233, 84, 32, 0.13) 1px, transparent 1px) 0 0 / 44px 44px,
+              linear-gradient(90deg, rgba(233, 84, 32, 0.13) 1px, transparent 1px) 0 0 / 44px 44px,
+              radial-gradient(circle at 78% 22%, rgba(233, 84, 32, 0.6), transparent 45%),
+              linear-gradient(180deg, #2c001e, #12000c)`
+    },
+    {
+        id: 'ripples',
+        name: 'Ripples',
+        css: `repeating-radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.06) 0 2px, transparent 2px 30px),
+              linear-gradient(45deg, #e95420 0%, #c34113 18%, #77216f 55%, #2c001e 100%)`
+    },
+    {
+        id: 'stripes',
+        name: 'Stripes',
+        css: `repeating-linear-gradient(-55deg, rgba(0, 0, 0, 0.12) 0 22px, transparent 22px 44px),
+              linear-gradient(120deg, #e95420 0%, #a63a5c 45%, #5e2750 75%, #2c001e 100%)`
+    },
+    {
+        id: 'checks',
+        name: 'Checks',
+        css: `conic-gradient(from 45deg, rgba(255, 255, 255, 0.05) 0 25%, transparent 0 50%, rgba(255, 255, 255, 0.05) 0 75%, transparent 0) 0 0 / 56px 56px,
+              radial-gradient(circle at 50% 120%, #e95420, transparent 60%),
+              linear-gradient(180deg, #2c001e, #5e2750)`
+    },
+    {
+        id: 'scanlines',
+        name: 'Scanlines',
+        css: `repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+              radial-gradient(ellipse at 50% 40%, #77216f 0%, #2c001e 60%, #0d0008 100%)`
+    },
+    {
+        id: 'warm-grey',
+        name: 'Warm Grey',
+        css: `radial-gradient(rgba(44, 0, 30, 0.18) 1px, transparent 1.6px) 0 0 / 16px 16px,
+              linear-gradient(150deg, #aea79f 0%, #7d6f78 45%, #5e2750 100%)`
+    },
+    {
+        id: 'terminal',
+        name: 'Terminal',
+        css: `repeating-linear-gradient(0deg, rgba(57, 255, 136, 0.05) 0 1px, transparent 1px 4px),
+              radial-gradient(circle at 15% 85%, rgba(233, 84, 32, 0.35), transparent 50%),
+              radial-gradient(circle at 85% 10%, rgba(119, 33, 111, 0.6), transparent 55%),
+              linear-gradient(180deg, #050a07, #0b1410)`
+    }
+];
+
 const Settings = {
     storageKey: 'uavnSettings',
-    defaultWallpaper: 'FUJI7715.jpg',
-    colors: ['#2b3a42', '#1c1c1e', '#3a2e39', '#24343a'],
-    wallpapers: [],
-    state: { wallpaper: null, color: null },
+    defaultWallpaper: 'jammy',
+    state: { background: null },
     init() {
         try {
-            this.state = { ...this.state, ...JSON.parse(localStorage.getItem(this.storageKey) || '{}') };
+            const saved = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+            this.state.background = saved.background || null;
         } catch (error) {
             // Private mode or blocked storage: fall back to defaults.
         }
 
-        if (!this.state.wallpaper && !this.state.color) {
-            this.state.wallpaper = this.defaultWallpaper;
+        if (!Wallpapers.some(item => item.id === this.state.background)) {
+            this.state.background = this.defaultWallpaper;
         }
 
         this.apply();
-        this.loadManifest();
     },
-    async loadManifest() {
-        try {
-            const response = await fetch('./resources/wallpapers/manifest.json', { cache: 'no-cache' });
-            const payload = response.ok ? await response.json() : {};
-            this.wallpapers = Array.isArray(payload.wallpapers) ? payload.wallpapers : [];
-        } catch (error) {
-            this.wallpapers = [];
-        }
-
-        if (!this.wallpapers.includes(this.defaultWallpaper)) {
-            this.wallpapers.unshift(this.defaultWallpaper);
-        }
-
-        this.render();
+    current() {
+        return Wallpapers.find(item => item.id === this.state.background) || Wallpapers[0];
     },
     save() {
         try {
@@ -620,18 +673,10 @@ const Settings = {
         }
     },
     apply() {
-        const body = document.body;
-
-        if (this.state.wallpaper) {
-            body.style.backgroundColor = '';
-            body.style.backgroundImage = `url('./resources/wallpapers/web/${this.state.wallpaper}')`;
-        } else {
-            body.style.backgroundImage = 'none';
-            body.style.backgroundColor = this.state.color;
-        }
+        document.documentElement.style.setProperty('--desktop-bg', this.current().css);
     },
-    select(kind, value) {
-        this.state = kind === 'wallpaper' ? { wallpaper: value, color: null } : { wallpaper: null, color: value };
+    select(id) {
+        this.state.background = id;
         this.apply();
         this.save();
         this.render();
@@ -648,15 +693,15 @@ const Settings = {
         content.className = 'settings';
         content.innerHTML = `
             <h2>Wallpaper</h2>
-            <p>Shot on film and digital around Alberta and BC.</p>
+            <p>Gradients and patterns.</p>
             <div class="settings-grid" data-settings-grid></div>
         `;
 
         content.addEventListener('click', event => {
-            const option = event.target.closest('[data-kind]');
+            const option = event.target.closest('[data-wallpaper]');
 
             if (option) {
-                this.select(option.dataset.kind, option.dataset.value);
+                this.select(option.dataset.wallpaper);
             }
         });
 
@@ -678,11 +723,14 @@ const Settings = {
             return;
         }
 
-        grid.innerHTML = this.wallpapers.map(name => `
-            <button type="button" class="wallpaper-option ${this.state.wallpaper === name ? 'is-active' : ''}" data-kind="wallpaper" data-value="${name}" title="${name}">
-                <img src="./resources/wallpapers/thumbs/${name}" alt="" loading="lazy" />
-            </button>`).join('') + this.colors.map(color => `
-            <button type="button" class="wallpaper-option wallpaper-option--color ${this.state.color === color ? 'is-active' : ''}" data-kind="color" data-value="${color}" style="background: ${color}" title="${color}"></button>`).join('');
+        grid.innerHTML = Wallpapers.map(item => `
+            <button type="button" class="wallpaper-option ${this.state.background === item.id ? 'is-active' : ''}" data-wallpaper="${item.id}" title="${item.name}">
+                <span>${item.name}</span>
+            </button>`).join('');
+
+        grid.querySelectorAll('[data-wallpaper]').forEach(button => {
+            button.style.background = Wallpapers.find(item => item.id === button.dataset.wallpaper).css;
+        });
     }
 };
 
