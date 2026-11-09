@@ -308,6 +308,8 @@ const el = {
     controls: document.getElementById('controls'),
     presets: document.getElementById('presets'),
     exportBtn: document.getElementById('export'),
+    stillsBtn: document.getElementById('export-stills'),
+    stillsMode: document.getElementById('stills-mode'),
     cancelBtn: document.getElementById('cancel'),
     progress: document.getElementById('progress'),
     progressBar: document.getElementById('progress-bar'),
@@ -1501,7 +1503,7 @@ function drawGrain(ctx, W, H, frameIndex) {
     ctx.restore();
 }
 
-function drawScene(ctx, W, H, t, mode, frameIndex) {
+function drawScene(ctx, W, H, t, mode, frameIndex, still = false) {
     if (!photos.length) {
         drawBackground(ctx, W, H, { a: 0, b: -1, p: 0 });
         return;
@@ -1554,7 +1556,7 @@ function drawScene(ctx, W, H, t, mode, frameIndex) {
     drawTitle(ctx, W, H, t);
     drawGrain(ctx, W, H, frameIndex);
 
-    if (state.fadeEdges) {
+    if (state.fadeEdges && !still) {
         const { total } = timing();
         const fade = Math.min(0.8, total / 4);
         const visible = Math.min(1, t / fade, (total - t) / fade);
@@ -3267,6 +3269,8 @@ function downloadBlob(blob, name) {
 
 function setExportingUi(active) {
     el.exportBtn.hidden = active;
+    el.stillsBtn.hidden = active;
+    el.stillsMode.disabled = active;
     el.cancelBtn.hidden = !active;
     el.progress.hidden = !active;
     el.controls.querySelectorAll('input, select, button').forEach(node => { node.disabled = active; });
@@ -3462,6 +3466,127 @@ async function exportVideo() {
     }
 }
 
+/* -------------------------------------------------------------- photo export */
+
+const canvasBlob = (canvas, type, quality) => new Promise((resolve, reject) => {
+    canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('Could not encode image'))), type, quality);
+});
+
+// Photo k as a frame of the video: background, title, caption and all.
+function renderStillFrame(k, W, H) {
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    drawScene(canvas.getContext('2d', { alpha: false }), W, H, k * timing().D, 'full', k, true);
+    return canvas;
+}
+
+// Just photo k in its frame with its caption, on a transparent background,
+// at about the photo's own resolution.
+function renderStillCard(k, W, H, image) {
+    const photo = photos[k];
+    const base = layout(photo, W, H);
+    const scale = Math.max(0.5, Math.min(Math.min(image.width, image.height) / base.s, 8000 / Math.max(base.cw, base.ch)));
+    const W2 = Math.round(W * scale);
+    const H2 = Math.round(H * scale);
+    const card = renderCard(photo, k, image, W2, H2);
+    const px = card.canvas.width / card.cw;
+
+    if (!card.caption) {
+        return card.canvas;
+    }
+
+    const size = card.captionSize * px;
+    const canvas = document.createElement('canvas');
+    canvas.width = card.canvas.width;
+    canvas.height = Math.ceil(card.canvas.height + size * 2.6);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(card.canvas, 0, 0);
+    ctx.fillStyle = captionInk();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    fitFont(ctx, card.caption, captionFontOr(uiFont), size, canvas.width * 0.95);
+    ctx.fillText(card.caption, canvas.width / 2, card.canvas.height + size * 1.4);
+    return canvas;
+}
+
+async function exportStills() {
+    if (!photos.length) {
+        setStatus('Add some photos first.', true);
+        return;
+    }
+
+    if (!window.fflate) {
+        setStatus('The zip library didn\'t load. Check the connection and reload.', true);
+        return;
+    }
+
+    setPlaying(false);
+    const withBackground = el.stillsMode.value !== 'clean';
+    const fmt = currentFormat();
+    const files = {};
+    const digits = String(photos.length).length;
+
+    exporting = { cancelled: false };
+    setExportingUi(true);
+
+    try {
+        await loadFont(state.titleFont);
+
+        if (state.captionFont !== 'auto') {
+            await loadFont(state.captionFont);
+        }
+
+        await document.fonts.ready;
+
+        for (let k = 0; k < photos.length; k++) {
+            if (exporting.cancelled) {
+                break;
+            }
+
+            const photo = photos[k];
+            setStatus(`Rendering photo ${k + 1} / ${photos.length}…`, false, true);
+            el.progressBar.style.width = `${((k / photos.length) * 100).toFixed(1)}%`;
+
+            clearFullCache();
+            const image = await decodeFull(photo, withBackground ? Math.max(fmt.w, fmt.h) : 8000);
+            fullCache.set(photo.id, image);
+
+            const canvas = withBackground ? renderStillFrame(k, fmt.w, fmt.h) : renderStillCard(k, fmt.w, fmt.h, image);
+            const blob = withBackground ? await canvasBlob(canvas, 'image/jpeg', 0.95) : await canvasBlob(canvas, 'image/png');
+            const base = photo.name.replace(/\.[^.]+$/, '').replace(/[^\w\-. ]+/g, '_').trim() || 'photo';
+            files[`${String(k + 1).padStart(digits, '0')} ${base}.${withBackground ? 'jpg' : 'png'}`] = new Uint8Array(await blob.arrayBuffer());
+
+            previewCtx.fillStyle = '#000';
+            previewCtx.fillRect(0, 0, el.preview.width, el.preview.height);
+            const fit = Math.min(el.preview.width / canvas.width, el.preview.height / canvas.height);
+            previewCtx.drawImage(canvas, (el.preview.width - canvas.width * fit) / 2, (el.preview.height - canvas.height * fit) / 2, canvas.width * fit, canvas.height * fit);
+            await sleep(0);
+        }
+
+        if (exporting.cancelled) {
+            setStatus('Export cancelled.');
+            return;
+        }
+
+        setStatus('Packing the zip…', false, true);
+        await sleep(0);
+        // Images are already compressed, so just store them.
+        const zip = fflate.zipSync(files, { level: 0 });
+        const name = `photo-reel-${withBackground ? `${fmt.w}x${fmt.h}` : 'framed'}.zip`;
+        downloadBlob(new Blob([zip], { type: 'application/zip' }), name);
+        setStatus(`Downloaded ${name}\n${photos.length} ${withBackground ? 'frames (JPEG)' : 'framed photos (PNG, transparent)'} · ${(zip.length / 1e6).toFixed(0)} MB`);
+    } catch (error) {
+        setStatus(`Export failed: ${error.message}`, true);
+    } finally {
+        clearFullCache();
+        exporting = null;
+        setExportingUi(false);
+        el.progressBar.style.width = '0';
+        draw();
+    }
+}
+
 /* ---------------------------------------------------------------------- init */
 
 function init() {
@@ -3478,6 +3603,21 @@ function init() {
     });
 
     el.exportBtn.addEventListener('click', exportVideo);
+    el.stillsBtn.addEventListener('click', exportStills);
+
+    try {
+        el.stillsMode.value = localStorage.getItem('photoReelStills') || 'background';
+    } catch (error) {
+        // Default stays.
+    }
+
+    el.stillsMode.addEventListener('change', () => {
+        try {
+            localStorage.setItem('photoReelStills', el.stillsMode.value);
+        } catch (error) {
+            // Not critical.
+        }
+    });
     el.cancelBtn.addEventListener('click', () => {
         if (exporting) {
             exporting.cancelled = true;

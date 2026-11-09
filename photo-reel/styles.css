@@ -852,3 +852,19 @@ input[type='checkbox'] {
     background: var(--panel-2);
     animation: none;
 }
+
+.stills {
+    display: grid;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.stills select {
+    width: 100%;
+    min-height: 28px;
+    padding: 3px 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-2);
+    font-size: 12px;
+}
