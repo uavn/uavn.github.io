@@ -79,6 +79,29 @@ jgrzinich, the film shutter from
 digital shutter from
 ["camera DSLR single shots"](https://freesound.org/s/453782/) by kyles.
 
+## Film Dev
+
+`/film-dev` is a film development timer. Pick a process (Kodak Flexicolor
+C-41, CineStill Cs41, Tetenal E-6, a few B&W developers, or your
+own), set box speed and the EI you shot at, and it works out the developer
+time for push/pull, developer temperature and how many rolls the chemistry has
+already done. Then it talks you through every step — pour, agitate, invert,
+drain, get the next bath ready — with a pause between steps that waits for a
+click or counts down. Processes are editable and saved in the browser; a run
+survives a page reload. The preset times are starting points: check your
+kit's sheet.
+
+Push/pull uses the makers' own tables where they exist: Kodak Z-131 for
+Flexicolor C-41 (+30 s a stop), Kodak F-4017 for Tri-X in D-76 and HC-110,
+Ilford's HP5 Plus sheet for ID-11, Tetenal's sheet for E-6 and CineStill's
+chart for Cs41. Stops beyond a table carry on from its last entry. Developer
+temperature uses the makers' time/temperature tables where they exist (Kodak
+F-4017, CineStill) and otherwise a percentage per degree (≈10% for B&W, as in
+Ilford's chart; ≈15% for C-41, which Kodak doesn't tabulate).
+
+The illustrations in `film-dev/art/` were generated with Gemini and cut into
+transparent WebP files.
+
 ## Wallpapers
 
 Desktop wallpapers are CSS gradients with a pattern on top, defined in the
