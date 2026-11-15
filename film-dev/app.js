@@ -123,7 +123,7 @@ const DEFAULT_SETTINGS = {
     rollsUsed: 0,
     pauseMode: 'manual',
     pauseSeconds: 15,
-    drainLead: 10,
+    drainLead: 0,
     invertSeconds: 2.5,
     prepLead: 30,
     voice: true,
@@ -159,6 +159,12 @@ function writeJson(key, value) {
 }
 
 let settings = { ...DEFAULT_SETTINGS, ...readJson(KEYS.settings, {}) };
+
+// v2: draining starts when the step's time is up; the early warning is optional.
+if ((settings.v || 1) < 2) {
+    settings.drainLead = 0;
+    settings.v = 2;
+}
 settings.stops = Math.round(settings.stops) || 0;
 let customRecipes = readJson(KEYS.recipes, []);
 let run = readJson(KEYS.run, null);
@@ -356,6 +362,7 @@ function stepEvents(plan, index, T) {
     const step = plan[index];
     const next = plan[index + 1];
     const [initial, every, count] = step.agitation || [0, 0, 0];
+    // Optional heads-up before the end; the drain itself starts when time is up.
     const drainAt = settings.drainLead > 0 && step.kind !== 'prep' && T > settings.drainLead + 10 ? T - settings.drainLead : null;
     const events = [{ at: 0, type: 'pour' }];
 
@@ -380,7 +387,7 @@ function stepEvents(plan, index, T) {
     }
 
     if (drainAt !== null) {
-        events.push({ at: drainAt, type: 'drain' });
+        events.push({ at: drainAt, type: 'drainSoon' });
     }
 
     events.push({ at: T, type: 'end' });
@@ -396,10 +403,10 @@ const PHRASES = {
         rest: () => 'Rest',
         invert: n => `Invert ${n} ${n === 1 ? 'time' : 'times'}`,
         prep: s => `Next: ${s.name}. Get it ready.`,
-        drain: () => 'Drain now',
-        end: s => `${s.name} done.`,
-        endWait: s => `${s.name} done. Press next when ready.`,
-        finish: () => 'All done. Hang the film to dry.'
+        drainSoon: () => 'Get ready to drain',
+        end: () => 'Drain now.',
+        endWait: () => 'Drain now. Press next when the tank is empty.',
+        finish: () => 'Drain now. All done — hang the film to dry.'
     },
     uk: {
         pour: s => (s.kind === 'wash' ? 'Заливай воду' : s.kind === 'prep' ? `${s.name}` : `Заливай ${s.name}${s.agitation?.[0] ? ' і крути' : ''}`),
@@ -407,10 +414,10 @@ const PHRASES = {
         rest: () => 'Стоп',
         invert: n => `Переверни ${n} ${n === 1 ? 'раз' : n < 5 ? 'рази' : 'разів'}`,
         prep: s => `Далі ${s.name}. Готуй.`,
-        drain: () => 'Зливай',
-        end: s => `${s.name} — готово.`,
-        endWait: s => `${s.name} — готово. Тисни далі, коли будеш готовий.`,
-        finish: () => 'Все готово. Вішай плівку сушитись.'
+        drainSoon: () => 'Готуйся зливати',
+        end: () => 'Зливай.',
+        endWait: () => 'Зливай. Тисни далі, коли зіллєш.',
+        finish: () => 'Зливай. Все готово — вішай плівку сушитись.'
     }
 };
 
@@ -449,8 +456,9 @@ const BEEPS = {
     rest: () => tone(520, 0, 0.2, 0.15),
     invert: count => { for (let i = 0; i < count; i++) tone(990, i * 0.22, 0.12, 0.22); },
     prep: () => tone(600, 0, 0.35, 0.15, 'triangle'),
-    drain: () => { tone(880, 0, 0.18); tone(700, 0.22, 0.18); tone(520, 0.44, 0.35); },
-    end: () => { tone(523, 0, 0.6, 0.18); tone(659, 0, 0.6, 0.14); tone(784, 0, 0.6, 0.12); },
+    drainSoon: () => tone(700, 0, 0.3, 0.15, 'triangle'),
+    end: () => { tone(880, 0, 0.18); tone(700, 0.22, 0.18); tone(520, 0.44, 0.35); },
+    endWait: () => { tone(880, 0, 0.18); tone(700, 0.22, 0.18); tone(520, 0.44, 0.35); },
     finish: () => { [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.18, 0.5, 0.18)); }
 };
 
@@ -479,7 +487,7 @@ function announce(type, step, extra) {
     setTimeout(() => speak(phrases[type]?.(type === 'invert' ? extra : step)), settings.beeps ? 350 : 0);
 
     if (navigator.vibrate) {
-        navigator.vibrate(type === 'drain' || type === 'end' ? [200, 100, 200] : 120);
+        navigator.vibrate(['end', 'endWait', 'finish'].includes(type) ? [200, 100, 200] : 120);
     }
 }
 
@@ -554,6 +562,7 @@ function startStep(index) {
 
 function endStep() {
     const step = run.plan[run.index];
+    run.endedAt = now();
 
     if (run.index >= run.plan.length - 1) {
         run.phase = 'done';
@@ -659,11 +668,14 @@ setInterval(tick, 200);
 
 /* ------------------------------------------------------------------- render */
 
-function currentAction(step, T, e, events) {
-    const drain = events.find(ev => ev.type === 'drain');
+// How long the "drain" picture stays up after a step's time runs out.
+const DRAIN_SHOW_MS = 12000;
 
-    if (drain && e >= drain.at) {
-        return { text: 'Drain', cls: 'is-drain is-alert' };
+function currentAction(step, T, e, events) {
+    const soon = events.find(ev => ev.type === 'drainSoon');
+
+    if (soon && e >= soon.at) {
+        return { text: 'Get ready to drain', cls: 'is-wait' };
     }
 
     const agitate = events.find(ev => ev.type === 'agitate');
@@ -702,7 +714,7 @@ function nextText(step, T, e, events) {
         return `${Math.ceil(inverting.until - e)} s, then stand for ${step.agitation[1]} s`;
     }
 
-    const upcoming = events.find(ev => ev.at > e && ['invert', 'drain', 'end', 'agitate'].includes(ev.type));
+    const upcoming = events.find(ev => ev.at > e && ['invert', 'end', 'agitate'].includes(ev.type));
 
     if (!upcoming) {
         return '';
@@ -714,10 +726,8 @@ function nextText(step, T, e, events) {
     switch (upcoming.type) {
         case 'invert':
             return `Invert ×${upcoming.count} in ${left}`;
-        case 'drain':
-            return `Drain in ${left}`;
         default:
-            return following ? `Then ${following.name}${following.bath ? ` (bath ${following.bath})` : ''} in ${left}` : `Finished in ${left}`;
+            return following ? `Drain in ${left}, then ${following.name}${following.bath ? ` (bath ${following.bath})` : ''}` : `Drain in ${left} — last step`;
     }
 }
 
@@ -733,7 +743,7 @@ function drawMarks(events, T) {
             return `<span class="mark mark--invert" style="left:${pct(ev.at)};width:${pct(ev.until - ev.at)}"></span>`;
         }
 
-        if (ev.type === 'drain') {
+        if (ev.type === 'drainSoon') {
             return `<span class="mark mark--drain" style="left:${pct(ev.at)}"></span>`;
         }
 
@@ -811,6 +821,25 @@ function renderClock() {
 
     const step = run.plan[run.index];
 
+    // Right after a step's time is up: pour it out.
+    const draining = run.endedAt && (run.pausedAt ?? now()) - run.endedAt < DRAIN_SHOW_MS;
+
+    if (draining && run.phase !== 'step') {
+        const done = run.plan[run.index];
+        label.textContent = `${run.index + 1}/${run.plan.length} · ${done.name}${done.bath ? ` · bath ${done.bath}` : ''}`;
+        time.textContent = '0:00';
+        action.textContent = 'Drain';
+        action.className = 'action is-drain is-alert';
+        next.textContent = run.phase === 'done' ? 'Last step — then hang the film to dry'
+            : run.betweenEndsAt ? `Next: ${run.plan[run.index + 1].name} in ${fmt(Math.ceil((run.betweenEndsAt - (run.pausedAt ?? now())) / 1000))}`
+            : `Next: ${run.plan[run.index + 1].name} — press Next when the tank is empty`;
+        hint.textContent = '';
+        setProgress(1);
+        drawMarks([], 1);
+        setTank('drain', done, { caption: 'Pour it out' });
+        return;
+    }
+
     if (run.phase === 'done') {
         label.textContent = 'Done';
         time.textContent = '0:00';
@@ -862,15 +891,12 @@ function renderClock() {
     setProgress(e / T);
     drawMarks(events, T);
 
-    const drain = events.find(ev => ev.type === 'drain');
     const agitate = events.find(ev => ev.type === 'agitate');
     const invert = events.find(ev => ev.type === 'invert' && e >= ev.at && e < ev.until);
     const each = `${settings.invertSeconds} s each`;
 
     if (step.kind === 'wash' || step.kind === 'prep') {
-        setTank(drain && e >= drain.at ? 'drain' : 'wash', step, { caption: drain && e >= drain.at ? 'Pour it out' : step.kind === 'wash' ? 'Fresh water through the tank' : step.name });
-    } else if (drain && e >= drain.at) {
-        setTank('drain', step, { caption: 'Pour it out' });
+        setTank('wash', step, { caption: step.kind === 'wash' ? 'Fresh water through the tank' : step.name });
     } else if (e < 4) {
         setTank('pour', step, { caption: 'Pour in' });
     } else if (agitate && e < agitate.until) {
