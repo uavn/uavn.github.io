@@ -120,7 +120,7 @@ const TWO_COLOUR_BGS = ['gradient', 'brutal', 'bubble', 'burst'];
 // Emoji and icons in themed groups for the picker.
 const EMOJI = [
     { t: 'Photo & film', k: 'фото плівка кіно', i: ['📷', '📸', '🎞️', '📽️', '🎬', '🎥', '📼', '📹', '🔍', '🧪', '🌡️', '⏱️', '⏳', '💡', '🔦', '🖼️'] },
-    { t: 'Reactions', k: 'реакції емоції', i: ['🔥', '✨', '⭐', '🌟', '💥', '⚡', '💯', '🆕', '🆓', '🔴', '❗', '❓', '⚠️', '✅', '❌', '🚫', '😱', '🤯', '😍', '🥲', '😂', '🤔', '😎', '🙃', '😴', '🤩', '😳', '🥶', '🥵', '🤫', '🫠', '🤡', '💀', '🙈'] },
+    { t: 'Reactions', k: 'реакції емоції', i: ['🔥', '✨', '⭐', '🌟', '💥', '⚡', '💯', '🆚', '🆕', '🆓', '🔴', '❗', '❓', '⚠️', '✅', '❌', '🚫', '😱', '🤯', '😍', '🥲', '😂', '🤔', '😎', '🙃', '😴', '🤩', '😳', '🥶', '🥵', '🤫', '🫠', '🤡', '💀', '🙈'] },
     { t: 'Hands & hearts', k: 'руки серця', i: ['👉', '👈', '👇', '👆', '👀', '🙌', '👍', '👎', '🤞', '✌️', '👏', '🫶', '💪', '🤝', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔'] },
     { t: 'Cats', k: 'коти кіт', i: ['🐈', '🐈‍⬛', '🐱', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐾', '🧶', '🐟', '🥛', '📦'] },
     { t: 'Moto & auto', k: 'мото авто машина дорога', i: ['🏍️', '🛵', '🚗', '🚙', '🏎️', '🚐', '🛻', '🚚', '🚕', '🚌', '🚓', '🚑', '🚲', '🛞', '⛽', '🔋', '🛣️', '🚦', '🚧', '🅿️', '🔧', '🔩', '🪛', '🪖', '🏁', '💨'] },
@@ -155,6 +155,7 @@ const EMOJI_WORDS = new Map([
     ['💥', 'boom explosion вибух бум'],
     ['⚡', 'lightning zap блискавка'],
     ['💯', 'hundred perfect сто'],
+    ['🆚', 'vs versus проти порівняння битва'],
     ['🆕', 'new новий'],
     ['🆓', 'free безкоштовно'],
     ['🔴', 'red dot record запис червоний'],
@@ -378,10 +379,16 @@ const ICONS = [
 ];
 // Graphics: drawn shapes, plus the film illustrations from Film Dev.
 const GRAPHIC_SHAPES = [
-    ['scribble', 'Drawn circle'], ['scribblebox', 'Drawn box'], ['arrowline', 'Arrow'], ['curved', 'Curved arrow'], ['underline', 'Underline'], ['cross', 'Cross'], ['check', 'Tick'], ['tick', 'Tick (simple)'],
+    ['scribble', 'Drawn circle'], ['scribblebox', 'Drawn box'], ['arrowline', 'Arrow'], ['curved', 'Curved arrow'], ['underline', 'Underline'], ['cross', 'Cross'], ['check', 'Tick'], ['tick', 'Tick (simple)'], ['bolt', 'Lightning split'],
     ['sparkle', 'Sparkle'], ['burst', 'Burst'], ['arrow', 'Block arrow'], ['ellipse', 'Ellipse'], ['rect', 'Rectangle']
 ];
-const STROKE_SHAPES = ['scribble', 'scribblebox', 'arrowline', 'curved', 'underline', 'cross', 'check', 'tick'];
+const STROKE_SHAPES = ['scribble', 'scribblebox', 'arrowline', 'curved', 'underline', 'cross', 'check', 'tick', 'bolt'];
+const VS_BADGES = [
+    { name: 'VS burst', p: { font: 'dela', color: '#ffffff', fill: 'solid', stroke: 0.08, strokeColor: '#111111', bg: 'burst', bgColor: '#f5a500', bgColor2: '#111111', shadow: 0, upper: true, distress: 0, rot: -8 } },
+    { name: 'VS bold', p: { font: 'russo', color: '#f5a500', fill: 'solid', stroke: 0.1, strokeColor: '#111111', bg: 'none', shadow: 0.25, shadowOffset: 0.06, shadowColor: '#000000', shadowAlpha: 0.7, upper: true, distress: 0, rot: -6 } },
+    { name: 'VS sticker', p: { font: 'unbounded', color: '#ffffff', fill: 'solid', stroke: 0, bg: 'sticker', bgColor: '#ff3b30', shadow: 0, upper: true, distress: 0, radius: 0.5, padX: 0.35, padY: 0.25 } }
+];
+
 // Pictures: the Film Dev illustrations plus sticker sets drawn for this app.
 const PICTURES = [
     { t: 'Family', k: 'сімʼя софійка дитина кіт', dir: './stickers', i: ['sofia-photographer', 'sofia-serious', 'cat-sunbathing'] },
@@ -2008,6 +2015,19 @@ function drawShapeLayer(ctx, l, s) {
             ctx.quadraticCurveTo(j(), j(), w / 2 + j(), h / 2 + j());
             ctx.moveTo(w / 2 + j(), -h / 2 + j());
             ctx.quadraticCurveTo(j(), j(), -w / 2 + j(), h / 2 + j());
+        } else if (l.shape === 'bolt') {
+            // A jagged lightning line top to bottom: splits the frame into "this" vs "that".
+            const zig = [[0.1, -0.5], [-0.12, -0.18], [0.14, -0.06], [-0.1, 0.22], [0.12, 0.3], [-0.08, 0.5]];
+            zig.forEach(([fx, fy], i) => {
+                const x = fx * w;
+                const y = fy * h;
+
+                if (i) {
+                    ctx.lineTo(x, y);
+                } else {
+                    ctx.moveTo(x, y);
+                }
+            });
         } else if (l.shape === 'tick') {
             // One clean stroke: short leg down, long leg up. No wobble, no curl.
             ctx.moveTo(-w / 2 + lw, h * 0.02);
@@ -3648,7 +3668,29 @@ function renderPicker() {
             });
         });
     } else {
-        const shapes = GRAPHIC_SHAPES.filter(([kind, label]) => hit(kind, label, 'drawn мальоване стрілка коло обвести галочка хрестик'));
+        // VS badges are text layers, so the letters stay crisp and editable.
+        const vsBadges = VS_BADGES.filter(v => hit(v.name, 'vs versus проти порівняння битва'));
+
+        if (vsBadges.length) {
+            heading('Versus');
+        }
+
+        vsBadges.forEach(v => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'pick pick--graphic';
+            b.title = v.name;
+            const c = canvasOf(120, 84);
+            drawTextTile(c, { ...v.p, sample: 'VS' }, {});
+            b.append(c);
+            b.addEventListener('click', () => {
+                $('picker').close();
+                addLayer(makeText({ ...v.p, text: 'VS', size: 150, x: W / 2, y: H / 2 }));
+            });
+            grid.append(b);
+        });
+
+        const shapes = GRAPHIC_SHAPES.filter(([kind, label]) => hit(kind, label, kind === 'bolt' ? 'drawn блискавка роздільник vs versus проти' : 'drawn мальоване стрілка коло обвести галочка хрестик'));
 
         if (shapes.length) {
             heading('Drawn');
@@ -3666,8 +3708,8 @@ function renderPicker() {
             b.append(c);
             b.addEventListener('click', () => {
                 $('picker').close();
-                const w = kind === 'underline' ? 420 : kind === 'curved' ? 260 : kind === 'sparkle' || kind === 'burst' ? 200 : 360;
-                const h = kind === 'underline' ? 70 : kind === 'curved' ? 200 : kind === 'sparkle' || kind === 'burst' ? 200 : 220;
+                const w = kind === 'underline' ? 420 : kind === 'curved' ? 260 : kind === 'bolt' ? 160 : kind === 'sparkle' || kind === 'burst' ? 200 : 360;
+                const h = kind === 'underline' ? 70 : kind === 'curved' ? 200 : kind === 'bolt' ? 720 : kind === 'sparkle' || kind === 'burst' ? 200 : 220;
                 addLayer(makeShape({ shape: kind, ...shapeDefaults(kind), w, h }));
             });
             grid.append(b);
