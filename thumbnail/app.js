@@ -504,7 +504,7 @@ function makeSticker(over = {}) {
     return {
         id: uid(), type: 'sticker', name: '', x: W / 2, y: H / 2, rot: 0, opacity: 1, hidden: false, locked: false,
         kind: 'emoji', glyph: '📷', icon: '', size: 150, color: '#f5a500',
-        outline: 0, outlineColor: '#ffffff', shadow: 0.12, badge: 'none', badgeColor: '#f5a500', badgePad: 0.22,
+        outline: 0, outlineColor: '#ffffff', shadow: 0, badge: 'none', badgeColor: '#f5a500', badgePad: 0.22,
         ...over
     };
 }
@@ -3323,7 +3323,7 @@ let viewScale = 1; // device px per design px
 let cssScale = 1; // css px per design px
 let dirty = true;
 let frame = 0;
-let guides = { v: false, h: false };
+let guides = { xs: [], ys: [] };
 let dragging = null;
 
 function layoutCanvas() {
@@ -3449,25 +3449,83 @@ function drawOverlay() {
         }
     }
 
-    if (dragging && (guides.v || guides.h)) {
+    if (dragging && (guides.xs.length || guides.ys.length)) {
         v.strokeStyle = '#ff4fa3';
         v.lineWidth = px;
+        v.setLineDash([4 * px, 3 * px]);
         v.beginPath();
-
-        if (guides.v) {
-            v.moveTo(W / 2, 0);
-            v.lineTo(W / 2, H);
-        }
-
-        if (guides.h) {
-            v.moveTo(0, H / 2);
-            v.lineTo(W, H / 2);
-        }
-
+        guides.xs.forEach(x => {
+            v.moveTo(x, 0);
+            v.lineTo(x, H);
+        });
+        guides.ys.forEach(y => {
+            v.moveTo(0, y);
+            v.lineTo(W, y);
+        });
         v.stroke();
+        v.setLineDash([]);
     }
 
     v.restore();
+}
+
+// Axis-aligned bounds of a (possibly rotated) layer.
+function bounds(l) {
+    const c = corners(l);
+    const xs = c.box.map(q => q[0]);
+    const ys = c.box.map(q => q[1]);
+    return { l: Math.min(...xs), r: Math.max(...xs), t: Math.min(...ys), b: Math.max(...ys) };
+}
+
+/*
+ * Smart guides: the moving layer's left / centre / right (and top / middle /
+ * bottom) stick to the frame's edges and centre and to every other layer's.
+ */
+function snapLayer(l, tol) {
+    const tx = [0, W / 2, W];
+    const ty = [0, H / 2, H];
+
+    doc.layers.forEach(o => {
+        if (o === l || o.hidden) {
+            return;
+        }
+
+        const b = bounds(o);
+        tx.push(b.l, (b.l + b.r) / 2, b.r);
+        ty.push(b.t, (b.t + b.b) / 2, b.b);
+    });
+
+    const pick = (own, targets) => {
+        let best = null;
+
+        own.forEach(a => targets.forEach(t => {
+            const d = t - a;
+
+            if (Math.abs(d) <= tol && (!best || Math.abs(d) < Math.abs(best))) {
+                best = d;
+            }
+        }));
+
+        return best;
+    };
+
+    const b = bounds(l);
+    const dx = pick([b.l, (b.l + b.r) / 2, b.r], tx);
+    const dy = pick([b.t, (b.t + b.b) / 2, b.b], ty);
+
+    if (dx !== null) {
+        l.x += dx;
+    }
+
+    if (dy !== null) {
+        l.y += dy;
+    }
+
+    // Show every line the layer now lines up with.
+    const nb = bounds(l);
+    const near = (v, list) => list.filter(t => Math.abs(t - v) < 0.5);
+    guides.xs = [...new Set([nb.l, (nb.l + nb.r) / 2, nb.r].flatMap(v => near(v, tx)))];
+    guides.ys = [...new Set([nb.t, (nb.t + nb.b) / 2, nb.b].flatMap(v => near(v, ty)))];
 }
 
 function toDesign(e) {
@@ -3625,27 +3683,17 @@ canvas.addEventListener('pointermove', (e) => {
     }
 
     dragging.moved = true;
-    guides = { v: false, h: false };
+    guides = { xs: [], ys: [] };
 
     if (dragging.kind === 'create') {
         shapeFromDrag(l, dragging.p0, p, e.shiftKey);
     } else if (dragging.kind === 'move') {
-        let x = st.x + p.x - dragging.p0.x;
-        let y = st.y + p.y - dragging.p0.y;
-        const snap = 7 / cssScale;
+        l.x = st.x + p.x - dragging.p0.x;
+        l.y = st.y + p.y - dragging.p0.y;
 
-        if (!e.altKey && Math.abs(x - W / 2) < snap) {
-            x = W / 2;
-            guides.v = true;
+        if (!e.altKey) {
+            snapLayer(l, 7 / cssScale);
         }
-
-        if (!e.altKey && Math.abs(y - H / 2) < snap) {
-            y = H / 2;
-            guides.h = true;
-        }
-
-        l.x = x;
-        l.y = y;
     } else if (dragging.kind === 'scale') {
         if (l.type === 'shape' && !e.shiftKey) {
             const q = toLocal(st, p);
@@ -3689,7 +3737,7 @@ function endDrag() {
     const moved = dragging.moved;
     const created = dragging.kind === 'create' ? doc.layers.find(x => x.id === dragging.id) : null;
     dragging = null;
-    guides = { v: false, h: false };
+    guides = { xs: [], ys: [] };
 
     if (created) {
         // A click without much of a drag: drop a default-sized one there.
@@ -4758,7 +4806,7 @@ async function addArt(src, name) {
         DB.put('files', id, blob).catch(() => {});
         const img = images.get(id);
         const s = 300 / Math.max(img.w, img.h);
-        addLayer(makeImage({ imageId: id, name, w: img.w * s, h: img.h * s, shadow: 24, graphic: true }));
+        addLayer(makeImage({ imageId: id, name, w: img.w * s, h: img.h * s, shadow: 0, graphic: true }));
     } catch {
         setStatus(`Could not load ${name}`, true);
     }
