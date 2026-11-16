@@ -605,7 +605,8 @@ input[type='checkbox'] {
 .export {
     display: grid;
     gap: 2px;
-    padding-bottom: 20px;
+    padding-bottom: 14px;
+    border-top: 1px solid var(--line);
 }
 
 .status {
