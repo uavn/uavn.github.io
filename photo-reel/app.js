@@ -44,6 +44,13 @@ const TRANSITIONS = [
     ['cut', 'Cut']
 ];
 
+// Transitions where photos travel across the frame: only these get motion blur.
+const MOVING_TRANSITIONS = ['push-left', 'push-up', 'slide', 'zoom'];
+// Fraction of a frame the virtual shutter stays open.
+const SHUTTER = { light: 0.5, strong: 1 };
+// Sub-frames per video frame: enough that copies sit ≤ step px apart, up to max.
+const BLUR_SAMPLES = { preview: { step: 3, max: 10 }, full: { step: 2, max: 64 } };
+
 // Soft gradients, mostly from webgradients.com plus a few multi-stop pastel sets.
 const GRADIENTS = [
     { name: 'Juicy Peach', stops: ['#ffecd2', '#fcb69f'] },
@@ -133,6 +140,7 @@ const DEFAULTS = {
     duration: 3,
     transition: 'crossfade',
     transitionDuration: 1.6,
+    motionBlur: 'light',
     kenBurns: 0,
     fadeEdges: false,
     bgType: 'solid',
@@ -192,6 +200,7 @@ const SECTIONS = [
             { key: 'duration', label: 'Per photo', type: 'range', min: 1, max: 12, step: 0.1, unit: 's' },
             { key: 'transition', label: 'Transition', type: 'select', options: TRANSITIONS },
             { key: 'transitionDuration', label: 'Length', type: 'range', min: 0.1, max: 3, step: 0.05, unit: 's', show: s => s.transition !== 'cut' },
+            { key: 'motionBlur', label: 'Motion blur', type: 'select', options: [['off', 'Off'], ['light', 'Light (180° shutter)'], ['strong', 'Strong (360° shutter)']], show: s => MOVING_TRANSITIONS.includes(s.transition) },
             { key: 'kenBurns', label: 'Slow zoom', type: 'range', min: 0, max: 15, step: 0.5, unit: '%' },
             { key: 'fadeEdges', label: 'Fade in/out', type: 'checkbox' }
         ]
@@ -1503,7 +1512,60 @@ function drawGrain(ctx, W, H, frameIndex) {
     ctx.restore();
 }
 
+// Motion blur: average the scene over the time the shutter is open, like a
+// film camera does. Frames where nothing travels are drawn once, as before.
+let blurCanvas = null;
+
 function drawScene(ctx, W, H, t, mode, frameIndex, still = false) {
+    const open = SHUTTER[state.motionBlur] || 0;
+    const exposure = open / (Number(state.fps) || 30);
+
+    const from = sceneAt(t - exposure / 2);
+    const to = sceneAt(t + exposure / 2);
+
+    if (still || !exposure || photos.length < 2 || !MOVING_TRANSITIONS.includes(state.transition)
+        || (from.b < 0 && to.b < 0)) {
+        drawSceneAt(ctx, W, H, t, mode, frameIndex, still);
+        return;
+    }
+
+    if (!blurCanvas) {
+        blurCanvas = document.createElement('canvas');
+    }
+
+    if (blurCanvas.width !== W || blurCanvas.height !== H) {
+        blurCanvas.width = W;
+        blurCanvas.height = H;
+    }
+
+    const scratch = blurCanvas.getContext('2d', { alpha: false });
+    // How far the photos travel while the shutter is open.
+    // An end outside the transition sits at its start (0) or its finish (1).
+    const dp = Math.abs((to.b < 0 ? 1 : to.p) - (from.b < 0 ? 0 : from.p));
+    const span = state.transition === 'push-up' ? H : state.transition === 'zoom' ? W * 0.12 : W;
+    const { step, max } = BLUR_SAMPLES[mode] || BLUR_SAMPLES.full;
+    const n = Math.max(2, Math.min(max, Math.ceil((dp * span) / step)));
+
+    for (let i = 0; i < n; i++) {
+        const ts = t + exposure * ((i + 0.5) / n - 0.5);
+
+        if (i === 0) {
+            drawSceneAt(ctx, W, H, ts, mode, frameIndex, still);
+            continue;
+        }
+
+        scratch.save();
+        drawSceneAt(scratch, W, H, ts, mode, frameIndex, still);
+        scratch.restore();
+        // Running average: sample i weighs 1/(i+1).
+        ctx.save();
+        ctx.globalAlpha = 1 / (i + 1);
+        ctx.drawImage(blurCanvas, 0, 0);
+        ctx.restore();
+    }
+}
+
+function drawSceneAt(ctx, W, H, t, mode, frameIndex, still = false) {
     if (!photos.length) {
         drawBackground(ctx, W, H, { a: 0, b: -1, p: 0 });
         return;
