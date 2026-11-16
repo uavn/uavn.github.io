@@ -1123,3 +1123,30 @@ input[type='checkbox'] {
         grid-column: span 4;
     }
 }
+
+/* Install as an app (phones) */
+
+.confirm--plain {
+    border-color: var(--accent);
+}
+
+.confirm--plain h2 {
+    color: var(--accent);
+}
+
+.install-steps {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.7;
+}
+
+.install-steps i {
+    color: var(--accent);
+}
+
+/* Standalone app: keep clear of the notch and home bar. */
+@media (display-mode: standalone) {
+    body {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+}

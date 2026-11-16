@@ -4,12 +4,20 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Film Dev</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<meta name="theme-color" content="#0d0b0a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Film Dev" />
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="./icons/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="./styles.css?v=17" />
-<script src="./app.js?v=29" defer></script>
+<link rel="stylesheet" href="./styles.css?v=18" />
+<script src="./app.js?v=30" defer></script>
 </head>
 <body>
 <div class="film-edge film-edge--top"><span class="edge-print" id="edge-top"></span></div>
@@ -113,6 +121,7 @@
                 <div class="quick">
                     <button type="button" class="btn btn--toggle" id="q-voice" title="Voice"><i class="bi bi-chat-square-quote"></i></button>
                     <button type="button" class="btn btn--toggle" id="q-beeps" title="Beeps"><i class="bi bi-bell"></i></button>
+                    <button type="button" class="btn" id="install" hidden><i class="bi bi-phone"></i> Install app</button>
                 </div>
                 <p class="hint" id="hint"></p>
             </div>
@@ -132,6 +141,18 @@
             <button type="button" class="btn" id="confirm-cancel">Cancel</button>
             <button type="button" class="btn btn--primary" id="confirm-start"><i class="bi bi-play-fill"></i> Start anyway</button>
         </div>
+    </div>
+</dialog>
+
+<dialog class="confirm confirm--plain" id="ios-install" aria-labelledby="ios-install-title">
+    <div class="confirm-body">
+        <h2 id="ios-install-title">Install on iPhone / iPad</h2>
+        <ol class="install-steps">
+            <li>Tap <b>Share</b> <i class="bi bi-box-arrow-up"></i> in Safari’s toolbar.</li>
+            <li>Choose <b>Add to Home Screen</b> <i class="bi bi-plus-square"></i>.</li>
+            <li>Tap <b>Add</b>. Film Dev opens full screen and works offline.</li>
+        </ol>
+        <div class="confirm-actions"><button type="button" class="btn btn--primary" id="ios-install-ok">OK</button></div>
     </div>
 </dialog>
 

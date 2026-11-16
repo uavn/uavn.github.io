@@ -1664,3 +1664,59 @@ if ('speechSynthesis' in window) {
 }
 
 render();
+
+/* ------------------------------------------------- install as a phone app */
+
+const Install = {
+    prompt: null,
+
+    init() {
+        const button = $('install');
+        const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        const phone = matchMedia('(pointer: coarse)').matches;
+        const ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const framed = window.top !== window;
+
+        if ('serviceWorker' in navigator && !framed) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+
+        if (standalone || !phone) {
+            return;
+        }
+
+        // Inside the site's desktop window the browser can't install; open the app on its own first.
+        if (framed) {
+            button.hidden = false;
+            button.addEventListener('click', () => { window.top.location.href = new URL('./', location.href).href; });
+            return;
+        }
+
+        if (ios) {
+            button.hidden = false;
+            button.addEventListener('click', () => $('ios-install').showModal());
+            $('ios-install-ok').addEventListener('click', () => $('ios-install').close());
+            return;
+        }
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            this.prompt = event;
+            button.hidden = false;
+        });
+        window.addEventListener('appinstalled', () => { button.hidden = true; });
+        button.addEventListener('click', async () => {
+            if (!this.prompt) {
+                return;
+            }
+
+            this.prompt.prompt();
+            await this.prompt.userChoice.catch(() => null);
+            this.prompt = null;
+            button.hidden = true;
+        });
+    },
+};
+
+Install.init();
