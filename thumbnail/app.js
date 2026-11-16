@@ -493,10 +493,64 @@ const BG_PRESETS = [
 
 const LOOK_DEFAULT = { preset: 'none', strength: 1, exposure: 0, contrast: 0, saturation: 0, temp: 0, tint: 0, fade: 0, halation: 0, lut: '', lutAmount: 1 };
 
+// Placeholder titles: a bit of absurdity instead of "Your title".
+const SILLY_TITLES = [
+    'Renting out my cat on the marketplace',
+    'I developed film in soup. You won’t believe it',
+    'My motorcycle went on holiday without me',
+    'I bought 40 kg of buckwheat on sale',
+    'My cat is suing me',
+    'A 1978 camera vs an iPhone',
+    'Cycling to Canada. Day 1',
+    'My fridge became an influencer',
+    'Holiday in my garage: full review',
+    'I mixed up developer and coffee',
+    'My neighbour stole my shadow',
+    'My cat got a job before me',
+    'A grocery receipt 3 metres long',
+    'Pigeons rate my photos',
+    'Selling film to buy more film',
+    'I shot a whole roll of my sandwich',
+    'Moose borrowed my motorcycle',
+    'Living on 1 croissant a day for a week',
+    'My camera only shoots on Tuesdays',
+    'I let my cat plan our road trip',
+    'Bought a vintage lens, got a haunted lens',
+    'Swapped my car for 300 rolls of film',
+    'Grocery haul, but everything is cheese',
+    'My GPS sent me to a different country',
+    'Teaching my dog to develop film',
+    'I asked a goose for directions',
+    'Our tent is now a hotel for raccoons',
+    'Riding 500 km for one perfect sunset',
+    'My bicycle has more followers than me',
+    'Is this the world’s slowest scooter?'
+];
+
+function sillyTitle() {
+    const t = SILLY_TITLES[Math.floor(Math.random() * SILLY_TITLES.length)];
+
+    if (t.length <= 22) {
+        return t;
+    }
+
+    // Two lines, broken at the space nearest the middle.
+    const mid = t.length / 2;
+    let best = -1;
+
+    for (let i = 0; i < t.length; i++) {
+        if (t[i] === ' ' && (best < 0 || Math.abs(i - mid) < Math.abs(best - mid))) {
+            best = i;
+        }
+    }
+
+    return best < 0 ? t : `${t.slice(0, best)}\n${t.slice(best + 1)}`;
+}
+
 function makeText(over = {}) {
     return {
         id: uid(), type: 'text', name: '', x: W / 2, y: H / 2, rot: 0, opacity: 1, hidden: false, locked: false,
-        text: 'Your title', font: 'futura', size: 92, upper: false, align: 'center', spacing: 0, lineHeight: 1.05,
+        text: sillyTitle(), font: 'futura', size: 92, upper: false, align: 'center', spacing: 0, lineHeight: 1.05,
         fill: 'solid', color: '#ffffff', color2: '#f5a500',
         stroke: 0, strokeColor: '#000000',
         shadow: 0, shadowOffset: 0.04, shadowColor: '#000000', shadowAlpha: 0.6,
@@ -538,7 +592,7 @@ function newDoc() {
         bg: { type: 'gradient', color: '#0f2027', color2: '#2c5364', angle: 135 },
         finish: { grain: 0.22, grainSize: 1.2, grainColor: false, vignette: 0.25, leak: 0, leakSeed: newSeed(), dust: 0, dustSeed: newSeed(), overText: false },
         luts: [],
-        layers: [makeText({ text: 'Your title', bg: 'box', bgColor: '#f5a500', color: '#111111', font: 'futura', radius: 0.06, y: 560 })]
+        layers: [makeText({ text: sillyTitle(), size: 64, bg: 'box', bgColor: '#f5a500', color: '#111111', font: 'futura', radius: 0.06, y: 560 })]
     };
 }
 
@@ -3496,8 +3550,9 @@ function bounds(l) {
  * bottom) stick to the frame's edges and centre and to every other layer's.
  */
 function snapLayer(l, tol) {
-    const tx = [0, W / 2, W];
-    const ty = [0, H / 2, H];
+    // Frame edges, centre and the rule-of-thirds lines.
+    const tx = [0, W / 3, W / 2, (W * 2) / 3, W];
+    const ty = [0, H / 3, H / 2, (H * 2) / 3, H];
 
     doc.layers.forEach(o => {
         if (o === l || o.hidden) {
@@ -4757,7 +4812,7 @@ function moveLayer(id, targetId, above) {
 }
 
 function addText() {
-    const l = makeText({ text: 'New text', size: 72, y: H / 2 });
+    const l = makeText({ text: sillyTitle(), size: 64, y: H / 2 });
     doc.layers.push(l);
     selectedId = l.id;
     renderProps();
