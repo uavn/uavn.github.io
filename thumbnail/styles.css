@@ -815,3 +815,27 @@ input[type='checkbox'] {
 .field-range output {
     min-width: 34px;
 }
+
+.sizer {
+    flex-wrap: nowrap;
+    margin-left: 8px;
+}
+
+.sizer[hidden] {
+    display: none;
+}
+
+.sizer .btn {
+    flex: none;
+    padding: 2px 8px;
+}
+
+.layer--bg {
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 6px 6px;
+}
+
+.layer--bg .icon-btn {
+    cursor: default;
+}

@@ -101,6 +101,9 @@ const TEXT_BGS = [
     ['none', 'None'], ['box', 'Box'], ['pill', 'Pill'], ['brush', 'Brush'], ['marker', 'Marker'],
     ['tape', 'Tape'], ['paper', 'Torn paper'], ['sticker', 'Sticker'], ['brutal', 'Hard shadow'],
     ['label', 'Label tape'], ['film', 'Film strip'], ['stamp', 'Stamp'], ['bubble', 'Speech bubble'], ['burst', 'Burst'],
+    ['halftone', 'Halftone'], ['ticket', 'Ticket'], ['speed', 'Speed'], ['chamfer', 'Tech plate'], ['slide', 'Slide mount'], ['glass', 'Glass'],
+    ['washi', 'Washi tape'], ['spray', 'Spray paint'], ['split', 'Two-part'], ['hud', 'Viewfinder'], ['ribbon', 'Ribbon'], ['chalk', 'Chalk'],
+    ['watercolor', 'Watercolour'], ['roller', 'Paint roller'], ['paperstrip', 'Paper strip'], ['chalksmear', 'Pastel smear'],
     ['gradient', 'Gradient'], ['outline', 'Outline']
 ];
 // Colours that suit a background style, applied when you pick it.
@@ -113,9 +116,25 @@ const BG_COLOURS = {
     film: { bgColor: '#141110', color: '#f2a03d' },
     stamp: { bgColor: '#e8473a', color: '#e8473a' },
     bubble: { bgColor: '#ffffff', bgColor2: '#111111', color: '#111111' },
-    burst: { bgColor: '#f5a500', bgColor2: '#111111', color: '#111111' }
+    burst: { bgColor: '#f5a500', bgColor2: '#111111', color: '#111111' },
+    halftone: { bgColor: '#ff3b30', color: '#ffffff' },
+    ticket: { bgColor: '#f5a500', bgColor2: '#111111', color: '#111111' },
+    speed: { bgColor: '#f5a500', color: '#111111' },
+    chamfer: { bgColor: '#141414', color: '#f5a500' },
+    slide: { bgColor: '#f4efe6', bgColor2: '#1d1a17', color: '#f4efe6' },
+    glass: { bgColor: '#ffffff', color: '#ffffff' },
+    washi: { bgColor: '#f6b8c6', bgColor2: '#ffffff', color: '#3a2a2a' },
+    spray: { bgColor: '#ff3b30', color: '#ffffff' },
+    split: { bgColor: '#141414', bgColor2: '#f5a500', color: '#ffffff' },
+    hud: { bgColor: '#000000', bgColor2: '#ffffff', color: '#ffffff' },
+    ribbon: { bgColor: '#ff3b30', bgColor2: '#a3241b', color: '#ffffff' },
+    chalk: { bgColor: '#f5a500', color: '#111111' },
+    watercolor: { bgColor: '#f5a500', color: '#111111' },
+    roller: { bgColor: '#ff3b30', color: '#ffffff' },
+    paperstrip: { bgColor: '#f4efe6', color: '#111111' },
+    chalksmear: { bgColor: '#f5a500', color: '#111111' }
 };
-const TWO_COLOUR_BGS = ['gradient', 'brutal', 'bubble', 'burst'];
+const TWO_COLOUR_BGS = ['gradient', 'brutal', 'bubble', 'burst', 'ticket', 'slide', 'washi', 'split', 'hud', 'ribbon'];
 
 // Emoji and icons in themed groups for the picker.
 const EMOJI = [
@@ -395,11 +414,11 @@ const PICTURES = [
     { t: 'Cats', k: 'коти кіт котик мем', dir: './stickers', i: ['cat-sunbathing', 'cat-shocked', 'cat-crying-thumbs-up', 'cat-sunglasses', 'cat-side-eye', 'cat-screaming', 'cat-loaf', 'cat-rich', 'cat-groceries', 'cat-biker', 'cat-photographer', 'cat-in-cart', 'cat-driver'] },
     { t: 'Moto & travel', k: 'мото мотоцикл подорож шолом валіза карта намет', dir: './stickers', i: ['moto-adventure-bike', 'moto-helmet', 'travel-suitcase', 'travel-map', 'travel-campfire', 'travel-thermos', 'travel-mountains-badge', 'travel-compass'] },
     { t: 'Auto & road', k: 'авто машина дорога бензин кемпер', dir: './stickers', i: ['auto-retro-car', 'auto-camper-van', 'auto-fuel-pump', 'auto-winding-road'] },
-    { t: 'Groceries & money', k: 'продукти покупки гроші гаманець чек візок', dir: './stickers', i: ['shop-cart', 'shop-receipt', 'shop-veggie-bag', 'shop-price-tag', 'money-piggy-bank', 'money-wallet', 'money-flying-away', 'money-empty-wallet'] },
+    { t: 'Groceries & money', k: 'продукти покупки гроші гаманець чек квитанція receipt візок', dir: './stickers', i: ['shop-cart', 'shop-receipt', 'shop-receipt-simple', 'shop-veggie-bag', 'shop-price-tag', 'money-piggy-bank', 'money-wallet', 'money-flying-away', 'money-empty-wallet'] },
     { t: 'Film', k: 'плівка проявка бачок хімія', dir: '../film-dev/art', i: ['tank', 'canister', 'stopwatch', 'thermometer', 'developer', 'bleach', 'fixer', 'stabilizer', 'pour', 'drain', 'wash', 'drying', 'loading'] }
 ];
-const ROUGH_BGS = ['brush', 'marker', 'tape', 'paper', 'stamp'];
-const RADIUS_BGS = ['box', 'gradient', 'outline', 'brutal', 'sticker', 'stamp'];
+const ROUGH_BGS = ['brush', 'marker', 'tape', 'paper', 'stamp', 'spray', 'chalk', 'slide'];
+const RADIUS_BGS = ['box', 'gradient', 'outline', 'brutal', 'sticker', 'stamp', 'glass', 'split'];
 
 const TEXT_PRESETS = [
     { name: 'Bold outline', p: { font: 'montserrat', color: '#ffffff', fill: 'solid', stroke: 0.09, strokeColor: '#000000', bg: 'none', shadow: 0.15, shadowOffset: 0.05, shadowColor: '#000000', shadowAlpha: 0.7, distress: 0 } },
@@ -1064,6 +1083,14 @@ function textBox(l) {
         padX = Math.max(padX, l.size * 0.35);
     }
 
+    // Room for the decorations that sit inside the padding.
+    const minPad = { ticket: [0.75, 0], slide: [0.65, 0.5], hud: [0.5, 0.45], split: [0.75, 0], speed: [0.45, 0], watercolor: [0.35, 0.15], roller: [0.35, 0.15], paperstrip: [0.35, 0.15], chalksmear: [0.35, 0.15] }[l.bg];
+
+    if (minPad) {
+        padX = Math.max(padX, l.size * minPad[0]);
+        padY = Math.max(padY, l.size * minPad[1]);
+    }
+
     if (l.bg === 'burst') {
         padX = Math.max(padX, l.size * 0.75);
         padY = Math.max(padY, l.size * 0.7);
@@ -1218,6 +1245,26 @@ function drawTextBg(ctx, l, box, s) {
             ctx.stroke();
             break;
         }
+        case 'halftone':
+        case 'ticket':
+        case 'speed':
+        case 'chamfer':
+        case 'slide':
+        case 'glass':
+        case 'washi':
+        case 'spray':
+        case 'split':
+        case 'hud':
+        case 'ribbon':
+        case 'chalk':
+            drawExtraBg(ctx, l, box, s, R);
+            break;
+        case 'watercolor':
+        case 'roller':
+        case 'paperstrip':
+        case 'chalksmear':
+            drawTextureBg(ctx, l, box, s);
+            break;
         case 'stamp': {
             const lw = l.size * 0.07;
             ctx.strokeStyle = c;
@@ -1296,10 +1343,12 @@ function paintCanvas(wd, hd, paint) {
 function strokeCanvas(l, box, s, R, opt) {
     const { bw, bh } = box;
     const ov = l.size * (opt.overhang ?? 0.3);
+    // Extra room around the stroke for chisel tips, ragged ends and splatter, so nothing gets cut off.
+    const ex = bh * 0.35 + l.size * 0.15;
     const top = bh * opt.top;
     const sh = bh * (opt.bottom - opt.top);
     const ovy = sh * 0.15;
-    const wd = Math.ceil((bw + ov * 2) * s);
+    const wd = Math.ceil((bw + (ov + ex) * 2) * s);
     const hd = Math.ceil((bh + ovy * 2) * s);
     const [cr, cg, cb] = hexToRgb(l.bgColor);
     const nz = valueNoise(R);
@@ -1307,14 +1356,14 @@ function strokeCanvas(l, box, s, R, opt) {
     const tilt = (R() - 0.5) * 0.012;
     // Where the letters are (canvas coords, design px): always solid paint there.
     const pad = l.size * 0.08;
-    const tx0 = ov + box.padX - pad;
-    const tx1 = ov + bw - box.padX + pad;
+    const tx0 = ex + ov + box.padX - pad;
+    const tx1 = ex + ov + bw - box.padX + pad;
     const ty0 = ovy + box.padY - pad;
     const ty1 = ovy + bh - box.padY + pad;
     const rowPx = Math.max(1, (sh * s) / 90);
     const streak = l.size * 0.2; // length of dry streaks, in design px
     const rows = Math.ceil((sh * s) / rowPx);
-    const total = bw + ov * 2;
+    const total = bw + (ov + ex) * 2;
 
     const canvas = paintCanvas(wd, hd, (d, cw, chh) => {
         for (let i = 0; i < rows; i++) {
@@ -1326,8 +1375,8 @@ function strokeCanvas(l, box, s, R, opt) {
             const cap = opt.chisel
                 ? (yN - 0.5) * sh * 0.45
                 : (1 - Math.sqrt(Math.max(0, 1 - (2 * yN - 1) ** 2))) * sh * 0.32;
-            const startX = Math.min(ov * 0.35 + cap + R() * l.size * 0.03, tx0 - l.size * 0.05);
-            const endX = Math.max(ov + bw + ov * (0.25 + 0.6 * R()) + (opt.chisel ? cap : -Math.pow(e, 3) * sh * 0.8 * R()), tx1 + l.size * 0.1);
+            const startX = Math.min(ex + ov * 0.35 + cap + R() * l.size * 0.03, tx0 - l.size * 0.05);
+            const endX = Math.max(ex + ov + bw + ov * (0.25 + 0.6 * R()) + (opt.chisel ? cap : -Math.pow(e, 3) * sh * 0.8 * R()), tx1 + l.size * 0.1);
             // The dry, streaky part only starts after the last letter.
             const dryStart = Math.max(tx1, endX - sh * (opt.dry[0] + R() * (opt.dry[1] - opt.dry[0])));
             const dry = Math.max(1e-3, endX - dryStart);
@@ -1395,7 +1444,7 @@ function strokeCanvas(l, box, s, R, opt) {
         x.fillStyle = l.bgColor;
 
         for (let i = 0; i < 7; i++) {
-            const px = (ov + bw + ov * (0.2 + R() * 0.9)) * s;
+            const px = (ex + ov + bw + ov * (0.2 + R() * 0.9)) * s;
             const py = (ovy + top + sh * (0.1 + R() * 0.8)) * s;
             x.beginPath();
             x.arc(px, py, (0.6 + R() * R() * 2.6) * s * (l.size / 60), 0, Math.PI * 2);
@@ -1403,7 +1452,7 @@ function strokeCanvas(l, box, s, R, opt) {
         }
     }
 
-    return { canvas, ox: -ov, oy: -ovy, w: bw + ov * 2, h: bh + ovy * 2 };
+    return { canvas, ox: -ov - ex, oy: -ovy, w: bw + (ov + ex) * 2, h: bh + ovy * 2 };
 }
 
 function drawBrushBg(ctx, l, box, s, R) {
@@ -1570,6 +1619,498 @@ function distressCanvas(ctx, c, amount, seed, s) {
     ctx.restore();
 }
 
+/*
+ * Painted backgrounds drawn by Gemini (white/grey textures in textures/).
+ * The two ends are kept as drawn; the middle is repeated, every other copy
+ * mirrored so there are no seams, so nothing gets stretched like rubber.
+ * The colour is multiplied in, keeping the texture.
+ */
+const TEXTURE_BGS = { watercolor: 'tex-watercolor', roller: 'tex-roller', paperstrip: 'tex-paper', chalksmear: 'tex-chalk' };
+const textureImages = {};
+
+Object.entries(TEXTURE_BGS).forEach(([key, file]) => {
+    const img = new Image();
+    img.onload = () => {
+        fontsVersion++;
+        textCache.clear();
+        requestRender();
+    };
+    img.src = `./textures/${file}.webp`;
+    textureImages[key] = img;
+});
+
+function drawTextureBg(ctx, l, box, s) {
+    const img = textureImages[l.bg];
+    const { bw, bh } = box;
+    const over = l.size * 0.3;
+    const tw = bw + over * 2;
+    const th = bh * 1.3;
+    const x0 = -over;
+    const y0 = (bh - th) / 2;
+
+    if (!img || !img.complete || !img.naturalWidth) {
+        ctx.fillStyle = rgba(l.bgColor, 0.8);
+        ctx.fillRect(0, 0, bw, bh);
+        return;
+    }
+
+    const k = th / img.naturalHeight;
+    let cap = img.naturalWidth * 0.22;
+    const midSrc = img.naturalWidth - cap * 2;
+    let capDst = cap * k;
+
+    // Very short text: shrink the ends so they still fit.
+    if (capDst * 2 > tw) {
+        capDst = tw / 2;
+    }
+
+    const W2 = Math.ceil(tw * s);
+    const H2 = Math.ceil(th * s);
+    const piece = canvasOf(W2, H2);
+    const p = piece.getContext('2d');
+    p.scale(s, s);
+    // Middle first, reaching a little under the ends; then the ends with their inner edge faded in.
+    const blend = capDst * 0.35;
+    const midDst = midSrc * k;
+    let x = capDst - blend;
+    let flip = false;
+
+    while (x < tw - capDst + blend) {
+        const w = Math.min(midDst, tw - capDst + blend - x);
+        const sw = (w / midDst) * midSrc;
+        p.save();
+
+        if (flip) {
+            p.translate(x + w, 0);
+            p.scale(-1, 1);
+            p.drawImage(img, cap + midSrc - sw, 0, sw, img.naturalHeight, 0, 0, w, th);
+        } else {
+            p.drawImage(img, cap, 0, sw, img.naturalHeight, x, 0, w, th);
+        }
+
+        p.restore();
+        x += w;
+        flip = !flip;
+    }
+
+    for (const right of [false, true]) {
+        const end = canvasOf(capDst * s, H2);
+        const e = end.getContext('2d');
+        e.scale(s, s);
+        e.drawImage(img, right ? img.naturalWidth - cap : 0, 0, cap, img.naturalHeight, 0, 0, capDst, th);
+        e.globalCompositeOperation = 'destination-in';
+        const g = e.createLinearGradient(0, 0, capDst, 0);
+
+        if (right) {
+            g.addColorStop(0, 'rgba(0,0,0,0)');
+            g.addColorStop(0.35, 'rgba(0,0,0,1)');
+        } else {
+            g.addColorStop(0.65, 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+        }
+
+        e.fillStyle = g;
+        e.fillRect(0, 0, capDst, th);
+        // Crossfade: fade the middle out under the end with the same ramp, then add the end on top.
+        p.save();
+        p.setTransform(1, 0, 0, 1, 0, 0);
+        const ex0 = (right ? tw - capDst : 0) * s;
+        const ramp = p.createLinearGradient(ex0, 0, ex0 + capDst * s, 0);
+
+        if (right) {
+            ramp.addColorStop(0, 'rgba(0,0,0,0)');
+            ramp.addColorStop(0.35, 'rgba(0,0,0,1)');
+        } else {
+            ramp.addColorStop(0.65, 'rgba(0,0,0,1)');
+            ramp.addColorStop(1, 'rgba(0,0,0,0)');
+        }
+
+        p.globalCompositeOperation = 'destination-out';
+        p.fillStyle = ramp;
+        p.fillRect(ex0, 0, capDst * s, H2);
+        p.globalCompositeOperation = 'lighter';
+        p.drawImage(end, ex0, 0);
+        p.restore();
+    }
+
+    const tinted = canvasOf(W2, H2);
+    const t = tinted.getContext('2d');
+    t.fillStyle = l.bgColor;
+    t.fillRect(0, 0, W2, H2);
+    t.globalCompositeOperation = 'multiply';
+    t.drawImage(piece, 0, 0);
+    t.globalCompositeOperation = 'destination-in';
+    t.drawImage(piece, 0, 0);
+    ctx.drawImage(tinted, x0, y0, tw, th);
+}
+
+/* More text backgrounds (ideas brainstormed with Gemini), all drawn in code. */
+
+function drawExtraBg(ctx, l, box, s, R) {
+    const { bw, bh } = box;
+    const c = l.bgColor;
+    const c2 = l.bgColor2;
+    const r = l.radius * l.size;
+
+    switch (l.bg) {
+        case 'halftone': {
+            // Solid block that breaks up into shrinking dots towards both ends.
+            const fade = Math.min(bw * 0.3, l.size * 0.9);
+            const step = l.size * 0.1;
+            ctx.fillStyle = c;
+            ctx.fillRect(fade * 0.5, 0, bw - fade, bh);
+
+            for (const side of [-1, 1]) {
+                for (let x = 0; x <= fade * 1.4; x += step) {
+                    const t = x / (fade * 1.4);
+                    const rad = step * 0.62 * (1 - t);
+
+                    if (rad < 0.4) {
+                        continue;
+                    }
+
+                    for (let y = step / 2 + (Math.round(x / step) % 2) * step / 2; y < bh; y += step) {
+                        const cx = side < 0 ? fade * 0.5 - x : bw - fade * 0.5 + x;
+                        ctx.beginPath();
+                        ctx.arc(cx, y, rad, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            break;
+        }
+        case 'ticket': {
+            // Ticket stub: round bites on both sides and dashed tear lines.
+            const bite = Math.min(bh * 0.2, l.size * 0.2);
+            ctx.fillStyle = c;
+            rr(ctx, 0, 0, bw, bh, l.size * 0.08);
+            ctx.fill();
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-out';
+
+            for (const x of [0, bw]) {
+                ctx.beginPath();
+                ctx.arc(x, bh / 2, bite, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+            ctx.save();
+            ctx.strokeStyle = rgba(c2, 0.45);
+            ctx.lineWidth = Math.max(1.5, l.size * 0.025);
+            ctx.setLineDash([l.size * 0.07, l.size * 0.06]);
+
+            for (const x of [l.size * 0.38, bw - l.size * 0.38]) {
+                ctx.beginPath();
+                ctx.moveTo(x, l.size * 0.06);
+                ctx.lineTo(x, bh - l.size * 0.06);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+            break;
+        }
+        case 'speed': {
+            // Forward-leaning block with motion streaks trailing behind.
+            ctx.fillStyle = c;
+            ctx.save();
+            ctx.translate(bw / 2, bh / 2);
+            ctx.transform(1, 0, -0.3, 1, 0, 0);
+            ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
+            ctx.restore();
+            const bars = [[0.2, 0.55, 0.9], [0.45, 0.4, 0.7], [0.68, 0.28, 0.5]];
+            bars.forEach(([fy, len, a]) => {
+                const y = bh * fy;
+                const x1 = -bh * (fy - 0.5) * 0.3 - l.size * 0.08;
+                ctx.globalAlpha = a;
+                ctx.fillRect(x1 - l.size * len, y, l.size * len, bh * 0.1);
+            });
+            ctx.globalAlpha = 1;
+            break;
+        }
+        case 'chamfer': {
+            // Tech plate: 45° clipped corners and a thin inner line.
+            const k = Math.min(bh * 0.32, l.size * 0.3);
+            const plate = (inset) => {
+                const i = inset;
+                const kk = Math.max(0, k - i * 0.6);
+                ctx.beginPath();
+                ctx.moveTo(i + kk, i);
+                ctx.lineTo(bw - i - kk, i);
+                ctx.lineTo(bw - i, i + kk);
+                ctx.lineTo(bw - i, bh - i - kk);
+                ctx.lineTo(bw - i - kk, bh - i);
+                ctx.lineTo(i + kk, bh - i);
+                ctx.lineTo(i, bh - i - kk);
+                ctx.lineTo(i, i + kk);
+                ctx.closePath();
+            };
+            plate(0);
+            ctx.fillStyle = c;
+            ctx.fill();
+            plate(l.size * 0.07);
+            ctx.strokeStyle = rgba(l.color, 0.55);
+            ctx.lineWidth = Math.max(1, l.size * 0.018);
+            ctx.stroke();
+            break;
+        }
+        case 'slide': {
+            // 35mm slide mount: thick card frame, dark window, bevel and a frame number.
+            const border = Math.min(box.padX, box.padY) * 0.62;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+            ctx.shadowBlur = l.size * 0.12 * s;
+            ctx.shadowOffsetY = l.size * 0.04 * s;
+            ctx.fillStyle = c;
+            rr(ctx, 0, 0, bw, bh, l.size * 0.1);
+            ctx.fill();
+            ctx.restore();
+            ctx.fillStyle = c2;
+            rr(ctx, border, border, bw - border * 2, bh - border * 2, l.size * 0.12);
+            ctx.fill();
+            ctx.lineWidth = Math.max(1, l.size * 0.02);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
+            rr(ctx, border * 0.55, border * 0.55, bw - border * 1.1, bh - border * 1.1, l.size * 0.14);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.font = `700 ${l.size * 0.16}px "JetBrains Mono", monospace`;
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(1 + Math.floor(R() * 36)).padStart(2, '0'), border * 0.5, bh - border * 0.45);
+            break;
+        }
+        case 'glass': {
+            // Frosted panel: see-through fill, a soft top shine and a bright hairline edge.
+            ctx.fillStyle = rgba(c, 0.2);
+            rr(ctx, 0, 0, bw, bh, r || l.size * 0.18);
+            ctx.fill();
+            const g = ctx.createLinearGradient(0, 0, 0, bh);
+            g.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+            g.addColorStop(0.5, 'rgba(255, 255, 255, 0.06)');
+            g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = g;
+            ctx.fill();
+            ctx.lineWidth = Math.max(1, l.size * 0.02);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.stroke();
+            break;
+        }
+        case 'washi': {
+            // Washi tape: see-through, pinked (zigzag) ends, diagonal stripes.
+            const tooth = bh / Math.max(4, Math.round(bh / (l.size * 0.14)));
+            const depth = tooth * 0.7;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(bw, 0);
+
+            for (let y = 0; y < bh; y += tooth) {
+                ctx.lineTo(bw - depth, y + tooth / 2);
+                ctx.lineTo(bw, Math.min(bh, y + tooth));
+            }
+
+            ctx.lineTo(0, bh);
+
+            for (let y = bh; y > 0; y -= tooth) {
+                ctx.lineTo(depth, y - tooth / 2);
+                ctx.lineTo(0, Math.max(0, y - tooth));
+            }
+
+            ctx.closePath();
+            ctx.save();
+            ctx.fillStyle = rgba(c, 0.86);
+            ctx.fill();
+            ctx.clip();
+            ctx.strokeStyle = rgba(c2, 0.45);
+            ctx.lineWidth = l.size * 0.07;
+
+            for (let x = -bh; x < bw + bh; x += l.size * 0.22) {
+                ctx.beginPath();
+                ctx.moveTo(x, bh);
+                ctx.lineTo(x + bh, 0);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+            break;
+        }
+        case 'spray': {
+            // Spray-painted block: dense core, overspray dots fading outwards.
+            const pad = l.size * 0.06;
+            ctx.fillStyle = c;
+            ctx.fillRect(pad, pad, bw - pad * 2, bh - pad * 2);
+            const reach = l.size * 0.3;
+            const count = Math.round(((bw + bh) * 2 / l.size) * 220);
+
+            for (let i = 0; i < count; i++) {
+                const side = R() * (bw + bh) * 2;
+                let x;
+                let y;
+
+                if (side < bw) {
+                    x = side; y = 0;
+                } else if (side < bw + bh) {
+                    x = bw; y = side - bw;
+                } else if (side < bw * 2 + bh) {
+                    x = side - bw - bh; y = bh;
+                } else {
+                    x = 0; y = side - bw * 2 - bh;
+                }
+
+                const d = Math.abs((R() + R() + R()) / 3 - 0.5) * 2 * reach;
+                const nx = x <= 0 ? -1 : x >= bw ? 1 : 0;
+                const ny = y <= 0 ? -1 : y >= bh ? 1 : 0;
+                ctx.globalAlpha = Math.max(0, 1 - d / reach) * 0.9;
+                ctx.beginPath();
+                ctx.arc(x + nx * (d - pad) + (R() - 0.5) * pad * 2, y + ny * (d - pad) + (R() - 0.5) * pad * 2, (0.3 + R() * 1.4) * (l.size / 80), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            break;
+        }
+        case 'split': {
+            // Two-part badge: an accent block on the left, the rest in the main colour.
+            const accent = Math.min(box.padX * 0.7, l.size * 0.55);
+            ctx.save();
+            rr(ctx, 0, 0, bw, bh, r || l.size * 0.14);
+            ctx.clip();
+            ctx.fillStyle = c;
+            ctx.fillRect(0, 0, bw, bh);
+            ctx.fillStyle = c2;
+            ctx.fillRect(0, 0, accent, bh);
+            ctx.restore();
+            ctx.fillStyle = c;
+            ctx.beginPath();
+            ctx.moveTo(accent * 0.38, bh / 2 - l.size * 0.14);
+            ctx.lineTo(accent * 0.68, bh / 2);
+            ctx.lineTo(accent * 0.38, bh / 2 + l.size * 0.14);
+            ctx.closePath();
+            ctx.fill();
+            break;
+        }
+        case 'hud': {
+            // Camera viewfinder: dark see-through box, corner brackets, scanlines, REC dot.
+            ctx.fillStyle = rgba(c, 0.55);
+            ctx.fillRect(0, 0, bw, bh);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+
+            for (let y = 0; y < bh; y += Math.max(2, l.size * 0.05)) {
+                ctx.fillRect(0, y, bw, Math.max(1, l.size * 0.012));
+            }
+
+            const arm = Math.min(bh, bw) * 0.28;
+            const lw = Math.max(2, l.size * 0.045);
+            ctx.strokeStyle = c2;
+            ctx.lineWidth = lw;
+            ctx.lineCap = 'square';
+            [[0, 0, 1, 1], [bw, 0, -1, 1], [0, bh, 1, -1], [bw, bh, -1, -1]].forEach(([x, y, dx, dy]) => {
+                ctx.beginPath();
+                ctx.moveTo(x + dx * lw / 2, y + dy * arm);
+                ctx.lineTo(x + dx * lw / 2, y + dy * lw / 2);
+                ctx.lineTo(x + dx * arm, y + dy * lw / 2);
+                ctx.stroke();
+            });
+            const dot = l.size * 0.07;
+            ctx.fillStyle = '#ff3b30';
+            ctx.beginPath();
+            ctx.arc(bw - box.padX * 0.55 - dot * 4.2, box.padY * 0.5, dot, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = c2;
+            ctx.font = `700 ${l.size * 0.15}px "JetBrains Mono", monospace`;
+            ctx.textBaseline = 'middle';
+            ctx.fillText('REC', bw - box.padX * 0.55 - dot * 2.6, box.padY * 0.5);
+            break;
+        }
+        case 'ribbon': {
+            // Folded banner: swallowtail ends tucked behind the main bar.
+            const tail = l.size * 0.45;
+            const drop = bh * 0.28;
+            ctx.fillStyle = c2;
+
+            for (const side of [-1, 1]) {
+                const x0 = side < 0 ? l.size * 0.25 : bw - l.size * 0.25;
+                const xo = side < 0 ? -tail : bw + tail;
+                ctx.beginPath();
+                ctx.moveTo(x0, drop);
+                ctx.lineTo(xo, drop);
+                ctx.lineTo(xo + side * -tail * 0.35, drop + bh / 2);
+                ctx.lineTo(xo, drop + bh);
+                ctx.lineTo(x0, drop + bh);
+                ctx.closePath();
+                ctx.fill();
+                // The fold: a darker triangle where the end tucks under.
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.beginPath();
+                ctx.moveTo(side < 0 ? 0 : bw, bh);
+                ctx.lineTo(side < 0 ? l.size * 0.25 : bw - l.size * 0.25, bh);
+                ctx.lineTo(side < 0 ? l.size * 0.25 : bw - l.size * 0.25, drop + bh);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.fillStyle = c;
+            ctx.fillRect(0, 0, bw, bh);
+            break;
+        }
+        case 'chalk': {
+            // Chalk block: wobbly edges, streaky strokes and little gaps.
+            const jag = l.size * 0.05;
+            ctx.beginPath();
+            const pts = [];
+            const n = Math.max(8, Math.round(bw / (l.size * 0.15)));
+
+            for (let i = 0; i <= n; i++) {
+                pts.push([(bw * i) / n, (R() - 0.5) * jag]);
+            }
+
+            for (let i = 0; i <= 4; i++) {
+                pts.push([bw + (R() - 0.5) * jag, (bh * i) / 4]);
+            }
+
+            for (let i = n; i >= 0; i--) {
+                pts.push([(bw * i) / n, bh + (R() - 0.5) * jag]);
+            }
+
+            for (let i = 4; i >= 0; i--) {
+                pts.push([(R() - 0.5) * jag, (bh * i) / 4]);
+            }
+
+            pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+            ctx.closePath();
+            ctx.save();
+            ctx.globalAlpha = 0.85;
+            ctx.fillStyle = c;
+            ctx.fill();
+            ctx.clip();
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+
+            for (let i = 0; i < (bw * bh) / (l.size * 6); i++) {
+                const x = R() * bw;
+                const y = R() * bh;
+                ctx.lineWidth = 0.6 + R() * 1.6;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + l.size * (0.1 + R() * 0.3), y - l.size * 0.04 * R());
+                ctx.stroke();
+            }
+
+            ctx.globalCompositeOperation = 'destination-out';
+
+            for (let i = 0; i < (bw * bh) / (l.size * 3); i++) {
+                ctx.globalAlpha = 0.3 + R() * 0.5;
+                ctx.fillRect(R() * bw, R() * bh, 1 + R() * 2.5, 1 + R() * 1.5);
+            }
+
+            ctx.restore();
+            break;
+        }
+        default:
+    }
+}
+
 function drawGlyphs(ctx, l, box, s) {
     ctx.font = fontString(l);
     setSpacing(ctx, box.spacing);
@@ -1640,7 +2181,10 @@ function textCanvas(l, s) {
     }
 
     const box = textBox(l);
-    const m = Math.ceil(l.size * 0.5 + l.shadow * l.size * 2.5 + Math.abs(l.shadowOffset) * l.size + 12);
+    // Brush and marker reach well past the box (chisel tips, splatter), so they get a wider margin.
+    const reach = l.bg === 'brush' || l.bg === 'marker' ? textBox(l).bh * 0.35 + l.size * 0.55
+        : { speed: 0.9, halftone: 0.6, ribbon: 0.5, spray: 0.35, watercolor: 0.7, roller: 0.7, paperstrip: 0.7, chalksmear: 0.7 }[l.bg] * l.size || 0;
+    const m = Math.ceil(l.size * 0.5 + reach + l.shadow * l.size * 2.5 + Math.abs(l.shadowOffset) * l.size + 12);
     const canvas = canvasOf((box.bw + m * 2) * s, (box.bh + m * 2) * s);
     const ctx = canvas.getContext('2d');
     ctx.scale(s, s);
@@ -2570,8 +3114,8 @@ canvas.addEventListener('pointerdown', (e) => {
             renderProps();
             renderLayerList();
         } else if (!hit) {
-            if (selectedId) {
-                selectedId = null;
+            if (selectedId !== BG_ID) {
+                selectedId = BG_ID;
                 renderProps();
                 renderLayerList();
             }
@@ -3258,6 +3802,50 @@ function imageDefs() {
     ];
 }
 
+// Quick sizing from the toolbar: fit inside / fill the frame, or scale by a step.
+function fitLayer(l, cover) {
+    if (l.type === 'image') {
+        fitImage(l, cover);
+        return;
+    }
+
+    const { w, h } = layerSize(l);
+    const k = cover ? Math.max(W / w, H / h) : Math.min((W * 0.9) / w, (H * 0.9) / h);
+    scaleLayer(l, k);
+    Object.assign(l, { x: W / 2, y: H / 2, rot: 0 });
+}
+
+function scaleLayer(l, k) {
+    if (l.type === 'text' || l.type === 'sticker') {
+        l.size = clamp(Math.round(l.size * k), 8, 800);
+    } else {
+        l.w = Math.max(12, l.w * k);
+        l.h = Math.max(12, l.h * k);
+    }
+}
+
+function sizeSelected(action) {
+    const l = selected();
+
+    if (!l || l.locked) {
+        return;
+    }
+
+    if (action === 'fit' || action === 'fill') {
+        fitLayer(l, action === 'fill');
+    } else {
+        scaleLayer(l, action === 'smaller' ? 1 / 1.15 : 1.15);
+    }
+
+    syncProps();
+    commit();
+}
+
+function updateSizer() {
+    const l = selected();
+    $('sizer').hidden = !l;
+}
+
 function fitImage(l, cover) {
     const img = images.get(l.imageId);
 
@@ -3332,6 +3920,18 @@ function renderProps() {
     host.innerHTML = '';
     fieldRefreshers = fieldRefreshers.filter(fn => fn.persistent);
     const l = selected();
+    updateSizer();
+
+    if (selectedId === BG_ID) {
+        const sec = document.createElement('section');
+        sec.className = 'section';
+        const h = document.createElement('h3');
+        h.textContent = 'Background';
+        sec.append(h);
+        host.append(sec);
+        fieldRefreshers.push(buildFields(sec, bgDefs(), () => doc.bg, () => commit()));
+        return;
+    }
 
     if (!l) {
         const p = document.createElement('div');
@@ -3352,8 +3952,11 @@ function renderProps() {
     fieldRefreshers.push(refresh);
 }
 
-function buildDocFields() {
-    const bgDefs = [
+// The background is shown as the bottom row of the layer list; its id is this.
+const BG_ID = '__background';
+
+function bgDefs() {
+    return [
         { key: 'type', label: 'Type', type: 'seg', options: [['gradient', 'Gradient'], ['solid', 'Solid']] },
         {
             type: 'tiles', options: BG_PRESETS.map(([a, b]) => ({ value: `${a},${b}`, label: '' })), className: 'tiles--bg', tileW: 60, tileH: 34,
@@ -3376,9 +3979,14 @@ function buildDocFields() {
         { key: 'color2', label: 'Colour 2', type: 'color', show: b => b.type === 'gradient' },
         { key: 'angle', label: 'Direction', type: 'range', min: 0, max: 360, step: 5, format: deg, show: b => b.type === 'gradient' }
     ];
-    const r1 = buildFields($('bg-fields'), bgDefs, () => doc.bg, () => commit());
-    r1.persistent = true;
+}
 
+function bgCss() {
+    const b = doc.bg;
+    return b.type === 'solid' ? b.color : `linear-gradient(${b.angle}deg, ${b.color}, ${b.color2})`;
+}
+
+function buildDocFields() {
     const finishDefs = [
         { key: 'grain', label: 'Grain', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
         { key: 'grainSize', label: 'Grain size', type: 'range', min: 0.5, max: 4, step: 0.1, reset: 1.2, show: f => f.grain > 0 },
@@ -3397,7 +4005,7 @@ function buildDocFields() {
     ];
     const r2 = buildFields($('finish-fields'), finishDefs, () => doc.finish, () => commit());
     r2.persistent = true;
-    fieldRefreshers.push(r1, r2);
+    fieldRefreshers.push(r2);
 }
 
 /* ---------------------------------------------------------------- layer list */
@@ -3513,6 +4121,18 @@ function renderLayerList() {
         });
         list.append(li);
     });
+
+    // The background, always at the bottom.
+    const bg = document.createElement('li');
+    bg.className = `layer layer--bg${selectedId === BG_ID ? ' is-selected' : ''}`;
+    bg.innerHTML = `<span class="icon-btn"><i class="bi bi-lock"></i></span><span class="layer-thumb" style="background: ${bgCss()}"></span><span class="layer-name">Background</span><span></span>`;
+    bg.addEventListener('click', () => {
+        selectedId = BG_ID;
+        renderProps();
+        renderLayerList();
+        requestRender(false);
+    });
+    list.append(bg);
 }
 
 // The list shows the top layer first, so "above" in the list means later in doc.layers.
@@ -3849,6 +4469,7 @@ document.querySelectorAll('[data-picker-tab]').forEach(b => b.addEventListener('
 }));
 $('picker-close').addEventListener('click', () => $('picker').close());
 $('picker-search').addEventListener('input', () => renderPicker());
+document.querySelectorAll('[data-size]').forEach(b => b.addEventListener('click', () => sizeSelected(b.dataset.size)));
 $('picker').addEventListener('click', (e) => {
     if (e.target === $('picker')) {
         $('picker').close();
@@ -3950,6 +4571,10 @@ document.addEventListener('keydown', (e) => {
         setTool({ v: 'select', a: 'arrow', o: 'circle', b: 'box' }[e.key.toLowerCase()]);
     } else if (e.key === 'Escape' && tool !== 'select') {
         setTool('select');
+    } else if (l && !mod && (e.key === '-' || e.key === '_')) {
+        sizeSelected('smaller');
+    } else if (l && !mod && (e.key === '=' || e.key === '+')) {
+        sizeSelected('bigger');
     } else if (e.key === 'Escape' && l) {
         selectedId = null;
         renderProps();

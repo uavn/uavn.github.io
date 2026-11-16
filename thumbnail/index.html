@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Arimo:wght@400;700&family=Bad+Script&family=Caveat:wght@700&family=Comfortaa:wght@700&family=Dela+Gothic+One&family=Inter:wght@400;500;600;700;900&family=Jost:wght@500;700&family=JetBrains+Mono:wght@500;800&family=Kelly+Slab&family=Lobster&family=Marck+Script&family=Montserrat:wght@900&family=Neucha&family=Oswald:wght@700&family=PT+Mono&family=Pacifico&family=Playfair+Display:wght@900&family=Press+Start+2P&family=Rubik+Mono+One&family=Rubik:wght@900&family=Russo+One&family=Seymour+One&family=Train+One&family=Unbounded:wght@900&family=Yeseva+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="./styles.css?v=10" />
-<script src="./app.js?v=25" defer></script>
+<link rel="stylesheet" href="./styles.css?v=11" />
+<script src="./app.js?v=32" defer></script>
 </head>
 <body>
 <div class="app">
@@ -43,6 +43,12 @@
                     <button type="button" class="btn btn--mini" data-tool="box" title="Box: drag around something (B)"><i class="bi bi-square"></i> Box</button>
                 </div>
             </div>
+            <div class="seg sizer" id="sizer" hidden>
+                <button type="button" class="btn btn--mini" data-size="fit" title="Fit inside the frame, centred"><i class="bi bi-fullscreen-exit"></i> Fit</button>
+                <button type="button" class="btn btn--mini" data-size="fill" title="Fill the frame"><i class="bi bi-arrows-fullscreen"></i> Fill</button>
+                <button type="button" class="btn btn--mini" data-size="smaller" title="Smaller (−)"><i class="bi bi-dash-lg"></i></button>
+                <button type="button" class="btn btn--mini" data-size="bigger" title="Bigger (=)"><i class="bi bi-plus-lg"></i></button>
+            </div>
             <label class="toggle"><input type="checkbox" id="show-badge" /> Timestamp area</label>
             <span class="spacer"></span>
             <button type="button" class="btn" id="new-doc" title="Start over"><i class="bi bi-file-earmark"></i> New</button>
@@ -69,7 +75,6 @@
 
     <aside class="panel props">
         <div id="props"></div>
-        <section class="section" id="sec-bg"><h3>Background</h3><div id="bg-fields"></div></section>
         <section class="section" id="sec-finish"><h3>Film finish</h3><div id="finish-fields"></div></section>
         <section class="section export">
             <h3>Export</h3>
