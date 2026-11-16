@@ -23,6 +23,7 @@ const AppRegistry = [
     { key: 'MapVis', title: 'Route Animator', url: './mapvis/index.html', width: 1100, height: 800, icon: 'bi-map-fill', colors: ['#34c759', '#0c8a5e'], dock: true },
     { key: 'PhotoReel', title: 'Photo Reel', url: './photo-reel/index.html', width: 1280, height: 820, icon: 'bi-film', colors: ['#39ff88', '#0b5d2c'], dock: true },
     { key: 'FilmDev', title: 'Film Dev', url: './film-dev/index.html', width: 1180, height: 800, icon: 'bi-hourglass-split', colors: ['#ff6b4a', '#7a1408'], dock: true },
+    { key: 'Thumbnail', title: 'Thumbnail', url: './thumbnail/index.html', width: 1360, height: 860, icon: 'bi-image', colors: ['#ffd400', '#7a4b00'], dock: true },
     { key: 'TabStash', title: 'TabStash', url: './tab-stash/index.html', width: 900, height: 700, icon: 'bi-window-stack', colors: ['#8e8e93', '#3a3a3c'], dock: true }
 ];
 
@@ -758,7 +759,7 @@ function openApp(key) {
     const iframe = document.createElement('iframe');
     iframe.src = app.url;
     iframe.title = app.title;
-    iframe.setAttribute('allow', 'fullscreen; autoplay');
+    iframe.setAttribute('allow', 'fullscreen; autoplay; clipboard-read; clipboard-write');
 
     WindowManager.create({
         key: app.key,

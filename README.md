@@ -102,6 +102,30 @@ Ilford's chart; ≈15% for C-41, which Kodak doesn't tabulate).
 The illustrations in `film-dev/art/` were generated with Gemini and cut into
 transparent WebP files.
 
+## Thumbnail
+
+`/thumbnail` makes YouTube thumbnails (16:9, exported at 1280×720, 1080p or
+4K; JPEG is kept under YouTube's 2 MB). A thumbnail is a stack of layers you
+drag, resize and rotate on the canvas:
+
+- **Photos** with film looks (presets, colour sliders, halation) and your own
+  `.cube` LUTs.
+- **Text** with style presets and drawn backgrounds: brush, marker, masking
+  tape, torn paper, sticker, film strip, label tape, stamp, speech bubble,
+  burst and more. The backgrounds are drawn in code, so any colour works.
+- **Stickers**: emoji and Bootstrap Icons in themed groups (recolourable, with
+  a die-cut edge or a badge), hand-drawn graphics, the Film Dev illustrations
+  and sticker pictures (meme cats, moto and travel, cars, groceries and money)
+  in `thumbnail/stickers/`, generated with Gemini and cut into transparent
+  WebP files.
+- **Drawing tools**: Arrow, Circle and Box. Drag on the canvas to draw them.
+- **Film finish** on top: grain, vignette, light leaks and dust. It sits just
+  above the top photo, so text stays clean unless you choose otherwise.
+
+A YouTube-style feed preview (dark, light and sidebar sizes) shows how the
+thumbnail reads when small. The project, its photos and LUTs are kept in the
+browser's IndexedDB, with undo and redo.
+
 ## Wallpapers
 
 Desktop wallpapers are CSS gradients with a pattern on top, defined in the
