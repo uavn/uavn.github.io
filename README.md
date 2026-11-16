@@ -119,6 +119,11 @@ drag, resize and rotate on the canvas:
   in `thumbnail/stickers/`, generated with Gemini and cut into transparent
   WebP files.
 - **Drawing tools**: Arrow, Circle and Box. Drag on the canvas to draw them.
+- **Clip art**: 54 flat retro-style illustrations in `thumbnail/clipart/` (travel,
+  cars and moto, bikes, food, home, everyday things, shopping, nature, film
+  photography), generated with Gemini and cut into transparent WebP files.
+- **Flags**: Ukraine, the EU, Canada and every Canadian province and territory,
+  as SVG files from Wikimedia Commons in `thumbnail/flags/`.
 - **Film finish** on top: grain, vignette, light leaks and dust. It sits just
   above the top photo, so text stays clean unless you choose otherwise.
 

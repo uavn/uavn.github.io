@@ -147,6 +147,7 @@ const EMOJI = [
     { t: 'Groceries & food', k: 'продукти їжа покупки', i: ['🛒', '🛍️', '🧺', '🧾', '🥖', '🥐', '🧀', '🥚', '🥛', '🧈', '🍎', '🍌', '🍋', '🍅', '🥑', '🥕', '🥦', '🧅', '🧄', '🥔', '🍗', '🥩', '🐟', '🍝', '🍕', '🍔', '🌭', '🍜', '🍣', '☕', '🍷', '🍺', '🧃', '🍫', '🍪', '🎂'] },
     { t: 'Money', k: 'гроші фінанси', i: ['💰', '💵', '💶', '💷', '💸', '💳', '🪙', '🏦', '📈', '📉', '🤑', '💎', '🏷️', '🧮', '💹', '🧾'] },
     { t: 'Nature & weather', k: 'природа погода', i: ['🌊', '🌲', '🌳', '🌸', '🌻', '🍂', '❄️', '☀️', '🌙', '🌈', '☁️', '🌧️', '⛈️', '🐕', '🐦', '🦆', '🦋'] },
+    { t: 'Flags', k: 'прапори прапор', i: ['🇺🇦', '🇪🇺', '🇨🇦'] },
     { t: 'Fun & stuff', k: 'розваги', i: ['🎁', '🎉', '🎈', '🎧', '🎵', '🎸', '🕹️', '🏆', '🥇', '🎯', '🧩', '📚', '✏️', '📌', '🗓️', '⌛'] }
 ];
 // Words to find each emoji by, in English and Ukrainian.
@@ -175,6 +176,9 @@ const EMOJI_WORDS = new Map([
     ['⚡', 'lightning zap блискавка'],
     ['💯', 'hundred perfect сто'],
     ['🆚', 'vs versus проти порівняння битва'],
+    ['🇺🇦', 'ukraine україна прапор'],
+    ['🇪🇺', 'eu europe європа єс прапор'],
+    ['🇨🇦', 'canada канада прапор'],
     ['🆕', 'new новий'],
     ['🆓', 'free безкоштовно'],
     ['🔴', 'red dot record запис червоний'],
@@ -410,6 +414,16 @@ const VS_BADGES = [
 
 // Pictures: the Film Dev illustrations plus sticker sets drawn for this app.
 const PICTURES = [
+    { t: 'Flags', k: 'прапори прапор україна європа єс канада провінції територія flag', dir: './flags', ext: 'svg', i: ['ukraine', 'eu', 'canada', 'british-columbia', 'alberta', 'saskatchewan', 'manitoba', 'ontario', 'quebec', 'new-brunswick', 'nova-scotia', 'prince-edward-island', 'newfoundland-labrador', 'yukon', 'northwest-territories', 'nunavut'] },
+    { t: 'Clip art · Travel', k: 'подорож літак куля паспорт глобус кемпер travel', dir: './clipart', i: ['plane-propeller', 'jet-plane', 'hot-air-balloon', 'passport', 'globe', 'camper-van'] },
+    { t: 'Clip art · Cars & moto', k: 'авто машина мото мотоцикл скутер шолом каністра', dir: './clipart', i: ['classic-car', 'scooter', 'cafe-racer', 'dirt-bike', 'moto-helmet', 'jerry-can'] },
+    { t: 'Clip art · Bikes & outdoors', k: 'велосипед ровер намет похід каяк рюкзак черевики', dir: './clipart', i: ['road-bike', 'mountain-bike', 'tent-camp', 'kayak', 'backpack', 'hiking-boots'] },
+    { t: 'Clip art · Food', k: 'їжа кава круасан бургер піца авокадо морозиво', dir: './clipart', i: ['coffee', 'croissant', 'burger', 'pizza', 'avocado', 'ice-cream'] },
+    { t: 'Clip art · Home & family', k: 'дім сімʼя родина візок собака серце торт пікнік', dir: './clipart', i: ['house', 'stroller', 'dog', 'heart-balloon', 'birthday-cake', 'picnic-basket'] },
+    { t: 'Clip art · Everyday', k: 'ноутбук навушники рослина годинник книжки телефон', dir: './clipart', i: ['laptop', 'headphones', 'plant', 'alarm-clock', 'books', 'smartphone'] },
+    { t: 'Clip art · Shopping & money', k: 'покупки продукти візок пакет кошик гроші монети картка гаманець', dir: './clipart', i: ['shopping-cart', 'grocery-bag', 'fruit-basket', 'coins', 'credit-card', 'wallet'] },
+    { t: 'Clip art · Nature', k: 'природа погода сонце дощ гори пальма хвиля ялина', dir: './clipart', i: ['sun', 'rain-cloud', 'mountain', 'palm-tree', 'wave', 'pine-tree'] },
+    { t: 'Clip art · Film photography', k: 'плівка фото камера обʼєктив штатив негатив', dir: './clipart', i: ['film-roll', 'instant-camera', 'lens', 'tripod', 'negatives', 'rangefinder'] },
     { t: 'Family', k: 'сімʼя софійка дитина кіт', dir: './stickers', i: ['sofia-photographer', 'sofia-serious', 'cat-sunbathing'] },
     { t: 'Cats', k: 'коти кіт котик мем', dir: './stickers', i: ['cat-sunbathing', 'cat-shocked', 'cat-crying-thumbs-up', 'cat-sunglasses', 'cat-side-eye', 'cat-screaming', 'cat-loaf', 'cat-rich', 'cat-groceries', 'cat-biker', 'cat-photographer', 'cat-in-cart', 'cat-driver'] },
     { t: 'Moto & travel', k: 'мото мотоцикл подорож шолом валіза карта намет', dir: './stickers', i: ['moto-adventure-bike', 'moto-helmet', 'travel-suitcase', 'travel-map', 'travel-campfire', 'travel-thermos', 'travel-mountains-badge', 'travel-compass'] },
@@ -482,7 +496,7 @@ const LOOK_DEFAULT = { preset: 'none', strength: 1, exposure: 0, contrast: 0, sa
 function makeText(over = {}) {
     return {
         id: uid(), type: 'text', name: '', x: W / 2, y: H / 2, rot: 0, opacity: 1, hidden: false, locked: false,
-        text: 'Your title', font: 'unbounded', size: 92, upper: false, align: 'center', spacing: 0, lineHeight: 1.05,
+        text: 'Your title', font: 'futura', size: 92, upper: false, align: 'center', spacing: 0, lineHeight: 1.05,
         fill: 'solid', color: '#ffffff', color2: '#f5a500',
         stroke: 0, strokeColor: '#000000',
         shadow: 0, shadowOffset: 0.04, shadowColor: '#000000', shadowAlpha: 0.6,
@@ -524,7 +538,7 @@ function newDoc() {
         bg: { type: 'gradient', color: '#0f2027', color2: '#2c5364', angle: 135 },
         finish: { grain: 0.22, grainSize: 1.2, grainColor: false, vignette: 0.25, leak: 0, leakSeed: newSeed(), dust: 0, dustSeed: newSeed(), overText: false },
         luts: [],
-        layers: [makeText({ text: 'Your title', bg: 'box', bgColor: '#f5a500', color: '#111111', font: 'helvetica', radius: 0.06, y: 560 })]
+        layers: [makeText({ text: 'Your title', bg: 'box', bgColor: '#f5a500', color: '#111111', font: 'futura', radius: 0.06, y: 560 })]
     };
 }
 
@@ -4175,16 +4189,6 @@ function fontOptions() {
 function textDefs() {
     return [
         { type: 'text', key: 'text' },
-        { type: 'heading', label: 'Style presets' },
-        {
-            type: 'tiles', options: TEXT_PRESETS.map(p => ({ value: p.name, label: p.name, p: p.p })),
-            draw: (c, opt) => drawTextTile(c, { ...opt.p, sample: 'Film' }, {}),
-            after: (l, name) => {
-                const preset = TEXT_PRESETS.find(p => p.name === name);
-                Object.assign(l, { spacing: 0, radius: 0.12 }, preset.p);
-                renderProps();
-            }
-        },
         { type: 'heading', label: 'Type' },
         { key: 'font', label: 'Font', type: 'select', options: fontOptions },
         { key: 'size', label: 'Size', type: 'range', min: 12, max: 320, step: 1, format: pxf },
@@ -4663,7 +4667,17 @@ function renderLayerList() {
             selectedId = l.id;
             deleteSelected();
         });
-        tools.append(lock, del);
+        const dup = document.createElement('button');
+        dup.type = 'button';
+        dup.className = 'icon-btn';
+        dup.title = 'Duplicate (⌘D)';
+        dup.innerHTML = '<i class="bi bi-copy"></i>';
+        dup.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedId = l.id;
+            duplicateSelected();
+        });
+        tools.append(lock, dup, del);
 
         li.append(eye, thumb, name, tools);
         li.addEventListener('click', () => {
@@ -4790,11 +4804,26 @@ function pickSticker(over) {
     addLayer(makeSticker({ ...over, x: W / 2 + (Math.random() - 0.5) * 200, y: H / 2 + (Math.random() - 0.5) * 120 }));
 }
 
+// SVG (flags) is drawn to a large bitmap once, so it stays sharp even full-frame.
+function svgToBlob(src, width = 1600) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const k = width / (img.naturalWidth || width);
+            const c = canvasOf(width, (img.naturalHeight || width / 2) * k);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            c.toBlob(b => (b ? resolve(b) : reject(new Error('svg'))), 'image/png');
+        };
+        img.onerror = () => reject(new Error('svg'));
+        img.src = src;
+    });
+}
+
 async function addArt(src, name) {
     $('picker').close();
 
     try {
-        const blob = await fetch(src).then(r => {
+        const blob = src.endsWith('.svg') ? await svgToBlob(src) : await fetch(src).then(r => {
             if (!r.ok) {
                 throw new Error(r.status);
             }
@@ -4881,52 +4910,6 @@ function renderPicker() {
             });
         });
     } else {
-        // VS badges are text layers, so the letters stay crisp and editable.
-        const vsBadges = VS_BADGES.filter(v => hit(v.name, 'vs versus проти порівняння битва'));
-
-        if (vsBadges.length) {
-            heading('Versus');
-        }
-
-        vsBadges.forEach(v => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'pick pick--graphic';
-            b.title = v.name;
-            const c = canvasOf(120, 84);
-            drawTextTile(c, { ...v.p, sample: 'VS' }, {});
-            b.append(c);
-            b.addEventListener('click', () => {
-                $('picker').close();
-                addLayer(makeText({ ...v.p, text: 'VS', size: 150, x: W / 2, y: H / 2 }));
-            });
-            grid.append(b);
-        });
-
-        const shapes = GRAPHIC_SHAPES.filter(([kind, label]) => hit(kind, label, kind === 'bolt' ? 'drawn блискавка роздільник vs versus проти' : 'drawn мальоване стрілка коло обвести галочка хрестик'));
-
-        if (shapes.length) {
-            heading('Drawn');
-        }
-
-        shapes.forEach(([kind, label]) => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'pick pick--graphic';
-            b.title = label;
-            const c = canvasOf(120, 84);
-            const x = c.getContext('2d');
-            const demo = makeShape({ shape: kind, ...shapeDefaults(kind), x: 60, y: 42, w: 78, h: 50, seed: 11, strokeW: 6, stroke: '#f5a500', fill: '#f5a500' });
-            drawLayer(x, demo, 1);
-            b.append(c);
-            b.addEventListener('click', () => {
-                $('picker').close();
-                const w = kind === 'underline' ? 420 : kind === 'curved' ? 260 : kind === 'bolt' ? 160 : kind === 'sparkle' || kind === 'burst' ? 200 : 360;
-                const h = kind === 'underline' ? 70 : kind === 'curved' ? 200 : kind === 'bolt' ? 720 : kind === 'sparkle' || kind === 'burst' ? 200 : 220;
-                addLayer(makeShape({ shape: kind, ...shapeDefaults(kind), w, h }));
-            });
-            grid.append(b);
-        });
         PICTURES.forEach(group => {
             const items = groupOf(group, name => hit(name.replace(/-/g, ' '), group.t, group.k || ''));
 
@@ -4936,7 +4919,7 @@ function renderPicker() {
 
             heading(group.t);
             items.forEach(name => {
-                const src = `${group.dir}/${name}.webp`;
+                const src = `${group.dir}/${name}.${group.ext || 'webp'}`;
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.className = 'pick pick--graphic';
