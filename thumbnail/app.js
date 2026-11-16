@@ -2326,10 +2326,12 @@ function stickerBox(l) {
     measureCtx.font = stickerFont(l);
     setSpacing(measureCtx, 0);
     const m = measureCtx.measureText(l.glyph);
-    const left = m.actualBoundingBoxLeft || 0;
-    const right = m.actualBoundingBoxRight || l.size;
-    const asc = m.actualBoundingBoxAscent || l.size * 0.8;
-    const desc = m.actualBoundingBoxDescent || l.size * 0.2;
+    // Zero is a real edge (many icons sit right on the baseline); only an empty measurement falls back.
+    const empty = !(m.actualBoundingBoxLeft + m.actualBoundingBoxRight) || !(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent);
+    const left = empty ? 0 : m.actualBoundingBoxLeft;
+    const right = empty ? l.size : m.actualBoundingBoxRight;
+    const asc = empty ? l.size * 0.8 : m.actualBoundingBoxAscent;
+    const desc = empty ? l.size * 0.2 : m.actualBoundingBoxDescent;
     const gw = Math.max(1, left + right);
     const gh = Math.max(1, asc + desc);
     const ol = l.outline * l.size;
@@ -2341,6 +2343,16 @@ function stickerBox(l) {
     }
 
     return { left, right, asc, desc, gw, gh, bw, bh };
+}
+
+// An icon the same colour as its badge would vanish, so it switches to black or white.
+function iconInk(l) {
+    if (l.badge === 'none' || String(l.color).toLowerCase() !== String(l.badgeColor).toLowerCase()) {
+        return l.color;
+    }
+
+    const [r, g, b] = hexToRgb(l.badgeColor);
+    return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#111111' : '#ffffff';
 }
 
 let iconFontReady = false;
@@ -2378,7 +2390,7 @@ function stickerCanvas(l, s) {
     g.font = stickerFont(l);
     g.textBaseline = 'alphabetic';
     g.textAlign = 'left';
-    g.fillStyle = l.kind === 'icon' ? l.color : '#000000';
+    g.fillStyle = l.kind === 'icon' ? iconInk(l) : '#000000';
     g.fillText(l.glyph, cx - (box.right - box.left) / 2, cy + (box.asc - box.desc) / 2);
 
     // Die-cut outline: the glyph's silhouette stamped all around it.
