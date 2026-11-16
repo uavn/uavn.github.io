@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="./styles.css?v=12" />
-<script src="./app.js?v=19" defer></script>
+<link rel="stylesheet" href="./styles.css?v=13" />
+<script src="./app.js?v=21" defer></script>
 </head>
 <body>
 <div class="film-edge film-edge--top"><span class="edge-print" id="edge-top"></span></div>
@@ -34,7 +34,20 @@
                 <figure class="dial" id="dial-box"><figcaption>Box speed</figcaption></figure>
                 <figure class="dial" id="dial-shot"><figcaption>Shot at</figcaption></figure>
             </div>
+            <div class="field field--stack">
+                <label>Expired</label>
+                <div class="decades" role="group" aria-label="Years past the date">
+                    <button type="button" class="btn btn--mini" data-decades="0">Fresh</button>
+                    <button type="button" class="btn btn--mini" data-decades="1">10 y</button>
+                    <button type="button" class="btn btn--mini" data-decades="2">20 y</button>
+                    <button type="button" class="btn btn--mini" data-decades="3">30 y</button>
+                    <button type="button" class="btn btn--mini" data-decades="4">40 y</button>
+                    <button type="button" class="btn btn--mini" data-decades="5">50 y</button>
+                </div>
+            </div>
+            <div class="field"><label for="storage">Stored</label><select id="storage"><option value="frozen">Frozen</option><option value="fridge">Fridge</option><option value="room">Room temperature</option><option value="hot">Hot / unknown</option></select></div>
             <div class="push-readout"><span id="stops-out"></span><span class="note" id="stops-note"></span></div>
+            <p class="note note--warn" id="expired-tip"></p>
         </section>
 
         <section class="section">
@@ -140,6 +153,13 @@
             <label>Temp. compensation, % / °C <input type="number" id="ed-temp-coef" step="0.5" title="How much longer per degree colder (and shorter per degree warmer); used outside the table" /></label>
             <label class="wide">Temp. table, °C: normal time <input type="text" id="ed-temp-table" placeholder="38.9: 3:30, 35: 5:45, 32.2: 8:30" /></label>
             <label>Colour process <input type="checkbox" id="ed-colour" title="Warn when the developer is away from its temperature" /></label>
+            <label>Film type (for expiry)
+                <select id="ed-film-type">
+                    <option value="neg">Colour negative</option>
+                    <option value="slide">Slide</option>
+                    <option value="bw">Black &amp; white</option>
+                </select>
+            </label>
             <label>Reuse, % / roll <input type="number" id="ed-reuse-pct" step="0.5" /></label>
             <label>Reuse, s per <input type="number" id="ed-reuse-add" step="1" /></label>
             <label>…every N rolls <input type="number" id="ed-reuse-batch" min="1" step="1" /></label>

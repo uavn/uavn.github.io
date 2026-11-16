@@ -376,6 +376,33 @@ input[type='checkbox'] {
     display: none;
 }
 
+.field--stack {
+    grid-template-columns: 1fr;
+    gap: 4px;
+}
+
+.decades {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+}
+
+.decades .btn {
+    padding: 2px 0;
+    font-size: 11px;
+}
+
+.decades .btn.is-on {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+}
+
+.push-readout .note {
+    text-align: center;
+}
+
 /* Buttons */
 
 .btn {

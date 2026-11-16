@@ -45,7 +45,7 @@ const PRESETS = [
         name: 'Tetenal Colortec E-6 (3-bath)',
         note: 'Tetenal sheet: first developer 6:15 at 38 °C; push +1 → +2:00, push +2 → +5:30, pull −1 → −2:00. Films 5–8 +15 s, 9–12 +30 s.',
         pushMode: 'table', pushAdd: 120, pullAdd: 120, pushPct: 30, pullPct: 25, pushTable: { '-1': 255, 1: 495, 2: 705 },
-        tempCoef: 10, reusePct: 0, reuseAdd: 15, reuseBatch: 4, colour: true,
+        tempCoef: 10, reusePct: 0, reuseAdd: 15, reuseBatch: 4, colour: true, filmType: 'slide',
         steps: [
             { name: 'Pre-warm', bath: '', kind: 'prep', temp: 38, time: 120, agitation: [0, 0, 0], note: 'Warm water at 38 °C' },
             { name: 'First developer', bath: '1', kind: 'dev', temp: 38, time: 375, agitation: [15, 30, 2] },
@@ -119,6 +119,8 @@ const DEFAULT_SETTINGS = {
     isoBox: 400,
     isoShot: 400,
     stops: 0,
+    expiredDecades: 0,
+    storage: 'room',
     devTemp: null,
     rollsUsed: 0,
     pauseMode: 'manual',
@@ -249,6 +251,37 @@ function agitationText(step) {
     return parts.join(', ');
 }
 
+/* ------------------------------------------------------------ expired film */
+
+// Rough loss of speed per decade past the date: colour negative about a stop,
+// B&W about half (a stop per 20 years); slide film is listed too but shouldn't
+// be given much extra exposure. Cold storage slows it all down.
+const LOSS_PER_DECADE = { neg: 1, bw: 0.5, slide: 0.5 };
+const STORAGE = {
+    frozen: { label: 'Frozen', factor: 0.25 },
+    fridge: { label: 'Fridge', factor: 0.5 },
+    room: { label: 'Room temperature', factor: 1 },
+    hot: { label: 'Hot / unknown', factor: 1.5 }
+};
+
+function filmType(recipe) {
+    return recipe.filmType || (recipe.colour ? 'neg' : 'bw');
+}
+
+function lostStops(recipe) {
+    const decades = Math.max(0, settings.expiredDecades || 0);
+    return decades * (LOSS_PER_DECADE[filmType(recipe)] ?? 1) * (STORAGE[settings.storage]?.factor ?? 1);
+}
+
+// Development is for what the film can still do: shooting old 400 film at EI
+// 400 when it now behaves like ISO 100 is a two-stop push.
+function effectiveStops(recipe) {
+    // Half a stop either way is within the film's latitude: round towards normal.
+    const raw = settings.stops + lostStops(recipe);
+    const whole = Math.sign(raw) * Math.floor(Math.abs(raw) + 0.49);
+    return Math.max(-3, Math.min(4, whole));
+}
+
 /* -------------------------------------------------------------- calculation */
 
 function pushTableTime(recipe, base, stops) {
@@ -329,7 +362,7 @@ function stepTime(recipe, step) {
         return Math.round(t);
     }
 
-    const stops = Math.round(settings.stops);
+    const stops = effectiveStops(recipe);
 
     if (recipe.pushMode === 'table') {
         t = pushTableTime(recipe, t, stops);
@@ -984,7 +1017,7 @@ function renderPlan() {
 
     // Edge print, like the rebate of a roll of film.
     const name = (run ? run.recipe : recipe.name).toUpperCase();
-    const top = `${name}   ▸ ISO ${settings.isoBox}   ▸ EI ${niceIso(settings.isoBox * Math.pow(2, settings.stops))}   ▸ ${fmtStops(settings.stops)}   `;
+    const top = `${name}   ▸ ISO ${settings.isoBox}   ▸ EI ${niceIso(settings.isoBox * Math.pow(2, settings.stops))}   ▸ DEV ${fmtStops(effectiveStops(recipe))}${settings.expiredDecades ? `   ▸ EXP ${settings.expiredDecades * 10}Y` : ''}   `;
     // Two identical halves, so moving by -50% loops without a jump; the speed
     // matches the sprocket holes (26 px a second).
     const fill = (node, unit) => {
@@ -1017,8 +1050,36 @@ function renderSetup() {
 
     boxDial.setValue(settings.isoBox);
     shotDial.setValue(Math.max(-3, Math.min(3, Math.round(settings.stops))));
-    $('stops-out').textContent = settings.stops === 0 ? 'Normal' : `${settings.stops > 0 ? 'Push' : 'Pull'} ${fmtStops(settings.stops)}`;
-    $('stops-note').textContent = `ISO ${settings.isoBox} → EI ${niceIso(settings.isoBox * Math.pow(2, settings.stops))}`;
+    const eff = effectiveStops(recipe);
+    const lost = lostStops(recipe);
+    const shotEi = niceIso(settings.isoBox * Math.pow(2, settings.stops));
+    $('stops-out').textContent = eff === 0 ? 'Develop normally' : `Develop ${eff > 0 ? 'push' : 'pull'} ${fmtStops(eff)}`;
+
+    if (lost > 0) {
+        const now = niceIso(settings.isoBox / Math.pow(2, lost));
+        $('stops-note').textContent = `ISO ${settings.isoBox} film, ${settings.expiredDecades * 10} years out (${STORAGE[settings.storage].label.toLowerCase()}): behaves like ≈ ISO ${now}. Shot at EI ${shotEi}.`;
+    } else {
+        $('stops-note').textContent = `ISO ${settings.isoBox} → EI ${shotEi}`;
+    }
+
+    const tips = [];
+
+    if (lost > 0 && eff !== 0) {
+        tips.push(`To develop normally, shoot it at EI ${niceIso(settings.isoBox / Math.pow(2, lost))}.`);
+    }
+
+    if (lost > 0 && eff > 0) {
+        tips.push('Pushing old film also develops its base fog: expect flat, grainy shadows.');
+    }
+
+    if (lost > 0 && filmType(recipe) === 'slide') {
+        tips.push('Slide film: go easy on extra exposure — overexposed slides wash out.');
+    }
+
+    $('expired-tip').textContent = tips.join(' ');
+    document.querySelectorAll('[data-decades]').forEach(button => button.classList.toggle('is-on', Number(button.dataset.decades) === settings.expiredDecades));
+    $('storage').value = settings.storage;
+    $('storage').disabled = !settings.expiredDecades;
 
     const dev = recipe.steps.find(step => step.kind === 'dev');
     $('dev-temp').value = Number.isFinite(settings.devTemp) ? settings.devTemp : (dev?.temp ?? '');
@@ -1254,6 +1315,8 @@ function setSettings(patch) {
 function bindSetup() {
     $('recipe').addEventListener('change', event => setSettings({ recipeId: event.target.value, devTemp: null }));
 
+    document.querySelectorAll('[data-decades]').forEach(button => button.addEventListener('click', () => setSettings({ expiredDecades: Number(button.dataset.decades) })));
+    $('storage').addEventListener('change', event => setSettings({ storage: event.target.value }));
     $('dev-temp').addEventListener('change', event => {
         const value = parseFloat(event.target.value);
         setSettings({ devTemp: Number.isFinite(value) ? value : null });
@@ -1386,6 +1449,7 @@ const Editor = {
             .sort((a, b) => Number(b[0]) - Number(a[0]))
             .map(([t, sec]) => `${t}: ${fmt(sec)}`).join(', ');
         $('ed-colour').checked = Boolean(this.recipe.colour);
+        $('ed-film-type').value = filmType(this.recipe);
         $('ed-reuse-pct').value = this.recipe.reusePct ?? 0;
         $('ed-reuse-add').value = this.recipe.reuseAdd ?? 0;
         $('ed-reuse-batch').value = this.recipe.reuseBatch ?? 1;
@@ -1471,6 +1535,7 @@ const Editor = {
         r.tempCoef = Number($('ed-temp-coef').value) || 0;
         r.tempTable = this.parseTable($('ed-temp-table').value, true);
         r.colour = $('ed-colour').checked;
+        r.filmType = $('ed-film-type').value;
         r.reusePct = Number($('ed-reuse-pct').value) || 0;
         r.reuseAdd = Number($('ed-reuse-add').value) || 0;
         r.reuseBatch = Math.max(1, parseInt($('ed-reuse-batch').value, 10) || 1);
