@@ -606,7 +606,7 @@ const EFFECT_SETTINGS = {
     film: { grain: 0.22, grainSize: 1.2, grainColor: false, vignette: 0.25, leak: 0, dust: 0, bloom: 0 },
     old: { tone: 0.85, fade: 0.4, scratches: 0.5, dust: 0.35, vignette: 0.5, grain: 0.35, grainSize: 1.4, grainColor: false },
     vhs: { vhs: 0.6, rgbSplit: 0.35, scanlines: 0.2, scanGap: 3, grain: 0.3, grainSize: 1, grainColor: true, vignette: 0.2, osd: true },
-    tv: { scanlines: 0.6, scanGap: 4, mask: 0.45, rgbSplit: 0.2, bloom: 0.35, curve: 0.6 },
+    tv: { scanlines: 0.6, scanGap: 4, mask: 0.45, rgbSplit: 0.2, bloom: 0.35, curve: 0 },
     night: { goggles: 0.9, bloom: 0.45, scanlines: 0.3, scanGap: 3, grain: 0.6, grainSize: 1.2, grainColor: false },
     cctv: { camLabel: 'CAM 01', hud: true, bw: true, scanlines: 0.3, scanGap: 3, grain: 0.35, grainSize: 1.2, grainColor: false, vignette: 0.35 },
     thermal: { thermalPal: 'iron', contrast: 0.15, blur: 0.35 },
