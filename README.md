@@ -124,8 +124,10 @@ drag, resize and rotate on the canvas:
   photography), generated with Gemini and cut into transparent WebP files.
 - **Flags**: Ukraine, the EU, Canada and every Canadian province and territory,
   as SVG files from Wikimedia Commons in `thumbnail/flags/`.
-- **Film finish** on top: grain, vignette, light leaks and dust. It sits just
-  above the top photo, so text stays clean unless you choose otherwise.
+- **Finish** on top: one effect with its own settings — film (grain, light
+  leaks, dust), old photo, VHS, CRT TV (PAL/NTSC scanlines), night vision,
+  CCTV, thermal camera, 8-bit, comic halftone or glitch. It sits just above the
+  top photo, so text stays clean unless you choose otherwise.
 
 A YouTube-style feed preview (dark, light and sidebar sizes) shows how the
 thumbnail reads when small. The project, its photos and LUTs are kept in the

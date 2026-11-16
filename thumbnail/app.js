@@ -586,11 +586,55 @@ function makeImage(over = {}) {
     };
 }
 
+const EFFECTS = [
+    ['none', 'None'],
+    ['film', 'Film'],
+    ['old', 'Old photo'],
+    ['vhs', 'VHS'],
+    ['tv', 'CRT TV'],
+    ['night', 'Night vision'],
+    ['cctv', 'CCTV'],
+    ['thermal', 'Thermal'],
+    ['pixel', '8-bit'],
+    ['comic', 'Comic'],
+    ['glitch', 'Glitch']
+];
+
+// What each effect starts with when picked (and what its reset buttons go back to).
+const EFFECT_SETTINGS = {
+    none: {},
+    film: { grain: 0.22, grainSize: 1.2, grainColor: false, vignette: 0.25, leak: 0, dust: 0, bloom: 0 },
+    old: { tone: 0.85, fade: 0.4, scratches: 0.5, dust: 0.35, vignette: 0.5, grain: 0.35, grainSize: 1.4, grainColor: false },
+    vhs: { vhs: 0.6, rgbSplit: 0.35, scanlines: 0.2, scanGap: 3, grain: 0.3, grainSize: 1, grainColor: true, vignette: 0.2, osd: true },
+    tv: { scanlines: 0.6, scanGap: 4, mask: 0.45, rgbSplit: 0.2, bloom: 0.35, curve: 0.6 },
+    night: { goggles: 0.9, bloom: 0.45, scanlines: 0.3, scanGap: 3, grain: 0.6, grainSize: 1.2, grainColor: false },
+    cctv: { camLabel: 'CAM 01', hud: true, bw: true, scanlines: 0.3, scanGap: 3, grain: 0.35, grainSize: 1.2, grainColor: false, vignette: 0.35 },
+    thermal: { thermalPal: 'iron', contrast: 0.15, blur: 0.35 },
+    pixel: { pixelPal: 'gb', pixelate: 0.3, dither: true },
+    comic: { dot: 0.35, colourDots: true },
+    glitch: { glitch: 0.6, rgbSplit: 0.5 }
+};
+
+const THERMAL_PALETTES = {
+    iron: ['#000000', '#1e0050', '#8c0096', '#e63c28', '#ffaa00', '#ffffc8'],
+    rainbow: ['#000040', '#0050ff', '#00e0ff', '#30ff30', '#ffff00', '#ff3000', '#ffffff'],
+    white: ['#000000', '#ffffff']
+};
+
+const PIXEL_PALETTES = {
+    gb: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
+    grey: ['#151515', '#555555', '#aaaaaa', '#f2f2f2'],
+    amber: ['#1e0e00', '#6e3500', '#d98a00', '#ffd88a'],
+    mono: ['#000000', '#ffffff']
+};
+
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
 function newDoc() {
     return {
         version: 1,
         bg: { type: 'gradient', color: '#0f2027', color2: '#2c5364', angle: 135 },
-        finish: { grain: 0.22, grainSize: 1.2, grainColor: false, vignette: 0.25, leak: 0, leakSeed: newSeed(), dust: 0, dustSeed: newSeed(), overText: false },
+        finish: { effect: 'film', ...structuredClone(EFFECT_SETTINGS.film), leakSeed: newSeed(), dustSeed: newSeed(), vhsSeed: newSeed(), overText: false },
         luts: [],
         layers: [makeText({ text: sillyTitle(), size: 64, bg: 'box', bgColor: '#f5a500', color: '#111111', font: 'futura', radius: 0.06, y: 560 })]
     };
@@ -3253,92 +3297,715 @@ function noiseTile(colour) {
     return noiseTiles[k];
 }
 
-function drawFinish(ctx) {
-    const f = doc.finish;
+/*
+ * The Finish layer: one effect at a time, each with its own settings. Pixel
+ * effects read back what has been drawn so far (in device pixels); overlays
+ * are drawn after them in design units.
+ */
+const luma = (p, i) => (0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2]) / 255;
 
-    if (f.leak > 0) {
-        const R = rng(f.leakSeed);
-        const colours = ['255, 90, 20', '255, 40, 30', '255, 190, 90', '255, 120, 160'];
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        const n = 2 + Math.floor(R() * 2);
+// A 256-entry RGB table running through the given colour stops.
+const paletteLuts = new Map();
 
-        for (let i = 0; i < n; i++) {
-            const left = R() < 0.5;
-            const x = left ? -W * 0.05 + R() * W * 0.12 : W * 1.05 - R() * W * 0.12;
-            const y = R() * H;
-            const r = H * (0.45 + R() * 0.6);
-            const c = colours[Math.floor(R() * colours.length)];
-            const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-            g.addColorStop(0, `rgba(${c}, ${0.9 * f.leak})`);
-            g.addColorStop(0.4, `rgba(${c}, ${0.45 * f.leak})`);
-            g.addColorStop(1, `rgba(${c}, 0)`);
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, W, H);
-        }
+function paletteLut(stops) {
+    const key = stops.join();
 
-        // A burnt streak along one edge.
-        const left = R() < 0.5;
-        const g = ctx.createLinearGradient(left ? 0 : W, 0, left ? W * 0.18 : W * 0.82, 0);
-        g.addColorStop(0, `rgba(255, 110, 30, ${0.7 * f.leak})`);
-        g.addColorStop(1, 'rgba(255, 110, 30, 0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-        ctx.restore();
-    }
+    if (!paletteLuts.has(key)) {
+        const rgb = stops.map(hexToRgb);
+        const lut = new Uint8ClampedArray(256 * 3);
 
-    if (f.vignette > 0) {
-        const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, Math.hypot(W, H) / 2);
-        g.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        g.addColorStop(1, `rgba(0, 0, 0, ${f.vignette})`);
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-    }
+        for (let i = 0; i < 256; i++) {
+            const t = (i / 255) * (rgb.length - 1);
+            const k = Math.min(rgb.length - 2, Math.floor(t));
+            const u = t - k;
 
-    if (f.dust > 0) {
-        const R = rng(f.dustSeed);
-        const count = Math.round(f.dust * 140);
-        ctx.save();
-
-        for (let i = 0; i < count; i++) {
-            const light = R() < 0.8;
-            ctx.globalAlpha = 0.45 + R() * 0.5;
-            ctx.fillStyle = light ? '#ffffff' : '#000000';
-            ctx.strokeStyle = ctx.fillStyle;
-            const x = R() * W;
-            const y = R() * H;
-
-            if (R() < 0.15) {
-                const len = 12 + R() * 50;
-                const a = R() * Math.PI * 2;
-                ctx.lineWidth = 0.6 + R() * 0.7;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.bezierCurveTo(
-                    x + Math.cos(a) * len * 0.4 + (R() - 0.5) * 20, y + Math.sin(a) * len * 0.4 + (R() - 0.5) * 20,
-                    x + Math.cos(a) * len * 0.8 + (R() - 0.5) * 20, y + Math.sin(a) * len * 0.8 + (R() - 0.5) * 20,
-                    x + Math.cos(a) * len, y + Math.sin(a) * len
-                );
-                ctx.stroke();
-            } else {
-                ctx.beginPath();
-                ctx.arc(x, y, 0.5 + R() * R() * 2.4, 0, Math.PI * 2);
-                ctx.fill();
+            for (let c = 0; c < 3; c++) {
+                lut[i * 3 + c] = rgb[k][c] + (rgb[k + 1][c] - rgb[k][c]) * u;
             }
         }
 
-        ctx.restore();
+        paletteLuts.set(key, lut);
     }
 
-    if (f.grain > 0) {
-        const pattern = ctx.createPattern(noiseTile(f.grainColor), 'repeat');
-        pattern.setTransform(new DOMMatrix().scale(f.grainSize));
-        ctx.save();
-        ctx.globalCompositeOperation = 'overlay';
-        ctx.globalAlpha = clamp01(f.grain);
-        ctx.fillStyle = pattern;
+    return paletteLuts.get(key);
+}
+
+function mapPixels(ctx, fn) {
+    const cv = ctx.canvas;
+    const img = ctx.getImageData(0, 0, cv.width, cv.height);
+    const p = img.data;
+
+    for (let i = 0; i < p.length; i += 4) {
+        fn(p, i);
+    }
+
+    ctx.putImageData(img, 0, 0);
+}
+
+// Red one way, blue the other.
+function shiftChannels(ctx, dx) {
+    if (!dx) {
+        return;
+    }
+
+    const cv = ctx.canvas;
+    const cw = cv.width;
+    const img = ctx.getImageData(0, 0, cw, cv.height);
+    const px = img.data;
+    const src = new Uint8ClampedArray(px);
+
+    for (let y = 0; y < cv.height; y++) {
+        const row = y * cw;
+
+        for (let x = 0; x < cw; x++) {
+            const o = (row + x) * 4;
+            px[o] = src[(row + Math.max(0, x - dx)) * 4];
+            px[o + 2] = src[(row + Math.min(cw - 1, x + dx)) * 4 + 2];
+        }
+    }
+
+    ctx.putImageData(img, 0, 0);
+}
+
+// A blurred, brightened copy laid over with screen.
+function bloomPass(ctx, amount) {
+    const cv = ctx.canvas;
+    const small = canvasOf(Math.max(1, cv.width / 6), Math.max(1, cv.height / 6));
+    const sc = small.getContext('2d');
+    sc.filter = 'brightness(0.75) contrast(2.2)';
+    sc.drawImage(cv, 0, 0, small.width, small.height);
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = Math.min(1, amount);
+    ctx.filter = `blur(${Math.max(1, cv.width / 120)}px)`;
+    ctx.drawImage(small, 0, 0, cv.width, cv.height);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+}
+
+function softPass(ctx, px) {
+    if (px < 0.3) {
+        return;
+    }
+
+    const cv = ctx.canvas;
+    const copy = canvasOf(cv.width, cv.height);
+    copy.getContext('2d').drawImage(cv, 0, 0);
+    ctx.filter = `blur(${px}px)`;
+    ctx.drawImage(copy, 0, 0);
+    ctx.filter = 'none';
+}
+
+// VHS: wobbly tracking bands where rows slide sideways, colour bleed and head-switching noise at the bottom.
+function vhsPass(ctx, f, s) {
+    const cv = ctx.canvas;
+    const cw = cv.width;
+    const ch = cv.height;
+    const R = rng(f.vhsSeed || 7);
+    const split = Math.round((2 + f.rgbSplit * 10) * s);
+    const bands = [];
+    const n = 2 + Math.floor(R() * 3);
+
+    for (let i = 0; i < n; i++) {
+        const y = Math.floor(R() * ch);
+        bands.push({ y0: y, y1: y + Math.round((4 + R() * 26) * s), dx: Math.round((R() - 0.5) * 40 * f.vhs * s) });
+    }
+
+    bands.push({ y0: Math.round(ch * 0.965), y1: ch, dx: Math.round(18 * f.vhs * s), noisy: true });
+
+    const img = ctx.getImageData(0, 0, cw, ch);
+    const px = img.data;
+    const src = new Uint8ClampedArray(px);
+
+    for (let y = 0; y < ch; y++) {
+        const band = f.vhs > 0 ? bands.find(b => y >= b.y0 && y < b.y1) : null;
+        const dx = band ? band.dx + (band.noisy ? Math.round((R() - 0.5) * 12 * s) : 0) : 0;
+        const row = y * cw;
+
+        for (let x = 0; x < cw; x++) {
+            const o = (row + x) * 4;
+            const r = src[(row + Math.min(cw - 1, Math.max(0, x - split - dx))) * 4];
+            const g = src[(row + Math.min(cw - 1, Math.max(0, x - dx))) * 4 + 1];
+            const b = src[(row + Math.min(cw - 1, Math.max(0, x + split - dx))) * 4 + 2];
+            // Tape washes colours out a little and lifts the blacks.
+            const l = 0.299 * r + 0.587 * g + 0.114 * b;
+            px[o] = 14 + (l + (r - l) * 0.8) * 0.93;
+            px[o + 1] = 10 + (l + (g - l) * 0.8) * 0.93;
+            px[o + 2] = 18 + (l + (b - l) * 0.8) * 0.93;
+
+            if (band && band.noisy && R() < 0.15) {
+                const v = 150 + R() * 105;
+                px[o] = px[o + 1] = px[o + 2] = v;
+            }
+        }
+    }
+
+    ctx.putImageData(img, 0, 0);
+
+    // A soft ghost to the right and a few thin bright noise lines.
+    ctx.globalAlpha = 0.3 * Math.max(0.3, f.vhs);
+    ctx.filter = `blur(${0.8 * s}px)`;
+    ctx.drawImage(cv, Math.round(3 * s), 0);
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1;
+
+    for (let i = 0; i < 6 * f.vhs + 2; i++) {
+        const y = R() * ch;
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + R() * 0.3})`;
+        ctx.fillRect(R() * cw * 0.5, y, cw * (0.2 + R() * 0.6), Math.max(1, s));
+    }
+}
+
+// Game-console look: big pixels and a few-colour palette, optionally dithered.
+function pixelPass(ctx, f, s) {
+    const cv = ctx.canvas;
+    const block = Math.max(1, Math.round((2 + f.pixelate * 14) * s));
+    const small = canvasOf(Math.ceil(cv.width / block), Math.ceil(cv.height / block));
+    const sc = small.getContext('2d');
+    sc.drawImage(cv, 0, 0, small.width, small.height);
+    const pal = (PIXEL_PALETTES[f.pixelPal] || PIXEL_PALETTES.gb).map(hexToRgb);
+    const n = pal.length - 1;
+    const img = sc.getImageData(0, 0, small.width, small.height);
+    const p = img.data;
+
+    for (let y = 0; y < small.height; y++) {
+        for (let x = 0; x < small.width; x++) {
+            const i = (y * small.width + x) * 4;
+            // A touch of contrast so the few shades read.
+            let l = clamp01((luma(p, i) - 0.5) * 1.2 + 0.5);
+            const d = f.dither ? (BAYER4[(y & 3) * 4 + (x & 3)] + 0.5) / 16 - 0.5 : 0;
+            const k = Math.max(0, Math.min(n, Math.round(l * n + d)));
+            p[i] = pal[k][0];
+            p[i + 1] = pal[k][1];
+            p[i + 2] = pal[k][2];
+        }
+    }
+
+    sc.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(small, 0, 0, small.width * block, small.height * block);
+    ctx.imageSmoothingEnabled = true;
+}
+
+// Halftone print: CMYK dot screens at the classic angles, or black dots only.
+function comicPass(ctx, f, s) {
+    const cv = ctx.canvas;
+    const cw = cv.width;
+    const ch = cv.height;
+    const cell = Math.max(2.5, (5 + f.dot * 16) * s);
+    const src = ctx.getImageData(0, 0, cw, ch).data;
+    const at = (x, y) => (Math.min(ch - 1, Math.max(0, y | 0)) * cw + Math.min(cw - 1, Math.max(0, x | 0))) * 4;
+    const screens = f.colourDots
+        ? [
+            { angle: 15, colour: '#00a8e8', ink: (r, g, b, k) => (1 - r - k) / (1 - k || 1) },
+            { angle: 75, colour: '#e8178a', ink: (r, g, b, k) => (1 - g - k) / (1 - k || 1) },
+            { angle: 0, colour: '#ffe600', ink: (r, g, b, k) => (1 - b - k) / (1 - k || 1) },
+            { angle: 45, colour: '#1d1a1a', ink: (r, g, b, k) => k * 0.85 }
+        ]
+        : [{ angle: 45, colour: '#141414', ink: (r, g, b) => 1 - (0.299 * r + 0.587 * g + 0.114 * b) }];
+
+    ctx.fillStyle = '#fbf4e4';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = 'multiply';
+    const half = Math.hypot(cw, ch) / 2;
+    const steps = Math.ceil(half / cell) + 1;
+
+    for (const sc of screens) {
+        const a = (sc.angle * Math.PI) / 180;
+        const cos = Math.cos(a);
+        const sin = Math.sin(a);
+        ctx.fillStyle = sc.colour;
+        ctx.beginPath();
+
+        for (let j = -steps; j <= steps; j++) {
+            for (let i = -steps; i <= steps; i++) {
+                const x = cw / 2 + (i * cos - j * sin) * cell;
+                const y = ch / 2 + (i * sin + j * cos) * cell;
+
+                if (x < -cell || y < -cell || x > cw + cell || y > ch + cell) {
+                    continue;
+                }
+
+                const o = at(x, y);
+                const r = src[o] / 255;
+                const g = src[o + 1] / 255;
+                const b = src[o + 2] / 255;
+                const k = 1 - Math.max(r, g, b);
+                const v = clamp01(sc.ink(r, g, b, k));
+
+                if (v > 0.04) {
+                    const rad = cell * 0.62 * Math.sqrt(v);
+                    ctx.moveTo(x + rad, y);
+                    ctx.arc(x, y, rad, 0, Math.PI * 2);
+                }
+            }
+        }
+
+        ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+}
+
+// Digital glitch: torn horizontal slices and shifted blocks.
+function glitchPass(ctx, f, s) {
+    const cv = ctx.canvas;
+    const cw = cv.width;
+    const ch = cv.height;
+    const R = rng(f.vhsSeed || 7);
+    shiftChannels(ctx, Math.round(f.rgbSplit * 14 * s));
+    const copy = canvasOf(cw, ch);
+    copy.getContext('2d').drawImage(cv, 0, 0);
+    const slices = Math.round(4 + f.glitch * 18);
+
+    for (let i = 0; i < slices; i++) {
+        const y = R() * ch;
+        const h = (2 + R() * R() * 70) * s;
+        const dx = (R() - 0.5) * 2 * f.glitch * 140 * s;
+        ctx.drawImage(copy, 0, y, cw, h, dx, y, cw, h);
+
+        if (R() < 0.3) {
+            ctx.globalCompositeOperation = 'difference';
+            ctx.fillStyle = ['#ff00ff', '#00ffff', '#ffff00', '#00ff66'][Math.floor(R() * 4)];
+            ctx.globalAlpha = 0.25 + R() * 0.35;
+            ctx.fillRect(R() * cw * 0.5, y, cw * (0.2 + R() * 0.6), h);
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+        }
+    }
+
+    for (let i = 0; i < Math.round(f.glitch * 8); i++) {
+        const w = (30 + R() * 220) * s;
+        const h = (10 + R() * 60) * s;
+        const x = R() * (cw - w);
+        const y = R() * (ch - h);
+        ctx.drawImage(copy, x, y, w, h, x + (R() - 0.5) * 120 * s, y + (R() - 0.5) * 20 * s, w, h);
+    }
+}
+
+function finishPixels(ctx, f, s) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    switch (f.effect) {
+        case 'film':
+            if (f.bloom > 0) {
+                bloomPass(ctx, f.bloom);
+            }
+
+            break;
+
+        case 'old':
+            mapPixels(ctx, (p, i) => {
+                const l = luma(p, i) * 255;
+                const fade = f.fade;
+
+                for (let c = 0; c < 3; c++) {
+                    const sep = [l * 1.07 + 18, l * 0.9 + 10, l * 0.7 + 6][c];
+                    const v = p[i + c] + (sep - p[i + c]) * f.tone;
+                    p[i + c] = 34 * fade + v * (1 - 0.3 * fade);
+                }
+            });
+            break;
+
+        case 'vhs':
+            vhsPass(ctx, f, s);
+            break;
+
+        case 'tv':
+            shiftChannels(ctx, Math.round(f.rgbSplit * 8 * s));
+
+            if (f.bloom > 0) {
+                bloomPass(ctx, f.bloom);
+            }
+
+            break;
+
+        case 'night':
+            mapPixels(ctx, (p, i) => {
+                const l = Math.min(1, Math.pow(luma(p, i), 0.75) * 1.25);
+                p[i] = 25 + l * 90;
+                p[i + 1] = 40 + l * 215;
+                p[i + 2] = 20 + l * 60;
+            });
+
+            if (f.bloom > 0) {
+                bloomPass(ctx, f.bloom);
+            }
+
+            break;
+
+        case 'cctv':
+            softPass(ctx, 0.7 * s);
+            mapPixels(ctx, (p, i) => {
+                const l = luma(p, i);
+
+                if (f.bw) {
+                    const v = (0.1 + l * 0.82) * 255;
+                    p[i] = v * 0.97;
+                    p[i + 1] = v;
+                    p[i + 2] = v * 0.99;
+                } else {
+                    // Cheap sensor: washed out, a little green.
+                    for (let c = 0; c < 3; c++) {
+                        p[i + c] = 20 + (l * 255 + (p[i + c] - l * 255) * 0.45) * 0.85 + (c === 1 ? 10 : 0);
+                    }
+                }
+            });
+            break;
+
+        case 'thermal': {
+            softPass(ctx, f.blur * 10 * s);
+            const lut = paletteLut(THERMAL_PALETTES[f.thermalPal] || THERMAL_PALETTES.iron);
+            const k = 1 + f.contrast * 2;
+            mapPixels(ctx, (p, i) => {
+                const v = Math.round(clamp01((luma(p, i) - 0.5) * k + 0.5) * 255) * 3;
+                p[i] = lut[v];
+                p[i + 1] = lut[v + 1];
+                p[i + 2] = lut[v + 2];
+            });
+            break;
+        }
+
+        case 'pixel':
+            pixelPass(ctx, f, s);
+            break;
+
+        case 'comic':
+            comicPass(ctx, f, s);
+            break;
+
+        case 'glitch':
+            glitchPass(ctx, f, s);
+            break;
+    }
+
+    ctx.restore();
+}
+
+/* Overlays, in design units. */
+
+function scanlineOverlay(ctx, amount, gap) {
+    if (amount <= 0) {
+        return;
+    }
+
+    const step = Math.max(2, gap || 4);
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.55 * amount})`;
+
+    for (let y = 0; y < H; y += step) {
+        ctx.fillRect(0, y, W, step / 2);
+    }
+}
+
+function vignetteOverlay(ctx, amount) {
+    if (amount <= 0) {
+        return;
+    }
+
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, Math.hypot(W, H) / 2);
+    g.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    g.addColorStop(1, `rgba(0, 0, 0, ${amount})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+}
+
+function grainOverlay(ctx, f) {
+    if (f.grain <= 0) {
+        return;
+    }
+
+    const pattern = ctx.createPattern(noiseTile(f.grainColor), 'repeat');
+    pattern.setTransform(new DOMMatrix().scale(f.grainSize || 1));
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = clamp01(f.grain);
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+}
+
+function leakOverlay(ctx, f) {
+    if (f.leak <= 0) {
+        return;
+    }
+
+    const R = rng(f.leakSeed);
+    const colours = ['255, 90, 20', '255, 40, 30', '255, 190, 90', '255, 120, 160'];
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const n = 2 + Math.floor(R() * 2);
+
+    for (let i = 0; i < n; i++) {
+        const left = R() < 0.5;
+        const x = left ? -W * 0.05 + R() * W * 0.12 : W * 1.05 - R() * W * 0.12;
+        const y = R() * H;
+        const r = H * (0.45 + R() * 0.6);
+        const c = colours[Math.floor(R() * colours.length)];
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `rgba(${c}, ${0.9 * f.leak})`);
+        g.addColorStop(0.4, `rgba(${c}, ${0.45 * f.leak})`);
+        g.addColorStop(1, `rgba(${c}, 0)`);
+        ctx.fillStyle = g;
         ctx.fillRect(0, 0, W, H);
-        ctx.restore();
+    }
+
+    // A burnt streak along one edge.
+    const left = R() < 0.5;
+    const g = ctx.createLinearGradient(left ? 0 : W, 0, left ? W * 0.18 : W * 0.82, 0);
+    g.addColorStop(0, `rgba(255, 110, 30, ${0.7 * f.leak})`);
+    g.addColorStop(1, 'rgba(255, 110, 30, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+}
+
+function dustOverlay(ctx, f) {
+    if (f.dust <= 0) {
+        return;
+    }
+
+    const R = rng(f.dustSeed);
+    const count = Math.round(f.dust * 140);
+    ctx.save();
+
+    for (let i = 0; i < count; i++) {
+        const light = R() < 0.8;
+        ctx.globalAlpha = 0.45 + R() * 0.5;
+        ctx.fillStyle = light ? '#ffffff' : '#000000';
+        ctx.strokeStyle = ctx.fillStyle;
+        const x = R() * W;
+        const y = R() * H;
+
+        if (R() < 0.15) {
+            const len = 12 + R() * 50;
+            const a = R() * Math.PI * 2;
+            ctx.lineWidth = 0.6 + R() * 0.7;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(
+                x + Math.cos(a) * len * 0.4 + (R() - 0.5) * 20, y + Math.sin(a) * len * 0.4 + (R() - 0.5) * 20,
+                x + Math.cos(a) * len * 0.8 + (R() - 0.5) * 20, y + Math.sin(a) * len * 0.8 + (R() - 0.5) * 20,
+                x + Math.cos(a) * len, y + Math.sin(a) * len
+            );
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.arc(x, y, 0.5 + R() * R() * 2.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    ctx.restore();
+}
+
+// Long vertical scratches, like an old print or a worn film.
+function scratchOverlay(ctx, f) {
+    if (f.scratches <= 0) {
+        return;
+    }
+
+    const R = rng((f.dustSeed || 3) + 11);
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    for (let i = 0; i < Math.round(f.scratches * 14); i++) {
+        const x = R() * W;
+        const y0 = R() < 0.5 ? -10 : R() * H * 0.6;
+        const y1 = y0 + H * (0.3 + R() * 0.9);
+        ctx.strokeStyle = R() < 0.7 ? 'rgba(255, 250, 235, 0.55)' : 'rgba(30, 20, 10, 0.5)';
+        ctx.lineWidth = 0.6 + R() * 1.4;
+        ctx.beginPath();
+        ctx.moveTo(x, y0);
+        ctx.bezierCurveTo(x + (R() - 0.5) * 14, y0 + (y1 - y0) * 0.33, x + (R() - 0.5) * 14, y0 + (y1 - y0) * 0.66, x + (R() - 0.5) * 10, y1);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function osdText(ctx, text, x, y, align, colour = '#ffffff') {
+    ctx.save();
+    ctx.font = '400 34px "Press Start 2P", "JetBrains Mono", monospace';
+    ctx.textAlign = align;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillText(text, x + 3, y + 3);
+    ctx.fillStyle = colour;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+}
+
+function vhsOsd(ctx) {
+    osdText(ctx, 'PLAY ▶', 56, 48, 'left');
+    osdText(ctx, 'SP', W - 56, 48, 'right');
+    osdText(ctx, 'OCT. 14 1998', 56, H - 82, 'left');
+    osdText(ctx, 'AM 10:42', W - 56, H - 82, 'right');
+}
+
+function cctvHud(ctx, f) {
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 3;
+    ctx.font = '700 30px "JetBrains Mono", monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillText(f.camLabel || '', 40, 32);
+
+    if (f.hud) {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        ctx.textAlign = 'right';
+        ctx.fillText(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}  03:14:07`, W - 40, 32);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#ff2b2b';
+        ctx.beginPath();
+        ctx.arc(52, H - 46, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('REC', 72, H - 30);
+    }
+
+    ctx.restore();
+}
+
+// Round, dark-edged view like through night-vision goggles.
+function gogglesOverlay(ctx, amount) {
+    if (amount <= 0) {
+        return;
+    }
+
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.78);
+    g.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    g.addColorStop(1, `rgba(0, 0, 0, ${amount})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+}
+
+// Phosphor stripes: thin red, green and blue columns.
+let maskTileCanvas = null;
+
+function maskOverlay(ctx, amount) {
+    if (amount <= 0) {
+        return;
+    }
+
+    if (!maskTileCanvas) {
+        maskTileCanvas = canvasOf(6, 4);
+        const m = maskTileCanvas.getContext('2d');
+        ['#ff4040', '#40ff40', '#4040ff'].forEach((c, i) => {
+            m.fillStyle = c;
+            m.fillRect(i * 2, 0, 2, 4);
+        });
+        m.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        m.fillRect(0, 3, 6, 1);
+    }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = amount * 0.7;
+    ctx.fillStyle = ctx.createPattern(maskTileCanvas, 'repeat');
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+}
+
+// A curved tube: dark rounded edges, a soft inner shadow and a glass glare.
+function curveOverlay(ctx, amount) {
+    if (amount <= 0) {
+        return;
+    }
+
+    ctx.save();
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, Math.hypot(W, H) / 2);
+    g.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    g.addColorStop(1, `rgba(0, 0, 0, ${0.75 * amount})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    const r = 30 + 90 * amount;
+    const inset = 6 * amount;
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.roundRect(inset, inset, W - inset * 2, H - inset * 2, r);
+    ctx.fillStyle = '#050505';
+    ctx.fill('evenodd');
+
+    const glare = ctx.createLinearGradient(0, 0, W * 0.5, H * 0.7);
+    glare.addColorStop(0, `rgba(255, 255, 255, ${0.12 * amount})`);
+    glare.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glare;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+}
+
+function drawFinish(ctx, s = 1) {
+    const f = doc.finish;
+
+    if (!f.effect || f.effect === 'none') {
+        return;
+    }
+
+    finishPixels(ctx, f, s);
+
+    switch (f.effect) {
+        case 'film':
+            leakOverlay(ctx, f);
+            vignetteOverlay(ctx, f.vignette);
+            dustOverlay(ctx, f);
+            grainOverlay(ctx, f);
+            break;
+
+        case 'old':
+            vignetteOverlay(ctx, f.vignette);
+            scratchOverlay(ctx, f);
+            dustOverlay(ctx, f);
+            grainOverlay(ctx, f);
+            break;
+
+        case 'vhs':
+            scanlineOverlay(ctx, f.scanlines, f.scanGap);
+            vignetteOverlay(ctx, f.vignette);
+            grainOverlay(ctx, f);
+
+            if (f.osd) {
+                vhsOsd(ctx);
+            }
+
+            break;
+
+        case 'tv':
+            scanlineOverlay(ctx, f.scanlines, f.scanGap);
+            maskOverlay(ctx, f.mask);
+            curveOverlay(ctx, f.curve);
+            break;
+
+        case 'night':
+            gogglesOverlay(ctx, f.goggles);
+            scanlineOverlay(ctx, f.scanlines, f.scanGap);
+            grainOverlay(ctx, f);
+            break;
+
+        case 'cctv':
+            vignetteOverlay(ctx, f.vignette);
+            scanlineOverlay(ctx, f.scanlines, f.scanGap);
+            grainOverlay(ctx, f);
+            cctvHud(ctx, f);
+            break;
+    }
+}
+
+// Effect picker tiles: the current thumbnail with each effect's starting settings.
+function effectTileDraw(c, opt) {
+    const saved = doc.finish;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    doc.finish = { ...saved, ...EFFECT_SETTINGS[opt.value], effect: opt.value };
+
+    try {
+        renderDoc(ctx, c.width / W);
+    } finally {
+        doc.finish = saved;
     }
 }
 
@@ -3362,7 +4029,7 @@ function renderDoc(ctx, s) {
     }
 
     if (finishAt === -1) {
-        drawFinish(ctx);
+        drawFinish(ctx, s);
     }
 
     layers.forEach((l, i) => {
@@ -3371,7 +4038,7 @@ function renderDoc(ctx, s) {
         }
 
         if (i === finishAt) {
-            drawFinish(ctx);
+            drawFinish(ctx, s);
         }
     });
     ctx.restore();
@@ -3916,6 +4583,10 @@ let fieldRefreshers = [];
 const TEMPLATES = {};
 
 function defaultFor(target, key) {
+    if (target === doc.finish && EFFECT_SETTINGS[target.effect]?.[key] !== undefined) {
+        return EFFECT_SETTINGS[target.effect][key];
+    }
+
     if (target === doc.bg || target === doc.finish) {
         const fresh = TEMPLATES.doc || (TEMPLATES.doc = newDoc());
         return getPath(target === doc.bg ? fresh.bg : fresh.finish, key);
@@ -4554,7 +5225,7 @@ function renderProps() {
         const sec = document.createElement('section');
         sec.className = 'section';
         const h = document.createElement('h3');
-        h.textContent = 'Film finish';
+        h.textContent = 'Finish';
         sec.append(h);
         host.append(sec);
         fieldRefreshers.push(buildFields(sec, finishDefs(), () => doc.finish, () => commit()));
@@ -4628,21 +5299,63 @@ function bgCss() {
 const FINISH_ID = '__finish';
 
 function finishDefs() {
+    const on = (...ids) => f => ids.includes(f.effect);
+    const range = (key, label, ids, extra = {}) => ({ key, label, type: 'range', min: 0, max: 1, step: 0.01, format: pct, show: on(...ids), ...extra });
+    const shuffle = (label, fn) => ({ label: `<i class="bi bi-shuffle"></i> ${label}`, onClick: fn });
     return [
-        { key: 'grain', label: 'Grain', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
-        { key: 'grainSize', label: 'Grain size', type: 'range', min: 0.5, max: 4, step: 0.1, reset: 1.2, show: f => f.grain > 0 },
-        { key: 'grainColor', label: 'Colour grain', type: 'check', show: f => f.grain > 0 },
-        { key: 'vignette', label: 'Vignette', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
-        { key: 'leak', label: 'Light leak', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
-        { key: 'dust', label: 'Dust', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
         {
-            type: 'buttons', show: f => f.leak > 0 || f.dust > 0, buttons: [
-                { label: '<i class="bi bi-shuffle"></i> New leak', onClick: f => { f.leakSeed = newSeed(); } },
-                { label: '<i class="bi bi-shuffle"></i> New dust', onClick: f => { f.dustSeed = newSeed(); } }
+            type: 'tiles', key: 'effect', className: 'tiles--looks', tileW: 150, tileH: 84,
+            options: EFFECTS.map(([value, label]) => ({ value, label })), draw: effectTileDraw,
+            after: (f, v) => Object.assign(f, structuredClone(EFFECT_SETTINGS[v] || {}))
+        },
+        // Film
+        range('grain', 'Grain', ['film', 'old']),
+        range('grain', 'Noise', ['vhs', 'night', 'cctv']),
+        { key: 'grainSize', label: 'Grain size', type: 'range', min: 0.5, max: 4, step: 0.1, show: f => on('film', 'old')(f) && f.grain > 0 },
+        { key: 'grainColor', label: 'Colour grain', type: 'check', show: f => on('film')(f) && f.grain > 0 },
+        range('leak', 'Light leak', ['film']),
+        range('bloom', 'Bloom', ['film', 'tv', 'night']),
+        // Old photo
+        range('tone', 'Sepia', ['old']),
+        range('fade', 'Fade', ['old']),
+        range('scratches', 'Scratches', ['old']),
+        range('dust', 'Dust', ['film', 'old']),
+        range('vignette', 'Vignette', ['film', 'old', 'vhs', 'cctv']),
+        {
+            type: 'buttons', show: f => (f.effect === 'film' && (f.leak > 0 || f.dust > 0)) || f.effect === 'old', buttons: [
+                shuffle('New leak', f => { f.leakSeed = newSeed(); }),
+                shuffle('New dust', f => { f.dustSeed = newSeed(); })
             ]
         },
-        { key: 'overText', label: 'Over text too', type: 'check' },
-        { type: 'note', label: 'The finish sits right above the top photo, so text over it stays clean unless “over text too” is on.' }
+        // VHS, TV, glitch
+        range('vhs', 'Tracking', ['vhs']),
+        range('glitch', 'Amount', ['glitch']),
+        range('rgbSplit', 'Colour bleed', ['vhs', 'tv', 'glitch']),
+        { key: 'osd', label: 'Screen text', type: 'check', show: on('vhs') },
+        { type: 'buttons', show: on('vhs', 'glitch'), buttons: [shuffle('New glitch', f => { f.vhsSeed = newSeed(); })] },
+        range('mask', 'RGB mask', ['tv']),
+        range('curve', 'Tube curve', ['tv']),
+        range('goggles', 'Goggles', ['night']),
+        range('scanlines', 'Scanlines', ['vhs', 'tv', 'night', 'cctv']),
+        { key: 'scanGap', label: 'Line step', type: 'range', min: 2, max: 10, step: 1, format: pxf, show: f => on('vhs', 'tv', 'night', 'cctv')(f) && f.scanlines > 0 },
+        // CCTV
+        { type: 'heading', label: 'Camera name', show: on('cctv') },
+        { key: 'camLabel', type: 'text', show: on('cctv') },
+        { key: 'hud', label: 'Date & REC', type: 'check', show: on('cctv') },
+        { key: 'bw', label: 'Black & white', type: 'check', show: on('cctv') },
+        // Thermal
+        { key: 'thermalPal', label: 'Palette', type: 'seg', options: [['iron', 'Iron'], ['rainbow', 'Rainbow'], ['white', 'White hot']], show: on('thermal') },
+        range('contrast', 'Contrast', ['thermal']),
+        range('blur', 'Softness', ['thermal']),
+        // 8-bit
+        { key: 'pixelPal', label: 'Palette', type: 'seg', options: [['gb', 'Green'], ['grey', 'Grey'], ['amber', 'Amber'], ['mono', '1-bit']], show: on('pixel') },
+        range('pixelate', 'Pixel size', ['pixel']),
+        { key: 'dither', label: 'Dither', type: 'check', show: on('pixel') },
+        // Comic
+        range('dot', 'Dot size', ['comic']),
+        { key: 'colourDots', label: 'Colour', type: 'check', show: on('comic') },
+        { key: 'overText', label: 'Over text too', type: 'check', show: f => f.effect !== 'none' },
+        { type: 'note', label: 'The finish sits right above the top photo, so text over it stays clean unless “over text too” is on.', show: f => f.effect !== 'none' }
     ];
 }
 
@@ -4659,7 +5372,7 @@ function renderLayerList() {
     // The film finish, always on top.
     const fin = document.createElement('li');
     fin.className = `layer layer--finish${selectedId === FINISH_ID ? ' is-selected' : ''}`;
-    fin.innerHTML = '<span class="icon-btn"><i class="bi bi-lock"></i></span><span class="layer-thumb"><i class="bi bi-film"></i></span><span class="layer-name">Film finish</span><span></span>';
+    fin.innerHTML = `<span class="icon-btn"><i class="bi bi-lock"></i></span><span class="layer-thumb"><i class="bi bi-film"></i></span><span class="layer-name">Finish · ${(EFFECTS.find(e => e[0] === doc.finish.effect) || EFFECTS[0])[1]}</span><span></span>`;
     fin.addEventListener('click', () => {
         selectedId = FINISH_ID;
         renderProps();
