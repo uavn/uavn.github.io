@@ -4746,6 +4746,132 @@ function buildFields(host, defs, getTarget, onChange) {
                 changed(def, def.number ? Number(sel.value) : sel.value);
             });
             row.append(sel);
+        } else if (def.type === 'fontpick') {
+            // A custom dropdown: each font is written in itself, and hovering one previews it on the canvas.
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'fontpick';
+            const css = f => `${f.weight} 17px ${f.stack || `"${f.family}", sans-serif`}`;
+            let menu = null;
+            let original = null;
+            let items = [];
+            let active = -1;
+
+            const preview = id => {
+                const t = getTarget();
+
+                if (t && getPath(t, def.key) !== id) {
+                    setPath(t, def.key, id);
+                    requestRender();
+                }
+            };
+            const close = (restore) => {
+                if (!menu) {
+                    return;
+                }
+
+                if (restore) {
+                    preview(original);
+                }
+
+                menu.remove();
+                menu = null;
+                document.removeEventListener('pointerdown', outside, true);
+                document.removeEventListener('keydown', keys, true);
+                btn.classList.remove('is-open');
+            };
+            const pick = id => {
+                const t = getTarget();
+                setPath(t, def.key, original);
+                close(false);
+                changed(def, id);
+                update(getTarget());
+            };
+            const highlight = (i, scroll) => {
+                active = i;
+                items.forEach((el, k) => el.classList.toggle('is-hover', k === i));
+
+                if (i >= 0) {
+                    preview(FONTS[i].id);
+
+                    if (scroll) {
+                        items[i].scrollIntoView({ block: 'nearest' });
+                    }
+                }
+            };
+            const outside = e => {
+                if (menu && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                    close(true);
+                }
+            };
+            const keys = e => {
+                if (e.key === 'Escape') {
+                    close(true);
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    highlight(Math.max(0, Math.min(FONTS.length - 1, active + (e.key === 'ArrowDown' ? 1 : -1))), true);
+                } else if (e.key === 'Enter' && active >= 0) {
+                    pick(FONTS[active].id);
+                } else {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+            };
+            const open = () => {
+                const t = getTarget();
+                original = getPath(t, def.key);
+                menu = document.createElement('div');
+                menu.className = 'fontpick-menu';
+                items = FONTS.map((f, i) => {
+                    const it = document.createElement('button');
+                    it.type = 'button';
+                    it.className = `fontpick-item${f.id === original ? ' is-current' : ''}`;
+                    it.textContent = f.name;
+                    it.style.font = css(f);
+                    it.addEventListener('pointerenter', () => highlight(i));
+                    it.addEventListener('click', () => pick(f.id));
+                    menu.append(it);
+                    return it;
+                });
+                // Leaving the list puts the chosen font back.
+                menu.addEventListener('pointerleave', () => {
+                    highlight(-1);
+                    preview(original);
+                });
+                document.body.append(menu);
+                const r = btn.getBoundingClientRect();
+                const room = window.innerHeight - r.bottom - 12;
+                const h = Math.min(menu.scrollHeight, Math.max(room, 260), window.innerHeight - 24);
+                menu.style.width = `${Math.max(r.width, 200)}px`;
+                menu.style.left = `${Math.min(r.left, window.innerWidth - Math.max(r.width, 200) - 8)}px`;
+                menu.style.maxHeight = `${h}px`;
+                menu.style.top = `${room >= h ? r.bottom + 4 : Math.max(12, r.top - h - 4)}px`;
+                const cur = FONTS.findIndex(f => f.id === original);
+                active = cur;
+                items[cur]?.classList.add('is-hover');
+                items[cur]?.scrollIntoView({ block: 'center' });
+                btn.classList.add('is-open');
+                document.addEventListener('pointerdown', outside, true);
+                document.addEventListener('keydown', keys, true);
+            };
+
+            btn.addEventListener('click', () => (menu ? close(true) : open()));
+            update = t => {
+                if (menu) {
+                    return;
+                }
+
+                const f = FONT_BY_ID[getPath(t, def.key)] || FONTS[0];
+                btn.innerHTML = '';
+                const name = document.createElement('span');
+                name.textContent = f.name;
+                name.style.font = css(f);
+                const chev = document.createElement('i');
+                chev.className = 'bi bi-chevron-down';
+                btn.append(name, chev);
+            };
+            row.append(btn);
         } else if (def.type === 'color') {
             const wrap = document.createElement('div');
             wrap.className = 'field-color';
@@ -4908,15 +5034,11 @@ function drawTextTile(c, overrides, base) {
     x.drawImage(t.canvas, c.width / 2 - (w * k) / 2, c.height / 2 - (h * k) / 2, w * k, h * k);
 }
 
-function fontOptions() {
-    return FONTS.map(f => [f.id, f.name]);
-}
-
 function textDefs() {
     return [
         { type: 'text', key: 'text' },
         { type: 'heading', label: 'Type' },
-        { key: 'font', label: 'Font', type: 'select', options: fontOptions },
+        { key: 'font', label: 'Font', type: 'fontpick' },
         { key: 'size', label: 'Size', type: 'range', min: 12, max: 320, step: 1, format: pxf },
         { key: 'upper', label: 'Uppercase', type: 'check' },
         { key: 'align', label: 'Align', type: 'seg', options: [['left', '<i class="bi bi-text-left"></i>'], ['center', '<i class="bi bi-text-center"></i>'], ['right', '<i class="bi bi-text-right"></i>']] },
