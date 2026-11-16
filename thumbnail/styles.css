@@ -76,6 +76,14 @@ textarea {
     font-weight: 600;
 }
 
+.panel-new {
+    padding: 12px 12px 0;
+}
+
+.panel-new .btn {
+    min-height: 34px;
+}
+
 .panel-hint {
     margin: 0;
     padding: 10px 12px 14px;
@@ -144,6 +152,7 @@ textarea {
 
 .btn.is-armed {
     border-color: var(--danger);
+    background: var(--panel-2);
     color: var(--danger);
 }
 

@@ -5830,11 +5830,11 @@ $('new-doc').addEventListener('click', () => {
 
     if (!newArmed) {
         b.classList.add('is-armed');
-        b.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Click again to clear';
+        b.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Click again to clear all';
         newArmed = setTimeout(() => {
             newArmed = 0;
             b.classList.remove('is-armed');
-            b.innerHTML = '<i class="bi bi-file-earmark"></i> New';
+            b.innerHTML = '<i class="bi bi-plus-lg"></i> New thumbnail';
         }, 3000);
         return;
     }
@@ -5842,7 +5842,7 @@ $('new-doc').addEventListener('click', () => {
     clearTimeout(newArmed);
     newArmed = 0;
     b.classList.remove('is-armed');
-    b.innerHTML = '<i class="bi bi-file-earmark"></i> New';
+    b.innerHTML = '<i class="bi bi-plus-lg"></i> New thumbnail';
     const keepLuts = doc.luts;
     doc = newDoc();
     doc.luts = keepLuts;
