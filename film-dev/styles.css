@@ -275,8 +275,8 @@ input[type='checkbox'] {
 
 .dial-face {
     position: relative;
-    width: 124px;
-    height: 124px;
+    width: 114px;
+    height: 114px;
     border-radius: 50%;
     outline: none;
     cursor: grab;
@@ -287,8 +287,16 @@ input[type='checkbox'] {
     cursor: grabbing;
 }
 
-.dial-face:focus-visible {
-    box-shadow: 0 0 0 2px var(--accent);
+.dial-focus {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.dial-face:focus-visible .dial-focus {
+    opacity: 1;
 }
 
 .dial-face svg {
@@ -744,6 +752,37 @@ input[type='checkbox'] {
     min-width: 0;
 }
 
+.nonstd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 6px 10px;
+    border: 1px solid var(--warn);
+    border-radius: 4px;
+    background: rgba(255, 203, 5, 0.08);
+    color: var(--warn);
+    font: 700 12px 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+}
+
+.nonstd[hidden] {
+    display: none;
+}
+
+.nonstd b {
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+    .nonstd {
+        align-self: center;
+    }
+}
+
 .step-label {
     color: var(--ink-2);
     font: 800 clamp(12px, 1.8vh, 15px) 'JetBrains Mono', monospace;
@@ -853,6 +892,59 @@ input[type='checkbox'] {
     margin: 0;
     color: var(--ink-3);
     font-size: 12px;
+}
+
+/* Confirmation before a non-standard run */
+
+.confirm {
+    width: min(460px, calc(100vw - 24px));
+    padding: 0;
+    border: 1px solid var(--warn);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--ink);
+}
+
+.confirm::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.confirm-body {
+    padding: 18px 20px;
+}
+
+.confirm h2 {
+    margin: 0 0 8px;
+    color: var(--warn);
+    font: 800 15px 'JetBrains Mono', monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.confirm p {
+    margin: 0 0 10px;
+    color: var(--ink-2);
+}
+
+.confirm ul {
+    margin: 0 0 12px;
+    padding-left: 18px;
+}
+
+.confirm li {
+    margin: 3px 0;
+    font-weight: 600;
+}
+
+.confirm-time {
+    font: 700 13px 'JetBrains Mono', monospace;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
 }
 
 /* Editor */

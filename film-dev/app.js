@@ -13,9 +13,9 @@ const PRESETS = [
     {
         id: 'kodak-c41',
         name: 'Kodak Flexicolor C-41',
-        note: 'Developer 3:15 at 37.8 °C (water bath 38.5 °C). Kodak Z-131 push starting points: +1 → 3:45, +2 → 4:15 (+30 s a stop). Kodak gives no times below 37.8 °C; colder is estimated at +15% per °C. Other baths 24–41 °C.',
+        note: 'Developer 3:15 at 37.8 °C (water bath 38.5 °C). Kodak Z-131 push starting points: +1 → 3:45, +2 → 4:15 (+30 s a stop). Reused kit: +2% developer time per roll already through it (common C-41 practice; Kodak gives no home-kit figure). Other baths 24–41 °C.',
         pushMode: 'add', pushAdd: 30, pullAdd: 30, pushPct: 25, pullPct: 20, pushTable: {},
-        tempCoef: 15, reusePct: 0, reuseAdd: 0, colour: true,
+        tempCoef: 15, reusePct: 2, reuseAdd: 0, colour: true,
         steps: [
             { name: 'Pre-warm', bath: '', kind: 'prep', temp: 38.5, time: 60, agitation: [0, 0, 0], note: 'Rinse the tank with warm water under the tap' },
             { name: 'Developer', bath: '1', kind: 'dev', temp: 37.8, time: 195, agitation: [30, 15, 2], note: 'Keep it at 37.8 °C — water bath 38.5 °C' },
@@ -35,9 +35,9 @@ const PRESETS = [
         steps: [
             { name: 'Pre-warm', bath: '', kind: 'prep', temp: 38.9, time: 60, agitation: [0, 0, 0], note: 'Warm water in the tank to bring it up to temperature' },
             { name: 'Developer', bath: '1', kind: 'dev', temp: 38.9, time: 210, agitation: [10, 30, 2], note: '102 °F' },
-            { name: 'Blix', bath: '2', kind: 'chem', temp: 38.9, time: 480, agitation: [10, 30, 2] },
+            { name: 'Blix', bath: '2', kind: 'chem', temp: 38.9, time: 480, agitation: [10, 30, 2], note: 'Same temperature as the developer; no extra time when reused' },
             { name: 'Wash', bath: '', kind: 'wash', temp: 30, tempMax: 40, time: 180, agitation: [0, 0, 0] },
-            { name: 'Stabilizer', bath: '3', kind: 'chem', temp: 20, tempMax: 40, time: 60, agitation: [15, 0, 0] }
+            { name: 'Stabilizer', bath: '3', kind: 'chem', temp: 20, tempMax: 25, time: 60, agitation: [15, 0, 0], note: 'Optional for modern films; room temperature, 0:30–1:00' }
         ]
     },
     {
@@ -48,12 +48,12 @@ const PRESETS = [
         tempCoef: 10, reusePct: 0, reuseAdd: 15, reuseBatch: 4, colour: true, filmType: 'slide',
         steps: [
             { name: 'Pre-warm', bath: '', kind: 'prep', temp: 38, time: 120, agitation: [0, 0, 0], note: 'Warm water at 38 °C' },
-            { name: 'First developer', bath: '1', kind: 'dev', temp: 38, time: 375, agitation: [15, 30, 2] },
-            { name: 'Wash', bath: '', kind: 'wash', temp: 33, tempMax: 39, time: 150, agitation: [0, 0, 0] },
-            { name: 'Colour developer', bath: '2', kind: 'chem', temp: 38, time: 360, agitation: [15, 30, 2] },
-            { name: 'Blix', bath: '3', kind: 'chem', temp: 33, tempMax: 39, time: 360, agitation: [15, 30, 2] },
-            { name: 'Wash', bath: '', kind: 'wash', temp: 33, tempMax: 39, time: 240, agitation: [0, 0, 0] },
-            { name: 'Stabilizer', bath: '4', kind: 'chem', temp: 20, tempMax: 39, time: 60, agitation: [15, 0, 0] }
+            { name: 'First developer', bath: '1', kind: 'dev', temp: 38, time: 375, agitation: [15, 30, 2], note: '38 ± 0.3 °C — the critical bath' },
+            { name: 'Wash', bath: '', kind: 'wash', temp: 36, tempMax: 39, time: 150, agitation: [0, 0, 0] },
+            { name: 'Colour developer', bath: '2', kind: 'chem', temp: 38, time: 360, agitation: [15, 30, 2], note: '38 ± 0.5 °C' },
+            { name: 'Blix', bath: '3', kind: 'chem', temp: 36, tempMax: 39, time: 360, agitation: [15, 30, 2] },
+            { name: 'Wash', bath: '', kind: 'wash', temp: 36, tempMax: 39, time: 240, agitation: [0, 0, 0] },
+            { name: 'Stabilizer', bath: '4', kind: 'chem', temp: 20, tempMax: 25, time: 60, agitation: [15, 0, 0], note: 'Room temperature' }
         ]
     },
     {
@@ -65,10 +65,10 @@ const PRESETS = [
         steps: [
             { name: 'Pre-soak', bath: '', kind: 'prep', temp: 20, time: 60, agitation: [0, 0, 0], note: 'Optional: plain water' },
             { name: 'Developer', bath: '1', kind: 'dev', temp: 20, time: 405, agitation: [5, 18, 5], note: 'Kodak: 5–7 inversions every 30 s' },
-            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 20, tempMax: 24, time: 60, agitation: [60, 0, 0] },
-            { name: 'Fixer', bath: '3', kind: 'chem', temp: 20, tempMax: 24, time: 300, agitation: [30, 30, 5] },
-            { name: 'Wash', bath: '', kind: 'wash', temp: 20, tempMax: 24, time: 600, agitation: [0, 0, 0] },
-            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 20, tempMax: 24, time: 30, agitation: [0, 0, 0] }
+            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 18, tempMax: 24, time: 60, agitation: [60, 0, 0] },
+            { name: 'Fixer', bath: '3', kind: 'chem', temp: 18, tempMax: 24, time: 300, agitation: [30, 30, 5] },
+            { name: 'Wash', bath: '', kind: 'wash', temp: 18, tempMax: 24, time: 600, agitation: [0, 0, 0] },
+            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 18, tempMax: 24, time: 30, agitation: [0, 0, 0] }
         ]
     },
     {
@@ -80,10 +80,10 @@ const PRESETS = [
         steps: [
             { name: 'Pre-soak', bath: '', kind: 'prep', temp: 20, time: 60, agitation: [0, 0, 0], note: 'Optional: plain water' },
             { name: 'Developer', bath: '1', kind: 'dev', temp: 20, time: 225, agitation: [5, 18, 5], note: 'Kodak: 5–7 inversions every 30 s' },
-            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 20, tempMax: 24, time: 60, agitation: [60, 0, 0] },
-            { name: 'Fixer', bath: '3', kind: 'chem', temp: 20, tempMax: 24, time: 300, agitation: [30, 30, 5] },
-            { name: 'Wash', bath: '', kind: 'wash', temp: 20, tempMax: 24, time: 600, agitation: [0, 0, 0] },
-            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 20, tempMax: 24, time: 30, agitation: [0, 0, 0] }
+            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 18, tempMax: 24, time: 60, agitation: [60, 0, 0] },
+            { name: 'Fixer', bath: '3', kind: 'chem', temp: 18, tempMax: 24, time: 300, agitation: [30, 30, 5] },
+            { name: 'Wash', bath: '', kind: 'wash', temp: 18, tempMax: 24, time: 600, agitation: [0, 0, 0] },
+            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 18, tempMax: 24, time: 30, agitation: [0, 0, 0] }
         ]
     },
     {
@@ -94,10 +94,10 @@ const PRESETS = [
         tempCoef: 10, reusePct: 0, reuseAdd: 0,
         steps: [
             { name: 'Developer', bath: '1', kind: 'dev', temp: 20, time: 450, agitation: [10, 60, 4] },
-            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 20, tempMax: 24, time: 10, agitation: [10, 0, 0] },
-            { name: 'Fixer', bath: '3', kind: 'chem', temp: 20, tempMax: 24, time: 300, agitation: [10, 60, 4] },
-            { name: 'Wash', bath: '', kind: 'wash', temp: 20, tempMax: 24, time: 300, agitation: [0, 0, 0], note: 'Ilford method: fill and invert 5, 10, 20 times' },
-            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 20, tempMax: 24, time: 30, agitation: [0, 0, 0] }
+            { name: 'Stop bath', bath: '2', kind: 'chem', temp: 18, tempMax: 24, time: 10, agitation: [10, 0, 0] },
+            { name: 'Fixer', bath: '3', kind: 'chem', temp: 18, tempMax: 24, time: 300, agitation: [10, 60, 4] },
+            { name: 'Wash', bath: '', kind: 'wash', temp: 18, tempMax: 24, time: 300, agitation: [0, 0, 0], note: 'Ilford method: fill and invert 5, 10, 20 times' },
+            { name: 'Wetting agent', bath: '4', kind: 'chem', temp: 18, tempMax: 24, time: 30, agitation: [0, 0, 0] }
         ]
     }
 ];
@@ -126,12 +126,14 @@ const DEFAULT_SETTINGS = {
     pauseMode: 'manual',
     pauseSeconds: 15,
     drainLead: 0,
-    invertSeconds: 2.5,
     prepLead: 30,
     voice: true,
     voiceLang: 'en',
     beeps: true
 };
+
+// How long one inversion of the tank takes (over and back).
+const INVERT_SECONDS = 2.5;
 
 const KEYS = { settings: 'filmDevSettings', recipes: 'filmDevRecipes', run: 'filmDevRun' };
 
@@ -161,6 +163,8 @@ function writeJson(key, value) {
 }
 
 let settings = { ...DEFAULT_SETTINGS, ...readJson(KEYS.settings, {}) };
+// The developer always runs at the process temperature.
+settings.devTemp = null;
 
 // v2: draining starts when the step's time is up; the early warning is optional.
 if ((settings.v || 1) < 2) {
@@ -280,6 +284,42 @@ function effectiveStops(recipe) {
     const raw = settings.stops + lostStops(recipe);
     const whole = Math.sign(raw) * Math.floor(Math.abs(raw) + 0.49);
     return Math.max(-3, Math.min(4, whole));
+}
+
+// Everything about this run that isn't a standard, fresh, box-speed development.
+function nonStandard(recipe) {
+    const items = [];
+    const dev = recipe.steps.find(step => step.kind === 'dev');
+    const eff = effectiveStops(recipe);
+
+    if (settings.stops !== 0) {
+        items.push(`${settings.stops > 0 ? 'Shot pushed' : 'Shot pulled'} ${fmtStops(settings.stops)}`);
+    }
+
+    if (settings.expiredDecades > 0) {
+        items.push(`Expired ${settings.expiredDecades * 10} y`);
+    }
+
+    if (eff !== 0) {
+        items.push(`Develop ${eff > 0 ? 'push' : 'pull'} ${fmtStops(eff)}`);
+    }
+
+    if (dev && Number.isFinite(settings.devTemp) && Math.abs(settings.devTemp - dev.temp) >= 0.1) {
+        items.push(`Developer at ${settings.devTemp} °C (not ${dev.temp})`);
+    }
+
+    if (settings.rollsUsed > 0 && (recipe.reusePct || recipe.reuseAdd)) {
+        items.push(`Chemistry reused · ${settings.rollsUsed} roll${settings.rollsUsed === 1 ? '' : 's'}`);
+    }
+
+    return items;
+}
+
+function renderNonStandard() {
+    const items = nonStandard(currentRecipe());
+    const box = $('nonstd');
+    box.hidden = !items.length || run?.phase === 'done';
+    box.innerHTML = items.length ? `<b>⚠ Non-standard</b> ${items.map(escapeHtml).join(' · ')}` : '';
 }
 
 /* -------------------------------------------------------------- calculation */
@@ -407,7 +447,7 @@ function stepEvents(plan, index, T) {
     if (every > 0 && count > 0) {
         // A round of inversions takes time; the rest is counted from its end,
         // and the last round finishes before the drain warning.
-        const round = count * Math.max(0.5, settings.invertSeconds || 2.5);
+        const round = count * INVERT_SECONDS;
         const limit = (drainAt ?? T) - 2;
 
         for (let t = initial + every; t + round <= limit; t += round + every) {
@@ -560,6 +600,24 @@ function elapsed() {
     return ((run.pausedAt ?? now()) - run.startedAt) / 1000;
 }
 
+// Start, but if anything about this run is non-standard, confirm it first.
+function requestStart() {
+    const recipe = currentRecipe();
+    const items = nonStandard(recipe);
+
+    if (!items.length) {
+        startRun();
+        return;
+    }
+
+    unlockAudio();
+    const dev = buildPlan(recipe).find(step => step.kind === 'dev');
+    $('confirm-list').innerHTML = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+    $('confirm-time').textContent = dev && dev.time !== dev.base ? `${dev.name}: ${fmt(dev.time)} instead of ${fmt(dev.base)}` : '';
+    $('confirm').showModal();
+    $('confirm-start').focus();
+}
+
 function startRun() {
     unlockAudio();
     const recipe = currentRecipe();
@@ -578,6 +636,12 @@ function startRun() {
     saveRun();
     render();
     tick();
+
+    const items = nonStandard(recipe);
+
+    if (items.length) {
+        speak(settings.voiceLang === 'uk' ? `Увага, нестандартна проявка: ${items.join(', ')}.` : `Heads up, non-standard run: ${items.join(', ')}.`);
+    }
 }
 
 function startStep(index) {
@@ -809,7 +873,7 @@ function setTank(state, step, opts = {}) {
     const key = `${state}|${opts.key ?? ''}`;
 
     tank.dataset.kind = kind;
-    tank.style.setProperty('--inv', `${Math.max(0.5, settings.invertSeconds)}s`);
+    tank.style.setProperty('--inv', `${INVERT_SECONDS}s`);
     tank.style.setProperty('--count', String(opts.count || 1));
     tank.style.animationPlayState = '';
     tank.querySelectorAll('*').forEach(node => { node.style.animationPlayState = run?.pausedAt ? 'paused' : ''; });
@@ -844,7 +908,7 @@ function renderClock() {
         time.textContent = fmt(plan.reduce((sum, step) => sum + step.time, 0));
         action.textContent = 'Ready';
         action.className = 'action';
-        next.textContent = `${plan.length} steps · push/pull ${fmtStops(settings.stops)}`;
+        next.textContent = `${plan.length} steps · develop ${effectiveStops(currentRecipe()) === 0 ? 'normally' : fmtStops(effectiveStops(currentRecipe()))}`;
         hint.textContent = 'Space starts, pauses and moves to the next step.';
         setProgress(0);
         drawMarks([], 1);
@@ -926,7 +990,7 @@ function renderClock() {
 
     const agitate = events.find(ev => ev.type === 'agitate');
     const invert = events.find(ev => ev.type === 'invert' && e >= ev.at && e < ev.until);
-    const each = `${settings.invertSeconds} s each`;
+    const each = `${INVERT_SECONDS} s each`;
 
     if (step.kind === 'wash' || step.kind === 'prep') {
         setTank('wash', step, { caption: step.kind === 'wash' ? 'Fresh water through the tank' : step.name });
@@ -1082,19 +1146,13 @@ function renderSetup() {
     $('storage').disabled = !settings.expiredDecades;
 
     const dev = recipe.steps.find(step => step.kind === 'dev');
-    $('dev-temp').value = Number.isFinite(settings.devTemp) ? settings.devTemp : (dev?.temp ?? '');
-    $('dev-temp').placeholder = dev ? String(dev.temp) : '';
+
     $('rolls-used').value = settings.rollsUsed;
 
-    const off = dev && Number.isFinite(settings.devTemp) ? settings.devTemp - dev.temp : 0;
-    $('temp-warn').textContent = recipe.colour && Math.abs(off) >= 1
-        ? `Colour developers are made for ${dev.temp} °C; at ${settings.devTemp} °C expect some colour and contrast shift, and test first.`
-        : '';
 
     document.querySelectorAll('input[name="pause"]').forEach(radio => { radio.checked = radio.value === settings.pauseMode; });
     $('pause-seconds').value = settings.pauseSeconds;
     $('drain-lead').value = settings.drainLead;
-    $('invert-seconds').value = settings.invertSeconds;
     $('prep-lead').value = settings.prepLead;
     $('voice').checked = settings.voice;
     $('voice-lang').value = settings.voiceLang;
@@ -1102,6 +1160,7 @@ function renderSetup() {
 }
 
 function render() {
+    renderNonStandard();
     renderSetup();
     renderPlan();
     renderControls();
@@ -1144,8 +1203,11 @@ function createDial(host, { values, labels, sub, onChange }) {
         return `<text class="dial-num" data-i="${i}" x="${x.toFixed(2)}" y="${y.toFixed(2)}" text-anchor="middle" dominant-baseline="central" transform="rotate(${i * step} ${x.toFixed(2)} ${y.toFixed(2)})">${labels[i]}</text>`;
     }).join('');
 
-    face.innerHTML = `<svg viewBox="-4 -10 128 134">
-        <polygon class="dial-index" points="54,-9 66,-9 60,-1" />
+    // Square view box centred on the knob, so the focus ring and the value
+    // overlay line up with the dial itself.
+    face.innerHTML = `<svg viewBox="-14 -14 148 148">
+        <circle class="dial-focus" cx="60" cy="60" r="66" />
+        <polygon class="dial-index" points="54,-11 66,-11 60,-2" />
         <g class="dial-knob">
             <circle class="dial-rim" cx="60" cy="60" r="60" />
             <g class="dial-knurl">${ticks}</g>
@@ -1317,16 +1379,10 @@ function bindSetup() {
 
     document.querySelectorAll('[data-decades]').forEach(button => button.addEventListener('click', () => setSettings({ expiredDecades: Number(button.dataset.decades) })));
     $('storage').addEventListener('change', event => setSettings({ storage: event.target.value }));
-    $('dev-temp').addEventListener('change', event => {
-        const value = parseFloat(event.target.value);
-        setSettings({ devTemp: Number.isFinite(value) ? value : null });
-    });
-    $('dev-temp-reset').addEventListener('click', () => setSettings({ devTemp: null }));
     $('rolls-used').addEventListener('change', event => setSettings({ rollsUsed: Math.max(0, parseInt(event.target.value, 10) || 0) }));
 
     document.querySelectorAll('input[name="pause"]').forEach(radio => radio.addEventListener('change', () => setSettings({ pauseMode: radio.value })));
     $('pause-seconds').addEventListener('change', event => setSettings({ pauseSeconds: Math.max(0, parseInt(event.target.value, 10) || 0) }));
-    $('invert-seconds').addEventListener('change', event => setSettings({ invertSeconds: Math.max(0.5, Math.min(10, parseFloat(event.target.value) || 2.5)) }));
     $('q-voice').addEventListener('click', () => setSettings({ voice: !settings.voice }));
     $('q-beeps').addEventListener('click', () => {
         unlockAudio();
@@ -1376,7 +1432,12 @@ function bindSetup() {
         setSettings({ recipeId: isPreset(recipe.id) ? recipe.id : PRESETS[0].id });
     });
 
-    $('start').addEventListener('click', startRun);
+    $('start').addEventListener('click', requestStart);
+    $('confirm-cancel').addEventListener('click', () => $('confirm').close());
+    $('confirm-start').addEventListener('click', () => {
+        $('confirm').close();
+        startRun();
+    });
     $('pause').addEventListener('click', togglePause);
     $('go-next').addEventListener('click', () => {
         unlockAudio();
@@ -1417,7 +1478,7 @@ function bindSetup() {
         event.preventDefault();
 
         if (!run || run.phase === 'done') {
-            startRun();
+            requestStart();
         } else if (run.phase === 'between') {
             unlockAudio();
             startStep(run.index + 1);

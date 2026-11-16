@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="./styles.css?v=13" />
-<script src="./app.js?v=21" defer></script>
+<link rel="stylesheet" href="./styles.css?v=17" />
+<script src="./app.js?v=29" defer></script>
 </head>
 <body>
 <div class="film-edge film-edge--top"><span class="edge-print" id="edge-top"></span></div>
@@ -52,17 +52,7 @@
 
         <section class="section">
             <h3><span>Chemistry</span><img class="h-icon" src="./art/thermometer.webp" alt="" /></h3>
-            <div class="field">
-                <label for="dev-temp">Developer at</label>
-                <div class="field-inline"><input type="number" id="dev-temp" step="0.1" /><span class="unit">°C</span><button type="button" class="btn btn--mini" id="dev-temp-reset" title="Use the process temperature">Ref</button></div>
-            </div>
             <div class="field"><label for="rolls-used" title="Rolls already developed in this chemistry">Rolls used</label><input type="number" id="rolls-used" min="0" max="200" step="1" /></div>
-            <p class="note note--warn" id="temp-warn"></p>
-        </section>
-
-        <section class="section">
-            <h3>Agitation</h3>
-            <div class="field"><label for="invert-seconds" title="How long one inversion takes you; the rest interval starts after the last one">One inversion</label><div class="field-inline"><input type="number" id="invert-seconds" min="1" max="10" step="0.5" /><span class="unit">s</span></div></div>
         </section>
 
         <section class="section">
@@ -103,6 +93,7 @@
             </div>
 
             <div class="readout">
+                <div class="nonstd" id="nonstd" hidden></div>
                 <div class="step-label" id="step-label">Ready</div>
                 <div class="time" id="time">0:00</div>
                 <div class="action" id="action">Pick a process and press Start</div>
@@ -130,6 +121,19 @@
 </div>
 
 <div class="film-edge film-edge--bottom"><span class="edge-print" id="edge-bottom"></span></div>
+
+<dialog class="confirm" id="confirm" aria-labelledby="confirm-title">
+    <div class="confirm-body">
+        <h2 id="confirm-title">⚠ Non-standard run</h2>
+        <p>This isn’t a regular development. Check before you pour:</p>
+        <ul id="confirm-list"></ul>
+        <p class="confirm-time" id="confirm-time"></p>
+        <div class="confirm-actions">
+            <button type="button" class="btn" id="confirm-cancel">Cancel</button>
+            <button type="button" class="btn btn--primary" id="confirm-start"><i class="bi bi-play-fill"></i> Start anyway</button>
+        </div>
+    </div>
+</dialog>
 
 <dialog class="editor" id="editor">
     <form method="dialog" class="editor-body" id="editor-form">
