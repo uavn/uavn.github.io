@@ -512,7 +512,7 @@ function makeSticker(over = {}) {
 function makeImage(over = {}) {
     return {
         id: uid(), type: 'image', name: 'Photo', x: W / 2, y: H / 2, rot: 0, opacity: 1, hidden: false, locked: false,
-        imageId: '', w: W, h: H, flip: false, border: 0, borderColor: '#ffffff', radius: 0, shadow: 0,
+        imageId: '', w: W, h: H, flip: false, border: 0, borderColor: '#ffffff', radius: 0, shadow: 0, frame: 'none', frameColor: '#ffffff',
         look: { ...LOOK_DEFAULT },
         ...over
     };
@@ -2364,7 +2364,468 @@ function layerSize(l) {
         return { w: b.bw, h: b.bh };
     }
 
+    if (l.type === 'image' && l.frame && l.frame !== 'none') {
+        return framedSize(l);
+    }
+
     return { w: l.w, h: l.h };
+}
+
+/*
+ * Photo frames. A frame adds margins around the photo (w × h stays the photo
+ * itself); the layer's position is the centre of the whole framed thing.
+ * Each frame is painted on its own small canvas (so it can punch holes, like
+ * sprockets or stamp perforations), then the photo goes into its window.
+ */
+const FRAMES = [
+    ['none', 'Plain'], ['phone', 'Phone'], ['polaroid', 'Polaroid'], ['laptop', 'Laptop'], ['browser', 'Browser'], ['tv', 'Retro TV'],
+    ['film', '35mm negative'], ['slide', 'Slide mount'], ['stamp', 'Postage stamp'], ['deckle', 'Vintage print'], ['tape', 'Taped photo'], ['torn', 'Torn paper']
+];
+const FRAME_COLOURS = {
+    phone: '#111111', polaroid: '#ffffff', laptop: '#161616', browser: '#ececec', tv: '#3b2f27',
+    film: '#141110', slide: '#f4efe6', stamp: '#ffffff', deckle: '#f7f3ea', tape: '#ffffff', torn: '#ffffff'
+};
+
+function frameSpec(l) {
+    const S = Math.min(l.w, l.h);
+    const f = l.frame || 'none';
+    const m = (a, b = a, c = a, d = b) => ({ ml: a * S, mt: b * S, mr: c * S, mb: d * S });
+
+    switch (f) {
+        case 'phone': return m(0.045);
+        case 'polaroid': return m(0.055, 0.055, 0.055, 0.24);
+        case 'laptop': return { ml: 0.035 * S + l.w * 0.07, mt: 0.05 * S, mr: 0.035 * S + l.w * 0.07, mb: 0.05 * S + 0.07 * S };
+        case 'browser': return m(0.01, 0.1, 0.01, 0.01);
+        case 'tv': return m(0.09, 0.09, 0.32, 0.09);
+        case 'film': return m(0.05, 0.17, 0.05, 0.17);
+        case 'slide': return m(0.17);
+        case 'stamp': return m(0.075);
+        case 'deckle': return m(0.065);
+        case 'tape': return m(0.035);
+        case 'torn': return m(0.045);
+        default: return m(0);
+    }
+}
+
+function framedSize(l) {
+    const f = frameSpec(l);
+    return { w: l.w + f.ml + f.mr, h: l.h + f.mt + f.mb };
+}
+
+// The photo window inside the frame: rounded for devices and slides, jagged for torn paper.
+function photoClip(ctx, l, x, y, w, h) {
+    const S = Math.min(w, h);
+    ctx.beginPath();
+
+    switch (l.frame) {
+        case 'phone':
+            addRoundRect(ctx, x, y, w, h, S * 0.09);
+            break;
+        case 'tv':
+            addRoundRect(ctx, x, y, w, h, S * 0.1);
+            break;
+        case 'slide':
+            addRoundRect(ctx, x, y, w, h, S * 0.05);
+            break;
+        case 'torn': {
+            const R = rng(Math.round(l.w * 7 + l.h));
+            const amp = S * 0.018;
+            const pts = [];
+            tornEdgeFrame(pts, x, y, x + w, y, amp, R);
+            tornEdgeFrame(pts, x + w, y, x + w, y + h, amp, R);
+            tornEdgeFrame(pts, x + w, y + h, x, y + h, amp, R);
+            tornEdgeFrame(pts, x, y + h, x, y, amp, R);
+            pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+            ctx.closePath();
+            break;
+        }
+        default:
+            ctx.rect(x, y, w, h);
+    }
+}
+
+function tornEdgeFrame(pts, x0, y0, x1, y1, amp, R) {
+    const len = Math.hypot(x1 - x0, y1 - y0);
+    const n = Math.max(6, Math.round(len / (amp * 2.2)));
+    const nx = -(y1 - y0) / len;
+    const ny = (x1 - x0) / len;
+
+    for (let i = 0; i < n; i++) {
+        const t = i / n;
+        const d = (R() - 0.5) * amp * 2;
+        pts.push([x0 + (x1 - x0) * t + nx * d, y0 + (y1 - y0) * t + ny * d]);
+    }
+}
+
+// Paints the frame (everything except the photo) with its top-left at (0, 0), in design units.
+function paintFrame(c, l, TW, TH, px, py, s) {
+    const { w, h } = l;
+    const S = Math.min(w, h);
+    const col = l.frameColor || FRAME_COLOURS[l.frame] || '#ffffff';
+    const R = rng(Math.round(l.w * 13 + l.h * 3));
+
+    switch (l.frame) {
+        case 'phone': {
+            const rad = Math.min(TW, TH) * 0.13;
+            const grd = c.createLinearGradient(0, 0, TW, TH);
+            grd.addColorStop(0, rgba(col, 1));
+            grd.addColorStop(1, rgba(col, 1));
+            c.fillStyle = grd;
+            rr(c, 0, 0, TW, TH, rad);
+            c.fill();
+            c.lineWidth = Math.max(1, S * 0.008);
+            c.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+            rr(c, c.lineWidth / 2, c.lineWidth / 2, TW - c.lineWidth, TH - c.lineWidth, rad);
+            c.stroke();
+            // Side buttons.
+            c.fillStyle = rgba(col, 1);
+            const portrait = TH >= TW;
+            const bt = S * 0.012;
+
+            if (portrait) {
+                c.fillRect(-bt, TH * 0.2, bt + 1, TH * 0.06);
+                c.fillRect(-bt, TH * 0.29, bt + 1, TH * 0.1);
+                c.fillRect(TW - 1, TH * 0.25, bt + 1, TH * 0.13);
+            } else {
+                c.fillRect(TW * 0.2, -bt, TW * 0.06, bt + 1);
+                c.fillRect(TW * 0.29, -bt, TW * 0.1, bt + 1);
+                c.fillRect(TW * 0.25, TH - 1, TW * 0.13, bt + 1);
+            }
+
+            break;
+        }
+        case 'polaroid':
+        case 'tape':
+            c.fillStyle = col;
+            c.fillRect(0, 0, TW, TH);
+            // A faint paper grain.
+            c.fillStyle = 'rgba(0, 0, 0, 0.03)';
+
+            for (let i = 0; i < (TW * TH) / 400; i++) {
+                c.fillRect(R() * TW, R() * TH, 1.5, 1.5);
+            }
+
+            break;
+        case 'laptop': {
+            const base = 0.07 * S;
+            const lid = { x: l.w * 0.07, w: TW - l.w * 0.14, h: TH - base };
+            c.fillStyle = col;
+            rr(c, lid.x, 0, lid.w, lid.h, S * 0.03);
+            c.fill();
+            // Base: a light aluminium slab with a thumb notch.
+            const g = c.createLinearGradient(0, lid.h, 0, TH);
+            g.addColorStop(0, '#e2e4e8');
+            g.addColorStop(1, '#a9adb4');
+            c.fillStyle = g;
+            c.beginPath();
+            c.moveTo(0, lid.h);
+            c.lineTo(TW, lid.h);
+            c.lineTo(TW - l.w * 0.02, TH);
+            c.lineTo(l.w * 0.02, TH);
+            c.closePath();
+            c.fill();
+            c.fillStyle = 'rgba(0, 0, 0, 0.18)';
+            rr(c, TW / 2 - l.w * 0.07, lid.h, l.w * 0.14, base * 0.32, base * 0.16);
+            c.fill();
+            break;
+        }
+        case 'browser': {
+            c.fillStyle = col;
+            rr(c, 0, 0, TW, TH, S * 0.03);
+            c.fill();
+            const bar = py;
+            ['#ff5f57', '#febc2e', '#28c840'].forEach((dot, i) => {
+                c.fillStyle = dot;
+                c.beginPath();
+                c.arc(bar * 0.42 + i * bar * 0.32, bar / 2, bar * 0.11, 0, Math.PI * 2);
+                c.fill();
+            });
+            c.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            rr(c, TW * 0.28, bar * 0.24, TW * 0.44, bar * 0.52, bar * 0.26);
+            c.fill();
+            c.fillStyle = 'rgba(0, 0, 0, 0.12)';
+            rr(c, TW * 0.3, bar * 0.44, TW * 0.16, bar * 0.12, bar * 0.06);
+            c.fill();
+            break;
+        }
+        case 'tv': {
+            const g = c.createLinearGradient(0, 0, 0, TH);
+            g.addColorStop(0, rgba(col, 1));
+            g.addColorStop(1, '#000000');
+            c.fillStyle = col;
+            rr(c, 0, 0, TW, TH, S * 0.08);
+            c.fill();
+            c.globalAlpha = 0.35;
+            c.fillStyle = g;
+            c.fill();
+            c.globalAlpha = 1;
+            // Knobs and speaker on the right panel.
+            const panelX = px + w + (TW - px - w) / 2;
+            [0.3, 0.55].forEach(fy => {
+                c.fillStyle = '#d9cbb3';
+                c.beginPath();
+                c.arc(panelX, TH * fy, S * 0.07, 0, Math.PI * 2);
+                c.fill();
+                c.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+                c.lineWidth = S * 0.012;
+                c.beginPath();
+                c.moveTo(panelX, TH * fy);
+                c.lineTo(panelX + S * 0.05, TH * fy - S * 0.03);
+                c.stroke();
+            });
+            c.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            c.lineWidth = S * 0.01;
+
+            for (let i = 0; i < 5; i++) {
+                const y = TH * 0.72 + i * S * 0.035;
+                c.beginPath();
+                c.moveTo(panelX - S * 0.08, y);
+                c.lineTo(panelX + S * 0.08, y);
+                c.stroke();
+            }
+
+            break;
+        }
+        case 'film': {
+            c.fillStyle = col;
+            c.fillRect(0, 0, TW, TH);
+            c.globalCompositeOperation = 'destination-out';
+            const hh = py * 0.36;
+            const hw = hh * 1.35;
+            const pitch = hw * 1.9;
+
+            for (let x = pitch * 0.4; x + hw < TW; x += pitch) {
+                rr(c, x, (py - hh) / 2, hw, hh, hh * 0.22);
+                c.fill();
+                rr(c, x, TH - py + (py - hh) / 2, hw, hh, hh * 0.22);
+                c.fill();
+            }
+
+            c.globalCompositeOperation = 'source-over';
+            c.fillStyle = '#f2a03d';
+            c.font = `700 ${py * 0.2}px "JetBrains Mono", monospace`;
+            c.textBaseline = 'middle';
+            c.fillText(`▶ ${10 + Math.floor(R() * 26)}A`, TW * 0.12, TH - py * 0.12);
+            break;
+        }
+        case 'slide': {
+            c.fillStyle = col;
+            rr(c, 0, 0, TW, TH, S * 0.06);
+            c.fill();
+            c.strokeStyle = 'rgba(0, 0, 0, 0.14)';
+            c.lineWidth = S * 0.012;
+            rr(c, px * 0.5, py * 0.5, TW - px, TH - py, S * 0.06);
+            c.stroke();
+            c.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            c.font = `700 ${px * 0.24}px "JetBrains Mono", monospace`;
+            c.textBaseline = 'middle';
+            c.fillText(String(1 + Math.floor(R() * 36)).padStart(2, '0'), px * 0.3, TH - py * 0.42);
+            break;
+        }
+        case 'stamp': {
+            c.fillStyle = col;
+            c.fillRect(0, 0, TW, TH);
+            c.globalCompositeOperation = 'destination-out';
+            const r = px * 0.32;
+            const step = r * 2.6;
+
+            for (let x = step / 2; x < TW; x += step) {
+                c.beginPath(); c.arc(x, 0, r, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(x, TH, r, 0, Math.PI * 2); c.fill();
+            }
+
+            for (let y = step / 2; y < TH; y += step) {
+                c.beginPath(); c.arc(0, y, r, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(TW, y, r, 0, Math.PI * 2); c.fill();
+            }
+
+            c.globalCompositeOperation = 'source-over';
+            break;
+        }
+        case 'deckle': {
+            // Old print with a wavy, cut (deckle) edge.
+            const amp = px * 0.22;
+            const wave = px * 0.7;
+            c.beginPath();
+            const edge = (x0, y0, x1, y1, first) => {
+                const len = Math.hypot(x1 - x0, y1 - y0);
+                const n = Math.max(4, Math.round(len / wave));
+                const nx = -(y1 - y0) / len;
+                const ny = (x1 - x0) / len;
+
+                for (let i = 0; i <= n; i++) {
+                    const t = i / n;
+                    const d = Math.sin(t * n * Math.PI) * amp * 0.5;
+                    const x = x0 + (x1 - x0) * t - nx * d;
+                    const y = y0 + (y1 - y0) * t - ny * d;
+
+                    if (first && i === 0) {
+                        c.moveTo(x, y);
+                    } else {
+                        c.lineTo(x, y);
+                    }
+                }
+            };
+            edge(amp, amp, TW - amp, amp, true);
+            edge(TW - amp, amp, TW - amp, TH - amp);
+            edge(TW - amp, TH - amp, amp, TH - amp);
+            edge(amp, TH - amp, amp, amp);
+            c.closePath();
+            c.fillStyle = col;
+            c.fill();
+            break;
+        }
+        case 'torn': {
+            const pts = [];
+            const amp = px * 0.5;
+            tornEdgeFrame(pts, 0, 0, TW, 0, amp, R);
+            tornEdgeFrame(pts, TW, 0, TW, TH, amp, R);
+            tornEdgeFrame(pts, TW, TH, 0, TH, amp, R);
+            tornEdgeFrame(pts, 0, TH, 0, 0, amp, R);
+            c.beginPath();
+            pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+            c.closePath();
+            c.fillStyle = col;
+            c.fill();
+            break;
+        }
+        default:
+    }
+}
+
+// Things that sit on top of the photo: a phone's status bar and camera, a TV's scanlines, tape strips.
+function paintFrameOverlay(ctx, l, TW, TH, px, py, s) {
+    const { w, h } = l;
+    const S = Math.min(w, h);
+
+    if (l.frame === 'phone') {
+        const portrait = TH >= TW;
+        ctx.fillStyle = '#000000';
+
+        if (portrait) {
+            rr(ctx, px + w / 2 - w * 0.15, py + S * 0.03, w * 0.3, S * 0.07, S * 0.035);
+        } else {
+            rr(ctx, px + S * 0.03, py + h / 2 - h * 0.15, S * 0.07, h * 0.3, S * 0.035);
+        }
+
+        ctx.fill();
+
+        if (portrait) {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+            ctx.shadowBlur = S * 0.01 * s;
+            ctx.font = `600 ${S * 0.045}px Inter, sans-serif`;
+            ctx.textBaseline = 'middle';
+            ctx.fillText('9:41', px + w * 0.09, py + S * 0.065);
+            // Battery.
+            const bx = px + w * 0.82;
+            const by = py + S * 0.048;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = S * 0.006;
+            rr(ctx, bx, by, w * 0.08, S * 0.035, S * 0.01);
+            ctx.stroke();
+            ctx.fillRect(bx + S * 0.007, by + S * 0.007, w * 0.08 * 0.7, S * 0.021);
+            ctx.restore();
+        }
+    } else if (l.frame === 'tv') {
+        ctx.save();
+        photoClip(ctx, l, px, py, w, h);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+
+        for (let y = py; y < py + h; y += Math.max(2, S * 0.012)) {
+            ctx.fillRect(px, y, w, Math.max(1, S * 0.004));
+        }
+
+        const g = ctx.createRadialGradient(px + w / 2, py + h / 2, S * 0.3, px + w / 2, py + h / 2, Math.hypot(w, h) * 0.6);
+        g.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        g.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+        ctx.fillStyle = g;
+        ctx.fillRect(px, py, w, h);
+        ctx.restore();
+    } else if (l.frame === 'tape') {
+        const R = rng(Math.round(l.w * 5 + l.h * 11));
+        [[0, 0, -0.7], [TW, 0, 0.7]].forEach(([x, y, a]) => {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(a + (R() - 0.5) * 0.2);
+            ctx.fillStyle = 'rgba(234, 220, 174, 0.88)';
+            const tw = S * 0.32;
+            const th = S * 0.09;
+            ctx.beginPath();
+            ctx.moveTo(-tw / 2, -th / 2);
+
+            for (let i = 0; i <= 6; i++) {
+                ctx.lineTo(-tw / 2 + (i / 6) * tw, -th / 2 + (i % 2 ? -th * 0.08 : th * 0.04));
+            }
+
+            for (let i = 0; i <= 4; i++) {
+                ctx.lineTo(tw / 2 + (i % 2 ? th * 0.1 : 0), -th / 2 + (i / 4) * th);
+            }
+
+            for (let i = 6; i >= 0; i--) {
+                ctx.lineTo(-tw / 2 + (i / 6) * tw, th / 2 + (i % 2 ? th * 0.08 : -th * 0.04));
+            }
+
+            for (let i = 4; i >= 0; i--) {
+                ctx.lineTo(-tw / 2 - (i % 2 ? th * 0.1 : 0), -th / 2 + (i / 4) * th);
+            }
+
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+}
+
+function drawFramedImage(ctx, l, s, src) {
+    const { w, h } = l;
+    const f = frameSpec(l);
+    const TW = w + f.ml + f.mr;
+    const TH = h + f.mt + f.mb;
+    const x0 = -TW / 2;
+    const y0 = -TH / 2;
+    const pad = Math.min(w, h) * 0.06;
+    const fc = canvasOf((TW + pad * 2) * s, (TH + pad * 2) * s);
+    const c = fc.getContext('2d');
+    c.scale(s, s);
+    c.translate(pad, pad);
+    paintFrame(c, l, TW, TH, f.ml, f.mt, s);
+
+    ctx.save();
+
+    if (l.shadow > 0) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = l.shadow * s;
+        ctx.shadowOffsetY = l.shadow * 0.35 * s;
+    }
+
+    ctx.drawImage(fc, x0 - pad, y0 - pad, TW + pad * 2, TH + pad * 2);
+    ctx.restore();
+
+    const px = x0 + f.ml;
+    const py = y0 + f.mt;
+    ctx.save();
+    photoClip(ctx, l, px, py, w, h);
+    ctx.clip();
+
+    if (l.flip) {
+        ctx.translate(px * 2 + w, 0);
+        ctx.scale(-1, 1);
+    }
+
+    // Cover-crop into the window, so a phone screen crops the photo instead of squashing it.
+    ctx.imageSmoothingQuality = 'high';
+    const ks = Math.max(w / src.width, h / src.height);
+    const sw = w / ks;
+    const sh = h / ks;
+    ctx.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, px, py, w, h);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x0, y0);
+    paintFrameOverlay(ctx, l, TW, TH, f.ml, f.mt, s);
+    ctx.restore();
 }
 
 function drawImageLayer(ctx, l, s) {
@@ -2380,6 +2841,12 @@ function drawImageLayer(ctx, l, s) {
     const side = Math.max(w, h) * s;
     const maxSide = Math.min(Math.max(img.w, img.h), Math.ceil(side / 256) * 256);
     const src = processed(l, maxSide);
+
+    if (l.frame && l.frame !== 'none') {
+        drawFramedImage(ctx, l, s, src);
+        return;
+    }
+
     const b = l.border;
     const r = l.radius;
 
@@ -2928,17 +3395,7 @@ function drawOverlay() {
     const px = 1 / cssScale;
 
     if ($('show-badge').checked) {
-        // Where YouTube puts the video length on the thumbnail.
-        const bw = 150;
-        const bh = 66;
-        v.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        rr(v, W - bw - 26, H - bh - 26, bw, bh, 12);
-        v.fill();
-        v.fillStyle = '#ffffff';
-        v.font = '600 40px Inter, sans-serif';
-        v.textAlign = 'center';
-        v.textBaseline = 'middle';
-        v.fillText('12:34', W - bw / 2 - 26, H - bh / 2 - 26);
+        drawDurationBadge(v, W, H, 360);
     }
 
     if (!doc.layers.some(l => l.type === 'image' && !l.graphic)) {
@@ -3289,6 +3746,25 @@ canvas.addEventListener('dblclick', (e) => {
 
 /* ---------------------------------------------------------------- feed preview */
 
+// YouTube's length badge: about 38×20 px, 8 px from the corner, whatever size the thumbnail is shown at.
+// `shownWidth` is that display width in px; everything scales from it to the canvas being drawn.
+function drawDurationBadge(ctx, cw, ch, shownWidth) {
+    const k = cw / shownWidth;
+    const bw = 38 * k;
+    const bh = 20 * k;
+    const m = 8 * k;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    rr(ctx, cw - bw - m, ch - bh - m, bw, bh, 4 * k);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `600 ${12 * k}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('12:34', cw - bw / 2 - m, ch - bh / 2 - m);
+    ctx.restore();
+}
+
 function renderFeed() {
     const title = doc.layers.filter(l => l.type === 'text' && !l.hidden).map(l => l.text.replace(/\n/g, ' ')).join(' — ') || 'Video title';
 
@@ -3297,16 +3773,8 @@ function renderFeed() {
         const x = c.getContext('2d');
         x.imageSmoothingQuality = 'high';
         x.drawImage(docCanvas, 0, 0, c.width, c.height);
-        // Duration badge, as YouTube draws it.
-        const k = c.width / 640;
-        x.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        rr(x, c.width - 76 * k, c.height - 40 * k, 68 * k, 32 * k, 6 * k);
-        x.fill();
-        x.fillStyle = '#ffffff';
-        x.font = `600 ${20 * k}px Inter, sans-serif`;
-        x.textAlign = 'center';
-        x.textBaseline = 'middle';
-        x.fillText('12:34', c.width - 42 * k, c.height - 24 * k);
+        // The badge is a fixed size on YouTube, so it covers more of a smaller thumbnail.
+        drawDurationBadge(x, c.width, c.height, id === 'feed-small' ? 168 : 360);
     });
 
     $('feed-title-dark').textContent = title;
@@ -3787,9 +4255,31 @@ function imageDefs() {
         { key: 'look.lutAmount', label: 'LUT amount', type: 'range', min: 0, max: 1, step: 0.02, reset: 1, format: pct, show: l => !!l.look.lut },
         { type: 'buttons', buttons: [{ label: '<i class="bi bi-arrow-counterclockwise"></i> Reset colour', onClick: l => { l.look = { ...LOOK_DEFAULT }; renderProps(); } }] },
         { type: 'heading', label: 'Frame' },
-        { key: 'border', label: 'Border', type: 'range', min: 0, max: 60, step: 1, reset: 0, format: pxf },
-        { key: 'borderColor', label: 'Border col.', type: 'color', show: l => l.border > 0 },
-        { key: 'radius', label: 'Corners', type: 'range', min: 0, max: 120, step: 1, reset: 0, format: pxf },
+        {
+            type: 'tiles', key: 'frame', tileW: 150, tileH: 96, options: FRAMES.map(([value, label]) => ({ value, label })),
+            draw: (c, opt, l) => frameTileDraw(c, opt.value, l),
+            after: (l, v) => {
+                l.frameColor = FRAME_COLOURS[v] || '#ffffff';
+                // A phone is a tall screen; everything else shows the photo in its own proportions.
+                const img = images.get(l.imageId);
+                const area = l.w * l.h;
+
+                if (v === 'phone') {
+                    l.w = Math.sqrt(area / 2.17);
+                    l.h = l.w * 2.17;
+                } else if (img) {
+                    const aspect = img.h / img.w;
+                    l.w = Math.sqrt(area / aspect);
+                    l.h = l.w * aspect;
+                }
+
+                syncProps();
+            }
+        },
+        { key: 'frameColor', label: 'Frame colour', type: 'color', show: l => l.frame && l.frame !== 'none' },
+        { key: 'border', label: 'Border', type: 'range', min: 0, max: 60, step: 1, reset: 0, format: pxf, show: l => !l.frame || l.frame === 'none' },
+        { key: 'borderColor', label: 'Border col.', type: 'color', show: l => (!l.frame || l.frame === 'none') && l.border > 0 },
+        { key: 'radius', label: 'Corners', type: 'range', min: 0, max: 120, step: 1, reset: 0, format: pxf, show: l => !l.frame || l.frame === 'none' },
         { key: 'shadow', label: 'Shadow', type: 'range', min: 0, max: 120, step: 1, reset: 0, format: pxf },
         { key: 'flip', label: 'Mirror', type: 'check' },
         {
@@ -3846,6 +4336,26 @@ function updateSizer() {
     $('sizer').hidden = !l;
 }
 
+function frameTileDraw(c, frame, l) {
+    const x = c.getContext('2d');
+    x.fillStyle = '#3a4541';
+    x.fillRect(0, 0, c.width, c.height);
+    const img = images.get(l.imageId);
+
+    if (!img) {
+        return;
+    }
+
+    const k = Math.min(c.width / img.w, c.height / img.h) * 0.62;
+    const demo = { ...l, id: `tile-frame-${frame}`, frame, frameColor: FRAME_COLOURS[frame] || '#ffffff', w: img.w * k, h: img.h * k, x: c.width / 2, y: c.height / 2, rot: 0, shadow: 6, border: 0, radius: 0, look: { ...l.look, halation: 0 } };
+    const sz = layerSize(demo);
+    const fitK = Math.min((c.width * 0.86) / sz.w, (c.height * 0.86) / sz.h, 1);
+    demo.w *= fitK;
+    demo.h *= fitK;
+    drawLayer(x, demo, 1);
+    procCache.delete(demo.id);
+}
+
 function fitImage(l, cover) {
     const img = images.get(l.imageId);
 
@@ -3853,8 +4363,19 @@ function fitImage(l, cover) {
         return;
     }
 
-    const s = cover ? Math.max(W / img.w, H / img.h) : Math.min(W / img.w, H / img.h);
-    Object.assign(l, { w: img.w * s, h: img.h * s, x: W / 2, y: H / 2, rot: 0 });
+    // Keep the layer's current proportions (a phone frame makes it tall), not the file's.
+    const iw = l.w || img.w;
+    const ih = l.h || img.h;
+    const s = cover ? Math.max(W / iw, H / ih) : Math.min(W / iw, H / ih);
+    Object.assign(l, { w: iw * s, h: ih * s, x: W / 2, y: H / 2, rot: 0 });
+
+    // With a frame, fit the whole framed thing.
+    if (!cover && l.frame && l.frame !== 'none') {
+        const t = framedSize(l);
+        const k = Math.min(W / t.w, H / t.h) * 0.94;
+        l.w *= k;
+        l.h *= k;
+    }
 }
 
 function shapeDefs() {
@@ -3922,6 +4443,17 @@ function renderProps() {
     const l = selected();
     updateSizer();
 
+    if (selectedId === FINISH_ID) {
+        const sec = document.createElement('section');
+        sec.className = 'section';
+        const h = document.createElement('h3');
+        h.textContent = 'Film finish';
+        sec.append(h);
+        host.append(sec);
+        fieldRefreshers.push(buildFields(sec, finishDefs(), () => doc.finish, () => commit()));
+        return;
+    }
+
     if (selectedId === BG_ID) {
         const sec = document.createElement('section');
         sec.className = 'section';
@@ -3986,8 +4518,10 @@ function bgCss() {
     return b.type === 'solid' ? b.color : `linear-gradient(${b.angle}deg, ${b.color}, ${b.color2})`;
 }
 
-function buildDocFields() {
-    const finishDefs = [
+const FINISH_ID = '__finish';
+
+function finishDefs() {
+    return [
         { key: 'grain', label: 'Grain', type: 'range', min: 0, max: 1, step: 0.01, reset: 0, format: pct },
         { key: 'grainSize', label: 'Grain size', type: 'range', min: 0.5, max: 4, step: 0.1, reset: 1.2, show: f => f.grain > 0 },
         { key: 'grainColor', label: 'Colour grain', type: 'check', show: f => f.grain > 0 },
@@ -4003,10 +4537,9 @@ function buildDocFields() {
         { key: 'overText', label: 'Over text too', type: 'check' },
         { type: 'note', label: 'The finish sits right above the top photo, so text over it stays clean unless “over text too” is on.' }
     ];
-    const r2 = buildFields($('finish-fields'), finishDefs, () => doc.finish, () => commit());
-    r2.persistent = true;
-    fieldRefreshers.push(r2);
 }
+
+function buildDocFields() {}
 
 /* ---------------------------------------------------------------- layer list */
 
@@ -4015,6 +4548,18 @@ let dragLayerId = null;
 function renderLayerList() {
     const list = $('layer-list');
     list.innerHTML = '';
+
+    // The film finish, always on top.
+    const fin = document.createElement('li');
+    fin.className = `layer layer--finish${selectedId === FINISH_ID ? ' is-selected' : ''}`;
+    fin.innerHTML = '<span class="icon-btn"><i class="bi bi-lock"></i></span><span class="layer-thumb"><i class="bi bi-film"></i></span><span class="layer-name">Film finish</span><span></span>';
+    fin.addEventListener('click', () => {
+        selectedId = FINISH_ID;
+        renderProps();
+        renderLayerList();
+        requestRender(false);
+    });
+    list.append(fin);
 
     [...doc.layers].reverse().forEach(l => {
         const li = document.createElement('li');

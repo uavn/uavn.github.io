@@ -839,3 +839,13 @@ input[type='checkbox'] {
 .layer--bg .icon-btn {
     cursor: default;
 }
+
+.layer--finish {
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+    border-radius: 6px 6px 0 0;
+}
+
+.layer--finish .icon-btn {
+    cursor: default;
+}
