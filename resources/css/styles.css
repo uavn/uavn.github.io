@@ -509,6 +509,10 @@ body.is-interacting {
     content: '+';
 }
 
+.window-control--newtab::after {
+    content: '↗';
+}
+
 .window-body {
     position: relative;
     flex: 1;

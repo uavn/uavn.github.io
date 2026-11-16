@@ -764,3 +764,54 @@ input[type='checkbox'] {
     max-height: none;
     object-fit: contain;
 }
+
+.picker-search {
+    flex: 1;
+    min-width: 0;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+
+.picker-search:focus {
+    border-color: var(--ink-3);
+    outline: none;
+}
+
+.picker-empty {
+    grid-column: 1 / -1;
+    margin: 20px 0;
+    color: var(--ink-3);
+    text-align: center;
+}
+
+/* Slider reset: shows only when the value differs from the default. */
+.reset-btn {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--ink-3);
+    font-size: 11px;
+    cursor: pointer;
+    visibility: hidden;
+}
+
+.reset-btn.is-shown {
+    visibility: visible;
+}
+
+.reset-btn:hover {
+    background: var(--hover);
+    color: var(--accent);
+}
+
+.field-range output {
+    min-width: 34px;
+}

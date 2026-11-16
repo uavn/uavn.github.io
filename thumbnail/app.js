@@ -119,39 +119,277 @@ const TWO_COLOUR_BGS = ['gradient', 'brutal', 'bubble', 'burst'];
 
 // Emoji and icons in themed groups for the picker.
 const EMOJI = [
-    { t: 'Photo & film', i: ['📷', '📸', '🎞️', '📽️', '🎬', '🎥', '📼', '📹', '🔍', '🧪', '🌡️', '⏱️', '⏳', '💡', '🔦', '🖼️'] },
-    { t: 'Reactions', i: ['🔥', '✨', '⭐', '🌟', '💥', '⚡', '💯', '🆕', '🆓', '🔴', '❗', '❓', '⚠️', '✅', '❌', '🚫', '😱', '🤯', '😍', '🥲', '😂', '🤔', '😎', '🙃', '😴', '🤩', '😳', '🥶', '🥵', '🤫', '🫠', '🤡', '💀', '🙈'] },
-    { t: 'Hands & hearts', i: ['👉', '👈', '👇', '👆', '👀', '🙌', '👍', '👎', '🤞', '✌️', '👏', '🫶', '💪', '🤝', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔'] },
-    { t: 'Cats', i: ['🐈', '🐈‍⬛', '🐱', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐾', '🧶', '🐟', '🥛', '📦'] },
-    { t: 'Moto & auto', i: ['🏍️', '🛵', '🚗', '🚙', '🏎️', '🚐', '🛻', '🚚', '🚕', '🚌', '🚓', '🚑', '🚲', '🛞', '⛽', '🔋', '🛣️', '🚦', '🚧', '🅿️', '🔧', '🔩', '🪛', '🪖', '🏁', '💨'] },
-    { t: 'Travel', i: ['✈️', '🛫', '🛬', '🚆', '🚂', '🚇', '⛴️', '🚢', '⛵', '🗺️', '📍', '🧭', '🧳', '🎒', '🛂', '🎫', '🏕️', '⛺', '🏔️', '⛰️', '🌋', '🏖️', '🏝️', '🌅', '🌄', '🌇', '🌃', '🏙️', '🌉', '🗽', '🗼', '🏰', '⛪', '🏠', '🌍', '🌎', '🌏'] },
-    { t: 'Groceries & food', i: ['🛒', '🛍️', '🧺', '🧾', '🥖', '🥐', '🧀', '🥚', '🥛', '🧈', '🍎', '🍌', '🍋', '🍅', '🥑', '🥕', '🥦', '🧅', '🧄', '🥔', '🍗', '🥩', '🐟', '🍝', '🍕', '🍔', '🌭', '🍜', '🍣', '☕', '🍷', '🍺', '🧃', '🍫', '🍪', '🎂'] },
-    { t: 'Money', i: ['💰', '💵', '💶', '💷', '💸', '💳', '🪙', '🏦', '📈', '📉', '🤑', '💎', '🏷️', '🧮', '💹', '🧾'] },
-    { t: 'Nature & weather', i: ['🌊', '🌲', '🌳', '🌸', '🌻', '🍂', '❄️', '☀️', '🌙', '🌈', '☁️', '🌧️', '⛈️', '🐕', '🐦', '🦆', '🦋'] },
-    { t: 'Fun & stuff', i: ['🎁', '🎉', '🎈', '🎧', '🎵', '🎸', '🕹️', '🏆', '🥇', '🎯', '🧩', '📚', '✏️', '📌', '🗓️', '⌛'] }
+    { t: 'Photo & film', k: 'фото плівка кіно', i: ['📷', '📸', '🎞️', '📽️', '🎬', '🎥', '📼', '📹', '🔍', '🧪', '🌡️', '⏱️', '⏳', '💡', '🔦', '🖼️'] },
+    { t: 'Reactions', k: 'реакції емоції', i: ['🔥', '✨', '⭐', '🌟', '💥', '⚡', '💯', '🆕', '🆓', '🔴', '❗', '❓', '⚠️', '✅', '❌', '🚫', '😱', '🤯', '😍', '🥲', '😂', '🤔', '😎', '🙃', '😴', '🤩', '😳', '🥶', '🥵', '🤫', '🫠', '🤡', '💀', '🙈'] },
+    { t: 'Hands & hearts', k: 'руки серця', i: ['👉', '👈', '👇', '👆', '👀', '🙌', '👍', '👎', '🤞', '✌️', '👏', '🫶', '💪', '🤝', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💔'] },
+    { t: 'Cats', k: 'коти кіт', i: ['🐈', '🐈‍⬛', '🐱', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🐾', '🧶', '🐟', '🥛', '📦'] },
+    { t: 'Moto & auto', k: 'мото авто машина дорога', i: ['🏍️', '🛵', '🚗', '🚙', '🏎️', '🚐', '🛻', '🚚', '🚕', '🚌', '🚓', '🚑', '🚲', '🛞', '⛽', '🔋', '🛣️', '🚦', '🚧', '🅿️', '🔧', '🔩', '🪛', '🪖', '🏁', '💨'] },
+    { t: 'Travel', k: 'подорож мандри', i: ['✈️', '🛫', '🛬', '🚆', '🚂', '🚇', '⛴️', '🚢', '⛵', '🗺️', '📍', '🧭', '🧳', '🎒', '🛂', '🎫', '🏕️', '⛺', '🏔️', '⛰️', '🌋', '🏖️', '🏝️', '🌅', '🌄', '🌇', '🌃', '🏙️', '🌉', '🗽', '🗼', '🏰', '⛪', '🏠', '🌍', '🌎', '🌏'] },
+    { t: 'Groceries & food', k: 'продукти їжа покупки', i: ['🛒', '🛍️', '🧺', '🧾', '🥖', '🥐', '🧀', '🥚', '🥛', '🧈', '🍎', '🍌', '🍋', '🍅', '🥑', '🥕', '🥦', '🧅', '🧄', '🥔', '🍗', '🥩', '🐟', '🍝', '🍕', '🍔', '🌭', '🍜', '🍣', '☕', '🍷', '🍺', '🧃', '🍫', '🍪', '🎂'] },
+    { t: 'Money', k: 'гроші фінанси', i: ['💰', '💵', '💶', '💷', '💸', '💳', '🪙', '🏦', '📈', '📉', '🤑', '💎', '🏷️', '🧮', '💹', '🧾'] },
+    { t: 'Nature & weather', k: 'природа погода', i: ['🌊', '🌲', '🌳', '🌸', '🌻', '🍂', '❄️', '☀️', '🌙', '🌈', '☁️', '🌧️', '⛈️', '🐕', '🐦', '🦆', '🦋'] },
+    { t: 'Fun & stuff', k: 'розваги', i: ['🎁', '🎉', '🎈', '🎧', '🎵', '🎸', '🕹️', '🏆', '🥇', '🎯', '🧩', '📚', '✏️', '📌', '🗓️', '⌛'] }
 ];
+// Words to find each emoji by, in English and Ukrainian.
+const EMOJI_WORDS = new Map([
+    ['📷', 'camera photo фото камера фотоапарат'],
+    ['📸', 'camera flash photo фото камера спалах'],
+    ['🎞️', 'film strip плівка кадри'],
+    ['📽️', 'projector film кіно проектор'],
+    ['🎬', 'clapper movie кіно фільм хлопавка'],
+    ['🎥', 'movie camera video відео кіно'],
+    ['📼', 'vhs tape касета відео'],
+    ['📹', 'video camera відеокамера'],
+    ['🔍', 'search zoom magnifier лупа пошук'],
+    ['🧪', 'test tube chemistry хімія пробірка'],
+    ['🌡️', 'thermometer temperature градусник температура'],
+    ['⏱️', 'stopwatch timer секундомір таймер'],
+    ['⏳', 'hourglass time пісочний годинник час'],
+    ['💡', 'idea light bulb ідея лампочка'],
+    ['🔦', 'flashlight ліхтарик'],
+    ['🖼️', 'picture frame картина рамка'],
+    ['🔥', 'fire hot вогонь вогник гаряче'],
+    ['✨', 'sparkles magic блиск іскри магія'],
+    ['⭐', 'star зірка'],
+    ['🌟', 'glowing star зірка сяйво'],
+    ['💥', 'boom explosion вибух бум'],
+    ['⚡', 'lightning zap блискавка'],
+    ['💯', 'hundred perfect сто'],
+    ['🆕', 'new новий'],
+    ['🆓', 'free безкоштовно'],
+    ['🔴', 'red dot record запис червоний'],
+    ['❗', 'exclamation important оклик увага'],
+    ['❓', 'question питання'],
+    ['⚠️', 'warning увага попередження'],
+    ['✅', 'check done yes галочка так готово'],
+    ['❌', 'cross no ні хрестик'],
+    ['🚫', 'forbidden no заборона'],
+    ['😱', 'scream shock шок крик жах'],
+    ['🤯', 'mind blown вибух мозку шок'],
+    ['😍', 'love heart eyes закоханий'],
+    ['🥲', 'smile tear сльоза усмішка'],
+    ['😂', 'laugh lol сміх ржака'],
+    ['🤔', 'thinking думаю хм'],
+    ['😎', 'cool sunglasses круто окуляри'],
+    ['🙃', 'upside down перевернутий'],
+    ['😴', 'sleep сон спати'],
+    ['🤩', 'star struck wow вау захват'],
+    ['😳', 'flushed embarrassed збентеження'],
+    ['🥶', 'cold frozen холод мороз'],
+    ['🥵', 'hot жара спека'],
+    ['🤫', 'shh secret тихо секрет'],
+    ['🫠', 'melting тану'],
+    ['🤡', 'clown клоун'],
+    ['💀', 'skull dead череп смерть'],
+    ['🙈', 'see no evil monkey мавпа соромно'],
+    ['👉', 'point right вказівник вправо'],
+    ['👈', 'point left вліво'],
+    ['👇', 'point down вниз'],
+    ['👆', 'point up вгору'],
+    ['👀', 'eyes look очі дивись'],
+    ['🙌', 'hooray hands ура'],
+    ['👍', 'thumbs up like лайк клас'],
+    ['👎', 'thumbs down dislike дизлайк'],
+    ['🤞', 'fingers crossed удачі'],
+    ['✌️', 'peace victory мир'],
+    ['👏', 'clap оплески'],
+    ['🫶', 'heart hands серце руки'],
+    ['💪', 'strong muscle сила м\'язи'],
+    ['🤝', 'handshake deal рукостискання'],
+    ['❤️', 'red heart love серце любов'],
+    ['🧡', 'orange heart серце'],
+    ['💛', 'yellow heart серце'],
+    ['💚', 'green heart серце'],
+    ['💙', 'blue heart серце'],
+    ['💜', 'purple heart серце'],
+    ['🖤', 'black heart серце'],
+    ['🤍', 'white heart серце'],
+    ['💔', 'broken heart розбите серце'],
+    ['🐈', 'cat кіт котик'],
+    ['🐈‍⬛', 'black cat чорний кіт'],
+    ['🐱', 'cat face кіт котик'],
+    ['😺', 'cat smile кіт'],
+    ['😸', 'cat grin кіт'],
+    ['😹', 'cat laugh tears кіт сміх'],
+    ['😻', 'cat love кіт любов'],
+    ['😼', 'cat smirk кіт'],
+    ['😽', 'cat kiss кіт поцілунок'],
+    ['🙀', 'cat scream shock кіт шок'],
+    ['😿', 'cat cry кіт плаче'],
+    ['😾', 'cat angry кіт злий'],
+    ['🐾', 'paws лапки сліди'],
+    ['🧶', 'yarn клубок'],
+    ['🐟', 'fish риба'],
+    ['🥛', 'milk молоко'],
+    ['📦', 'box коробка посилка'],
+    ['🏍️', 'motorcycle moto bike мотоцикл мото'],
+    ['🛵', 'scooter моторолер скутер'],
+    ['🚗', 'car auto машина авто'],
+    ['🚙', 'suv car позашляховик авто'],
+    ['🏎️', 'race car гонка болід'],
+    ['🚐', 'van camper бус кемпер'],
+    ['🛻', 'pickup truck пікап'],
+    ['🚚', 'truck вантажівка'],
+    ['🚕', 'taxi таксі'],
+    ['🚌', 'bus автобус'],
+    ['🚓', 'police поліція'],
+    ['🚑', 'ambulance швидка'],
+    ['🚲', 'bicycle bike велосипед ровер'],
+    ['🛞', 'wheel tire колесо шина'],
+    ['⛽', 'fuel gas petrol бензин заправка пальне'],
+    ['🔋', 'battery батарея'],
+    ['🛣️', 'road highway дорога траса'],
+    ['🚦', 'traffic light світлофор'],
+    ['🚧', 'construction ремонт'],
+    ['🅿️', 'parking паркінг'],
+    ['🔧', 'wrench tool ключ ремонт'],
+    ['🔩', 'bolt болт'],
+    ['🪛', 'screwdriver викрутка'],
+    ['🪖', 'helmet шолом каска'],
+    ['🏁', 'finish flag фініш прапор'],
+    ['💨', 'dash fast швидко пил'],
+    ['✈️', 'airplane plane flight літак переліт'],
+    ['🛫', 'departure виліт'],
+    ['🛬', 'arrival приліт'],
+    ['🚆', 'train поїзд потяг'],
+    ['🚂', 'locomotive паротяг'],
+    ['🚇', 'metro метро'],
+    ['⛴️', 'ferry пором'],
+    ['🚢', 'ship корабель'],
+    ['⛵', 'sailboat вітрило яхта'],
+    ['🗺️', 'map мапа карта'],
+    ['📍', 'pin location місце мітка'],
+    ['🧭', 'compass компас'],
+    ['🧳', 'luggage suitcase валіза багаж'],
+    ['🎒', 'backpack рюкзак'],
+    ['🛂', 'passport паспорт кордон'],
+    ['🎫', 'ticket квиток'],
+    ['🏕️', 'camping кемпінг табір'],
+    ['⛺', 'tent намет'],
+    ['🏔️', 'snowy mountain гори'],
+    ['⛰️', 'mountain гора'],
+    ['🌋', 'volcano вулкан'],
+    ['🏖️', 'beach пляж'],
+    ['🏝️', 'island острів'],
+    ['🌅', 'sunrise схід сонця'],
+    ['🌄', 'sunrise mountains світанок гори'],
+    ['🌇', 'sunset city захід місто'],
+    ['🌃', 'night city нічне місто'],
+    ['🏙️', 'city місто'],
+    ['🌉', 'bridge міст'],
+    ['🗽', 'statue liberty new york нью-йорк'],
+    ['🗼', 'tower вежа'],
+    ['🏰', 'castle замок'],
+    ['⛪', 'church церква'],
+    ['🏠', 'home house дім хата'],
+    ['🌍', 'earth world europe світ земля'],
+    ['🌎', 'earth world america світ'],
+    ['🌏', 'earth world asia світ'],
+    ['🛒', 'cart shopping візок покупки'],
+    ['🛍️', 'shopping bags покупки пакети'],
+    ['🧺', 'basket кошик'],
+    ['🧾', 'receipt чек'],
+    ['🥖', 'bread baguette хліб багет'],
+    ['🥐', 'croissant круасан'],
+    ['🧀', 'cheese сир'],
+    ['🥚', 'egg яйце'],
+    ['🧈', 'butter масло'],
+    ['🍎', 'apple яблуко'],
+    ['🍌', 'banana банан'],
+    ['🍋', 'lemon лимон'],
+    ['🍅', 'tomato помідор'],
+    ['🥑', 'avocado авокадо'],
+    ['🥕', 'carrot морква'],
+    ['🥦', 'broccoli броколі'],
+    ['🧅', 'onion цибуля'],
+    ['🧄', 'garlic часник'],
+    ['🥔', 'potato картопля'],
+    ['🍗', 'chicken курка'],
+    ['🥩', 'meat steak мʼясо стейк'],
+    ['🍝', 'pasta паста'],
+    ['🍕', 'pizza піца'],
+    ['🍔', 'burger бургер'],
+    ['🌭', 'hot dog хот-дог'],
+    ['🍜', 'noodles ramen локшина'],
+    ['🍣', 'sushi суші'],
+    ['☕', 'coffee кава'],
+    ['🍷', 'wine вино'],
+    ['🍺', 'beer пиво'],
+    ['🧃', 'juice сік'],
+    ['🍫', 'chocolate шоколад'],
+    ['🍪', 'cookie печиво'],
+    ['🎂', 'cake birthday торт день народження'],
+    ['💰', 'money bag гроші мішок'],
+    ['💵', 'dollar cash гроші долар'],
+    ['💶', 'euro гроші євро'],
+    ['💷', 'pound гроші фунт'],
+    ['💸', 'money flying витрати гроші летять'],
+    ['💳', 'card credit картка'],
+    ['🪙', 'coin монета'],
+    ['🏦', 'bank банк'],
+    ['📈', 'chart up ріст графік'],
+    ['📉', 'chart down падіння графік'],
+    ['🤑', 'money face гроші'],
+    ['💎', 'diamond gem діамант'],
+    ['🏷️', 'tag price ціна ціник'],
+    ['🧮', 'abacus рахувати рахівниця'],
+    ['💹', 'chart market ринок'],
+    ['🌊', 'wave sea хвиля море'],
+    ['🌲', 'pine tree сосна ялина'],
+    ['🌳', 'tree дерево'],
+    ['🌸', 'flower blossom квітка'],
+    ['🌻', 'sunflower соняшник'],
+    ['🍂', 'autumn leaves осінь листя'],
+    ['❄️', 'snow winter сніг зима'],
+    ['☀️', 'sun сонце'],
+    ['🌙', 'moon night місяць ніч'],
+    ['🌈', 'rainbow веселка'],
+    ['☁️', 'cloud хмара'],
+    ['🌧️', 'rain дощ'],
+    ['⛈️', 'storm гроза'],
+    ['🐕', 'dog собака пес'],
+    ['🐦', 'bird птах'],
+    ['🦆', 'duck качка'],
+    ['🦋', 'butterfly метелик'],
+    ['🎁', 'gift present подарунок'],
+    ['🎉', 'party celebration свято вечірка'],
+    ['🎈', 'balloon кулька'],
+    ['🎧', 'headphones навушники музика'],
+    ['🎵', 'music note музика нота'],
+    ['🎸', 'guitar гітара'],
+    ['🕹️', 'joystick game гра джойстик'],
+    ['🏆', 'trophy win кубок перемога'],
+    ['🥇', 'gold medal first медаль перше'],
+    ['🎯', 'target ціль'],
+    ['🧩', 'puzzle пазл'],
+    ['📚', 'books книги'],
+    ['✏️', 'pencil олівець'],
+    ['📌', 'pin кнопка'],
+    ['🗓️', 'calendar календар'],
+    ['⌛', 'hourglass пісочний годинник']
+]);
 const ICONS = [
-    { t: 'Photo & video', i: ['camera', 'camera-fill', 'camera2', 'camera-reels-fill', 'film', 'image', 'images', 'aspect-ratio', 'crop', 'sliders', 'palette-fill', 'brush-fill', 'magic', 'play-fill', 'play-circle-fill', 'pause-fill', 'stop-fill', 'record-circle', 'record-fill', 'skip-forward-fill', 'mic-fill', 'music-note-beamed', 'headphones', 'volume-up-fill', 'vinyl-fill', 'cassette-fill', 'badge-4k-fill', 'badge-hd-fill', 'tv-fill', 'phone-fill'] },
-    { t: 'Arrows & marks', i: ['arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', 'arrow-up-right', 'arrow-down-right', 'arrow-right-circle-fill', 'arrow-repeat', 'chevron-double-right', 'check-circle-fill', 'x-circle-fill', 'exclamation-triangle-fill', 'exclamation-circle-fill', 'question-circle-fill', 'info-circle-fill', 'plus-circle-fill', 'dash-circle-fill', '1-circle-fill', '2-circle-fill', '3-circle-fill', '4-circle-fill', '5-circle-fill'] },
-    { t: 'Moto & auto', i: ['car-front-fill', 'car-front', 'truck', 'truck-front-fill', 'bus-front-fill', 'scooter', 'bicycle', 'fuel-pump-fill', 'fuel-pump-diesel-fill', 'ev-station-fill', 'speedometer2', 'speedometer', 'signpost-2-fill', 'signpost-split-fill', 'sign-turn-right-fill', 'sign-stop-fill', 'sign-railroad-fill', 'stoplights-fill', 'cone-striped', 'p-circle-fill', 'tools', 'wrench-adjustable', 'gear-fill', 'shield-fill-check'] },
-    { t: 'Travel', i: ['airplane-fill', 'airplane-engines-fill', 'train-front-fill', 'globe-europe-africa', 'globe-americas', 'map-fill', 'geo-alt-fill', 'pin-map-fill', 'compass-fill', 'luggage-fill', 'suitcase-lg-fill', 'backpack-fill', 'passport-fill', 'ticket-perforated-fill', 'building-fill', 'house-fill', 'tree-fill', 'sunrise-fill', 'umbrella-fill', 'cloud-sun-fill', 'snow', 'binoculars-fill', 'flag-fill'] },
-    { t: 'Shopping & money', i: ['cart-fill', 'cart4', 'basket2-fill', 'basket-fill', 'bag-fill', 'bag-check-fill', 'shop', 'receipt', 'receipt-cutoff', 'wallet-fill', 'wallet2', 'credit-card-fill', 'cash-stack', 'cash-coin', 'coin', 'piggy-bank-fill', 'bank2', 'currency-dollar', 'currency-euro', 'currency-exchange', 'percent', 'tag-fill', 'tags-fill', 'graph-up-arrow', 'graph-down-arrow', 'calculator-fill', 'gift-fill', 'cup-hot-fill', 'egg-fried'] },
-    { t: 'Everything else', i: ['stopwatch-fill', 'hourglass-split', 'thermometer-half', 'droplet-fill', 'sun-fill', 'moon-fill', 'lightning-charge-fill', 'star-fill', 'stars', 'heart-fill', 'fire', 'gem', 'award-fill', 'trophy-fill', 'patch-check-fill', 'bookmark-fill', 'bell-fill', 'lightbulb-fill', 'eye-fill', 'search', 'clock-fill', 'calendar-event-fill', 'scissors', 'box-seam-fill', 'emoji-smile-fill', 'emoji-heart-eyes-fill', 'emoji-dizzy-fill', 'emoji-surprise-fill', 'hand-thumbs-up-fill', 'hand-thumbs-down-fill', 'hand-index-thumb-fill', 'chat-fill', 'chat-quote-fill', 'chat-heart-fill', 'person-fill', 'people-fill', 'youtube', 'instagram', 'telegram', 'tiktok'] }
+    { t: 'Photo & video', k: 'фото відео камера плівка музика', i: ['camera', 'camera-fill', 'camera2', 'camera-reels-fill', 'film', 'image', 'images', 'aspect-ratio', 'crop', 'sliders', 'palette-fill', 'brush-fill', 'magic', 'play-fill', 'play-circle-fill', 'pause-fill', 'stop-fill', 'record-circle', 'record-fill', 'skip-forward-fill', 'mic-fill', 'music-note-beamed', 'headphones', 'volume-up-fill', 'vinyl-fill', 'cassette-fill', 'badge-4k-fill', 'badge-hd-fill', 'tv-fill', 'phone-fill'] },
+    { t: 'Arrows & marks', k: 'стрілки знаки галочка хрестик цифри', i: ['arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', 'arrow-up-right', 'arrow-down-right', 'arrow-right-circle-fill', 'arrow-repeat', 'chevron-double-right', 'check-circle-fill', 'x-circle-fill', 'exclamation-triangle-fill', 'exclamation-circle-fill', 'question-circle-fill', 'info-circle-fill', 'plus-circle-fill', 'dash-circle-fill', '1-circle-fill', '2-circle-fill', '3-circle-fill', '4-circle-fill', '5-circle-fill'] },
+    { t: 'Moto & auto', k: 'мото авто машина дорога бензин знак', i: ['car-front-fill', 'car-front', 'truck', 'truck-front-fill', 'bus-front-fill', 'scooter', 'bicycle', 'fuel-pump-fill', 'fuel-pump-diesel-fill', 'ev-station-fill', 'speedometer2', 'speedometer', 'signpost-2-fill', 'signpost-split-fill', 'sign-turn-right-fill', 'sign-stop-fill', 'sign-railroad-fill', 'stoplights-fill', 'cone-striped', 'p-circle-fill', 'tools', 'wrench-adjustable', 'gear-fill', 'shield-fill-check'] },
+    { t: 'Travel', k: 'подорож літак мапа карта валіза', i: ['airplane-fill', 'airplane-engines-fill', 'train-front-fill', 'globe-europe-africa', 'globe-americas', 'map-fill', 'geo-alt-fill', 'pin-map-fill', 'compass-fill', 'luggage-fill', 'suitcase-lg-fill', 'backpack-fill', 'passport-fill', 'ticket-perforated-fill', 'building-fill', 'house-fill', 'tree-fill', 'sunrise-fill', 'umbrella-fill', 'cloud-sun-fill', 'snow', 'binoculars-fill', 'flag-fill'] },
+    { t: 'Shopping & money', k: 'покупки гроші магазин кошик чек картка', i: ['cart-fill', 'cart4', 'basket2-fill', 'basket-fill', 'bag-fill', 'bag-check-fill', 'shop', 'receipt', 'receipt-cutoff', 'wallet-fill', 'wallet2', 'credit-card-fill', 'cash-stack', 'cash-coin', 'coin', 'piggy-bank-fill', 'bank2', 'currency-dollar', 'currency-euro', 'currency-exchange', 'percent', 'tag-fill', 'tags-fill', 'graph-up-arrow', 'graph-down-arrow', 'calculator-fill', 'gift-fill', 'cup-hot-fill', 'egg-fried'] },
+    { t: 'Everything else', k: 'інше серце зірка вогонь', i: ['stopwatch-fill', 'hourglass-split', 'thermometer-half', 'droplet-fill', 'sun-fill', 'moon-fill', 'lightning-charge-fill', 'star-fill', 'stars', 'heart-fill', 'fire', 'gem', 'award-fill', 'trophy-fill', 'patch-check-fill', 'bookmark-fill', 'bell-fill', 'lightbulb-fill', 'eye-fill', 'search', 'clock-fill', 'calendar-event-fill', 'scissors', 'box-seam-fill', 'emoji-smile-fill', 'emoji-heart-eyes-fill', 'emoji-dizzy-fill', 'emoji-surprise-fill', 'hand-thumbs-up-fill', 'hand-thumbs-down-fill', 'hand-index-thumb-fill', 'chat-fill', 'chat-quote-fill', 'chat-heart-fill', 'person-fill', 'people-fill', 'youtube', 'instagram', 'telegram', 'tiktok'] }
 ];
 // Graphics: drawn shapes, plus the film illustrations from Film Dev.
 const GRAPHIC_SHAPES = [
-    ['scribble', 'Drawn circle'], ['scribblebox', 'Drawn box'], ['arrowline', 'Arrow'], ['curved', 'Curved arrow'], ['underline', 'Underline'], ['cross', 'Cross'], ['check', 'Tick'],
+    ['scribble', 'Drawn circle'], ['scribblebox', 'Drawn box'], ['arrowline', 'Arrow'], ['curved', 'Curved arrow'], ['underline', 'Underline'], ['cross', 'Cross'], ['check', 'Tick'], ['tick', 'Tick (simple)'],
     ['sparkle', 'Sparkle'], ['burst', 'Burst'], ['arrow', 'Block arrow'], ['ellipse', 'Ellipse'], ['rect', 'Rectangle']
 ];
-const STROKE_SHAPES = ['scribble', 'scribblebox', 'arrowline', 'curved', 'underline', 'cross', 'check'];
+const STROKE_SHAPES = ['scribble', 'scribblebox', 'arrowline', 'curved', 'underline', 'cross', 'check', 'tick'];
 // Pictures: the Film Dev illustrations plus sticker sets drawn for this app.
 const PICTURES = [
-    { t: 'Family', dir: './stickers', i: ['sofia-photographer', 'sofia-serious', 'cat-sunbathing'] },
-    { t: 'Cats', dir: './stickers', i: ['cat-sunbathing', 'cat-shocked', 'cat-crying-thumbs-up', 'cat-sunglasses', 'cat-side-eye', 'cat-screaming', 'cat-loaf', 'cat-rich', 'cat-groceries', 'cat-biker', 'cat-photographer', 'cat-in-cart', 'cat-driver'] },
-    { t: 'Moto & travel', dir: './stickers', i: ['moto-adventure-bike', 'moto-helmet', 'travel-suitcase', 'travel-map', 'travel-campfire', 'travel-thermos', 'travel-mountains-badge', 'travel-compass'] },
-    { t: 'Auto & road', dir: './stickers', i: ['auto-retro-car', 'auto-camper-van', 'auto-fuel-pump', 'auto-winding-road'] },
-    { t: 'Groceries & money', dir: './stickers', i: ['shop-cart', 'shop-receipt', 'shop-veggie-bag', 'shop-price-tag', 'money-piggy-bank', 'money-wallet', 'money-flying-away', 'money-empty-wallet'] },
-    { t: 'Film', dir: '../film-dev/art', i: ['tank', 'canister', 'stopwatch', 'thermometer', 'developer', 'bleach', 'fixer', 'stabilizer', 'pour', 'drain', 'wash', 'drying', 'loading'] }
+    { t: 'Family', k: 'сімʼя софійка дитина кіт', dir: './stickers', i: ['sofia-photographer', 'sofia-serious', 'cat-sunbathing'] },
+    { t: 'Cats', k: 'коти кіт котик мем', dir: './stickers', i: ['cat-sunbathing', 'cat-shocked', 'cat-crying-thumbs-up', 'cat-sunglasses', 'cat-side-eye', 'cat-screaming', 'cat-loaf', 'cat-rich', 'cat-groceries', 'cat-biker', 'cat-photographer', 'cat-in-cart', 'cat-driver'] },
+    { t: 'Moto & travel', k: 'мото мотоцикл подорож шолом валіза карта намет', dir: './stickers', i: ['moto-adventure-bike', 'moto-helmet', 'travel-suitcase', 'travel-map', 'travel-campfire', 'travel-thermos', 'travel-mountains-badge', 'travel-compass'] },
+    { t: 'Auto & road', k: 'авто машина дорога бензин кемпер', dir: './stickers', i: ['auto-retro-car', 'auto-camper-van', 'auto-fuel-pump', 'auto-winding-road'] },
+    { t: 'Groceries & money', k: 'продукти покупки гроші гаманець чек візок', dir: './stickers', i: ['shop-cart', 'shop-receipt', 'shop-veggie-bag', 'shop-price-tag', 'money-piggy-bank', 'money-wallet', 'money-flying-away', 'money-empty-wallet'] },
+    { t: 'Film', k: 'плівка проявка бачок хімія', dir: '../film-dev/art', i: ['tank', 'canister', 'stopwatch', 'thermometer', 'developer', 'bleach', 'fixer', 'stabilizer', 'pour', 'drain', 'wash', 'drying', 'loading'] }
 ];
 const ROUGH_BGS = ['brush', 'marker', 'tape', 'paper', 'stamp'];
 const RADIUS_BGS = ['box', 'gradient', 'outline', 'brutal', 'sticker', 'stamp'];
@@ -1770,6 +2008,11 @@ function drawShapeLayer(ctx, l, s) {
             ctx.quadraticCurveTo(j(), j(), w / 2 + j(), h / 2 + j());
             ctx.moveTo(w / 2 + j(), -h / 2 + j());
             ctx.quadraticCurveTo(j(), j(), -w / 2 + j(), h / 2 + j());
+        } else if (l.shape === 'tick') {
+            // One clean stroke: short leg down, long leg up. No wobble, no curl.
+            ctx.moveTo(-w / 2 + lw, h * 0.02);
+            ctx.lineTo(-w * 0.14, h / 2 - lw);
+            ctx.lineTo(w / 2 - lw, -h / 2 + lw);
         } else {
             ctx.moveTo(-w / 2 + lw, h * 0.05);
             ctx.quadraticCurveTo(-w * 0.3, h * 0.2, -w * 0.12, h / 2 - lw);
@@ -2520,6 +2763,25 @@ function setPath(o, path, v) {
 
 let fieldRefreshers = [];
 
+// The value a setting has on a freshly made layer (or a new document), for the slider reset buttons.
+const TEMPLATES = {};
+
+function defaultFor(target, key) {
+    if (target === doc.bg || target === doc.finish) {
+        const fresh = TEMPLATES.doc || (TEMPLATES.doc = newDoc());
+        return getPath(target === doc.bg ? fresh.bg : fresh.finish, key);
+    }
+
+    const make = { text: makeText, shape: makeShape, image: makeImage, sticker: makeSticker }[target.type];
+
+    if (!make) {
+        return undefined;
+    }
+
+    TEMPLATES[target.type] = TEMPLATES[target.type] || make();
+    return getPath(TEMPLATES[target.type], key);
+}
+
 function syncProps() {
     fieldRefreshers.forEach(fn => fn());
 }
@@ -2595,24 +2857,47 @@ function buildFields(host, defs, getTarget, onChange) {
             input.step = def.step;
             const out = document.createElement('output');
             const fmt = def.format || (v => `${Math.round(v * 100) / 100}`);
+            const resetBtn = document.createElement('button');
+            resetBtn.type = 'button';
+            resetBtn.className = 'reset-btn';
+            resetBtn.title = 'Reset';
+            resetBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
+            const fallback = () => {
+                const t = getTarget();
+                const v = t ? defaultFor(t, def.key) : undefined;
+                return typeof v === 'number' ? v : def.reset;
+            };
+            const showReset = (v) => {
+                const d = fallback();
+                resetBtn.classList.toggle('is-shown', d !== undefined && Math.abs(Number(v) - d) > 1e-9);
+            };
+            const doReset = () => {
+                const d = fallback();
+
+                if (d === undefined) {
+                    return;
+                }
+
+                input.value = d;
+                out.textContent = fmt(d);
+                changed(def, d);
+                showReset(d);
+            };
             update = t => {
                 const v = getPath(t, def.key);
                 input.value = v;
                 out.textContent = fmt(Number(v));
+                showReset(v);
             };
             input.addEventListener('input', () => {
                 out.textContent = fmt(Number(input.value));
                 changed(def, Number(input.value));
+                showReset(input.value);
             });
-            input.addEventListener('dblclick', () => {
-                if (def.reset !== undefined) {
-                    input.value = def.reset;
-                    out.textContent = fmt(def.reset);
-                    changed(def, def.reset);
-                }
-            });
-            input.title = def.reset !== undefined ? 'Double-click to reset' : '';
-            wrap.append(input, out);
+            input.addEventListener('dblclick', doReset);
+            resetBtn.addEventListener('click', doReset);
+            input.title = 'Double-click to reset';
+            wrap.append(input, out, resetBtn);
             row.append(wrap);
         } else if (def.type === 'select') {
             const sel = document.createElement('select');
@@ -3252,8 +3537,10 @@ function openPicker(mode = 'add') {
         pickerTab = l.kind === 'icon' ? 'icons' : 'emoji';
     }
 
+    $('picker-search').value = '';
     renderPicker();
     $('picker').showModal();
+    $('picker-search').focus();
 }
 
 function pickSticker(over) {
@@ -3306,10 +3593,27 @@ function renderPicker() {
         grid.append(h);
     };
 
+    // Search: every word must appear in the item's words, its group's title or group words.
+    const words = ($('picker-search').value || '').toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = (...texts) => {
+        const hay = texts.join(' ').toLowerCase();
+        return words.every(w => hay.includes(w));
+    };
+    const groupOf = (group, test) => {
+        const items = group.i.filter(test);
+        return items;
+    };
+
     if (pickerTab === 'emoji') {
         EMOJI.forEach(group => {
+            const items = groupOf(group, e => hit(e, EMOJI_WORDS.get(e) || '', group.t, group.k || ''));
+
+            if (!items.length) {
+                return;
+            }
+
             heading(group.t);
-            group.i.forEach(e => {
+            items.forEach(e => {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.className = 'pick';
@@ -3320,8 +3624,14 @@ function renderPicker() {
         });
     } else if (pickerTab === 'icons') {
         ICONS.forEach(group => {
+            const items = groupOf(group, name => hit(name.replace(/-/g, ' '), group.t, group.k || ''));
+
+            if (!items.length) {
+                return;
+            }
+
             heading(group.t);
-            group.i.forEach(name => {
+            items.forEach(name => {
                 const ch = iconChar(name);
 
                 if (!ch) {
@@ -3338,8 +3648,13 @@ function renderPicker() {
             });
         });
     } else {
-        heading('Drawn');
-        GRAPHIC_SHAPES.forEach(([kind, label]) => {
+        const shapes = GRAPHIC_SHAPES.filter(([kind, label]) => hit(kind, label, 'drawn мальоване стрілка коло обвести галочка хрестик'));
+
+        if (shapes.length) {
+            heading('Drawn');
+        }
+
+        shapes.forEach(([kind, label]) => {
             const b = document.createElement('button');
             b.type = 'button';
             b.className = 'pick pick--graphic';
@@ -3358,8 +3673,14 @@ function renderPicker() {
             grid.append(b);
         });
         PICTURES.forEach(group => {
+            const items = groupOf(group, name => hit(name.replace(/-/g, ' '), group.t, group.k || ''));
+
+            if (!items.length) {
+                return;
+            }
+
             heading(group.t);
-            group.i.forEach(name => {
+            items.forEach(name => {
                 const src = `${group.dir}/${name}.webp`;
                 const b = document.createElement('button');
                 b.type = 'button';
@@ -3370,6 +3691,13 @@ function renderPicker() {
                 grid.append(b);
             });
         });
+    }
+
+    if (!grid.children.length) {
+        const p = document.createElement('p');
+        p.className = 'picker-empty';
+        p.textContent = 'Nothing found. Try another word, or another tab.';
+        grid.append(p);
     }
 }
 
@@ -3478,6 +3806,7 @@ document.querySelectorAll('[data-picker-tab]').forEach(b => b.addEventListener('
     renderPicker();
 }));
 $('picker-close').addEventListener('click', () => $('picker').close());
+$('picker-search').addEventListener('input', () => renderPicker());
 $('picker').addEventListener('click', (e) => {
     if (e.target === $('picker')) {
         $('picker').close();

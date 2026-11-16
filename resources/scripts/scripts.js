@@ -11,20 +11,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Every app on the desktop. `dock: true` pins it to the dock; everything is in the launchpad.
 const AppRegistry = [
-    { key: 'Photos', title: 'Photos', url: './photos/index.html', width: 1180, height: 780, icon: 'bi-camera', colors: ['#ffb340', '#ff375f'], dock: true },
-    { key: 'AboutMe', title: 'About Me', url: './about.html', width: 820, height: 640, icon: 'bi-person-fill', colors: ['#5ac8fa', '#0a64d6'], dock: true },
-    { key: 'NinetyPines', title: 'Ninety Pines', url: './ninety-pines/index.html', width: 900, height: 700, icon: 'bi-tree-fill', colors: ['#3a7d44', '#163b22'], dock: true },
-    { key: 'OutOfGas', title: 'Out Of Gas', url: './out-of-gas/index.html', width: 960, height: 600, image: './resources/oug.png', colors: ['#2c2c2e', '#000000'], dock: true },
-    { key: 'UnicornNoir', title: 'Unicorn Noir', url: './unicorn-noir/index.html', width: 900, height: 660, icon: 'bi-rainbow', colors: ['#bf5af2', '#3a0ca3'], dock: true },
-    { key: 'MedievalDrift', title: 'Medieval Drift', url: './medieval-drift/index.html', width: 840, height: 700, icon: 'bi-tornado', colors: ['#d4a373', '#7f5539'], dock: true },
-    { key: 'MovaNova', title: 'Mova Nova', url: './movanova/index.html', width: 800, height: 800, icon: 'bi-translate', colors: ['#ffd60a', '#0057b7'], dock: true },
-    { key: 'Weather', title: 'Weather', url: './weather/index.html', width: 1000, height: 800, icon: 'bi-cloud-sun-fill', colors: ['#64d2ff', '#0a84ff'], dock: true },
-    { key: 'MusVis', title: 'Music Visualizer', url: './musvis/index.html', width: 1000, height: 800, icon: 'bi-music-note-beamed', colors: ['#ff6482', '#c41e3a'], dock: true },
-    { key: 'MapVis', title: 'Route Animator', url: './mapvis/index.html', width: 1100, height: 800, icon: 'bi-map-fill', colors: ['#34c759', '#0c8a5e'], dock: true },
-    { key: 'PhotoReel', title: 'Photo Reel', url: './photo-reel/index.html', width: 1280, height: 820, icon: 'bi-film', colors: ['#39ff88', '#0b5d2c'], dock: true },
-    { key: 'FilmDev', title: 'Film Dev', url: './film-dev/index.html', width: 1180, height: 800, icon: 'bi-hourglass-split', colors: ['#ff6b4a', '#7a1408'], dock: true },
-    { key: 'Thumbnail', title: 'Thumbnail', url: './thumbnail/index.html', width: 1360, height: 860, icon: 'bi-image', colors: ['#ffd400', '#7a4b00'], dock: true },
-    { key: 'TabStash', title: 'TabStash', url: './tab-stash/index.html', width: 900, height: 700, icon: 'bi-window-stack', colors: ['#8e8e93', '#3a3a3c'], dock: true }
+    { key: 'Photos', title: 'Photos', url: './photos/index.html', width: 1180, height: 780, icon: 'bi-camera', image: './resources/icons/photos.webp', colors: ['#ffb340', '#ff375f'], dock: true },
+    { key: 'AboutMe', title: 'About Me', url: './about.html', width: 820, height: 640, icon: 'bi-person-fill', image: './resources/icons/about.webp', colors: ['#5ac8fa', '#0a64d6'], dock: true },
+    { key: 'NinetyPines', title: 'Ninety Pines', url: './ninety-pines/index.html', width: 900, height: 700, icon: 'bi-tree-fill', image: './resources/icons/ninety-pines.webp', colors: ['#3a7d44', '#163b22'], dock: true },
+    { key: 'OutOfGas', title: 'Out Of Gas', url: './out-of-gas/index.html', width: 960, height: 600, image: './resources/icons/out-of-gas.webp', colors: ['#2c2c2e', '#000000'], dock: true },
+    { key: 'UnicornNoir', title: 'Unicorn Noir', url: './unicorn-noir/index.html', width: 900, height: 660, icon: 'bi-rainbow', image: './resources/icons/unicorn-noir.webp', colors: ['#bf5af2', '#3a0ca3'], dock: true },
+    { key: 'MedievalDrift', title: 'Medieval Drift', url: './medieval-drift/index.html', width: 840, height: 700, icon: 'bi-tornado', image: './resources/icons/medieval-drift.webp', colors: ['#d4a373', '#7f5539'], dock: true },
+    { key: 'MovaNova', title: 'Mova Nova', url: './movanova/index.html', width: 800, height: 800, icon: 'bi-translate', image: './resources/icons/mova-nova.webp', colors: ['#ffd60a', '#0057b7'], dock: true },
+    { key: 'Weather', title: 'Weather', url: './weather/index.html', width: 1000, height: 800, icon: 'bi-cloud-sun-fill', image: './resources/icons/weather.webp', colors: ['#64d2ff', '#0a84ff'], dock: true },
+    { key: 'MusVis', title: 'Music Visualizer', url: './musvis/index.html', width: 1000, height: 800, icon: 'bi-music-note-beamed', image: './resources/icons/musvis.webp', colors: ['#ff6482', '#c41e3a'], dock: true },
+    { key: 'MapVis', title: 'Route Animator', url: './mapvis/index.html', width: 1100, height: 800, icon: 'bi-map-fill', image: './resources/icons/mapvis.webp', colors: ['#34c759', '#0c8a5e'], dock: true },
+    { key: 'PhotoReel', title: 'Photo Reel', url: './photo-reel/index.html', width: 1280, height: 820, icon: 'bi-film', image: './resources/icons/photo-reel.webp', colors: ['#39ff88', '#0b5d2c'], dock: true },
+    { key: 'FilmDev', title: 'Film Dev', url: './film-dev/index.html', width: 1180, height: 800, icon: 'bi-hourglass-split', image: './resources/icons/film-dev.webp', colors: ['#ff6b4a', '#7a1408'], dock: true },
+    { key: 'Thumbnail', title: 'Thumbnail', url: './thumbnail/index.html', width: 1360, height: 860, icon: 'bi-image', image: './resources/icons/thumbnail.webp', colors: ['#ffd400', '#7a4b00'], dock: true },
+    { key: 'TabStash', title: 'TabStash', url: './tab-stash/index.html', width: 900, height: 700, icon: 'bi-window-stack', image: './resources/icons/tab-stash.webp', colors: ['#8e8e93', '#3a3a3c'], dock: true }
 ];
 
 function appIconHtml(app) {
@@ -76,6 +76,13 @@ const WindowManager = {
             body.appendChild(content);
         }
 
+        if (content instanceof HTMLIFrameElement) {
+            const zoom = windowEl.querySelector('.window-control--maximize');
+            zoom.classList.add('window-control--newtab');
+            zoom.setAttribute('aria-label', 'Open in a new tab');
+            zoom.title = 'Open in a new tab (double-click the title bar to maximize)';
+        }
+
         windowEl.querySelector('.window-controls').addEventListener('click', event => {
             const control = event.target.closest('[data-window-action]');
 
@@ -90,7 +97,22 @@ const WindowManager = {
             } else if (action === 'minimize') {
                 this.minimizeWindow(windowEl);
             } else if (action === 'maximize') {
-                this.toggleMaximizeWindow(windowEl);
+                // App windows open in their own browser tab; double-clicking the title bar still maximizes.
+                const frame = windowEl.querySelector('.window-body iframe');
+
+                if (frame) {
+                    let url = frame.src;
+
+                    try {
+                        url = frame.contentWindow.location.href || url;
+                    } catch (error) {
+                        // Another origin: fall back to the address the window was opened with.
+                    }
+
+                    window.open(url, '_blank', 'noopener');
+                } else {
+                    this.toggleMaximizeWindow(windowEl);
+                }
             }
         });
 
